@@ -1,0 +1,251 @@
+String.split()
+
+String有个方法是分割字符串  .split()。但是有写字符串是需要转义才能分割，不然就会出错。
+
+需要转义的字符串：.  $  |   (   )  [   {   ^  ?  *  +  \\      共12个特殊字符，遇到以这些字符进行分割字符串的时候，需要在这些特殊字符前加双反斜杠 \\
+
+
+
+关于java中list.size() <=0的问题？
+
+又看了一遍List下实现类的源码，List下数组形式的实现如ArrayList、Vector、Stack在扩容时会会判断新容量
+是不是已经溢出，如果溢出直接throw new OutOfMemoryError不会等到调用size()时返回已经溢出的int值，
+而LinkedList只会把int型size++，然后调用size()时返回此size。这几个类一直放数据得放到21亿多，
+执行起来太慢了我等不及，我继承了其中一个然后覆盖了add与size方法，前者把size属性加一，后者
+返回size属性相当于精简了LInkedList的这俩方法。发现是会溢出。可我想了想我看到的代码
+List list = getXXXList();if(list == null || list.size() <= 0){xxxxx}，size() <= 0出现在这种语境下，
+我觉得应该不是防止溢出，意思应该就是isEmpty()是在判断返回的List为空或者无数据吧....
+
+
+推荐的 单例的写法
+
+		推荐使用”惰性初始化holder“或”枚举“技巧
+		 
+		这里使用的是  惰性初始化 holder
+
+		public class Resource {
+			
+			private static  class ResourceHolder{
+				private static Resource resource = new Resource() ;
+			}
+
+			private static Resource resource ;
+			
+			public static Resource getInstance(){
+				
+				return ResourceHolder.resource ;
+			}
+			
+			private Resource(){}
+
+		}
+
+
+		这样的话因为内部类是在第一次调用 getInstance 的时候才获取的 对象。
+		因为 第一次调用的时候 才加载的 ResourceHolder 类。
+
+
+		还有一种 
+			双重校验锁DCL 静态写法
+
+
+		 public class Singleton {
+		 
+			private volatile static Singleton singleton;
+
+			private Singleton() {}
+
+			public static Singleton getSingleton() {
+				
+				if(singleton == null) {
+					sychronized(Singleton.class) {
+						if(singleton == null) {
+							singleton = new Sinleton();
+						}
+					}
+				}
+
+				return singleton;
+			}
+		 }
+
+
+
+
+TreeMap的顺序是自然顺序（如整数从小到大），也可以指定比较函数。但不是插入的顺序。 
+
+用LinkedHashMap吧。它内部有一个链表，保持插入的顺序。迭代的时候，也是按照插入顺序迭代，而且迭代比HashMap快。
+
+
+maven 随时使用最新的 jar 
+
+<version>[1.0.11,)</version>
+
+
+redis zset 分数相同了怎么办
+	因为是 double 是 x.d
+	那么 x 可以用分数
+	d 就用时间戳
+	时间戳太长就截取下
+
+
+ThreadLocalRandom类是Java 7新增的一个类，它是Random的增强版。在并发访问环境下，
+使用ThreadLocalRandom来代替Random可以减少多线程资源竞争，
+最终保证系统具有更好的线程安全性。
+
+ThreadLocalRandom
+ThreadLocalRandom 和 Random 测试
+
+		  ThreadLocalRandom  341 286 285 306 267
+		  Random   几乎卡死
+
+			/**
+		     * 测试出来了  ThreadLocalRandom  341 286 285 306 267
+		     *          random   几乎卡死
+		     */
+		    Random random1 = new Random();
+		    @Test
+		    public void fun12() throws InterruptedException {
+			Instant instant1 = Instant.now();
+			int end = 1111;
+			CountDownLatch countDownLatch = new CountDownLatch(end);
+			ExecutorService executorService = Executors.newFixedThreadPool(20);
+			int index = 0;
+			while (index < end) {
+			    executorService.execute(()-> {
+				for (int i=0; i<500000; i++) {
+				    // 341 286 285 306 267
+				    ThreadLocalRandom.current().nextInt(1000);//731
+				    // 几乎卡死
+				    //random1.nextInt(1000);// 1501
+				}
+				countDownLatch.countDown();
+			    });
+			    index++;
+			}
+			countDownLatch.await();
+			System.out.println("xxxxxxxxxxxxxxxxxxxx  "+index);
+			executorService.shutdown();
+			Instant instant2 = Instant.now();
+			System.out.println(instant2.toEpochMilli() - instant1.toEpochMilli());
+
+		    }
+
+		ThreadLocalRandom 和 Random 和 
+
+		SecureRandom secureRandom = new SecureRandom();
+
+
+secureRandom 
+SecureRandom类收集了一些随机事件，比如鼠标点击，键盘点击等等，SecureRandom 使用这些随机事件作为种子。
+所以 secureRandom  是真正的随机
+
+
+
+jedis zset
+	score 0.5  score 有小数点的情况下 计算机是无法准确表示的 0.1 可能是 0.100001 
+		但是 0.5 可以 因为 0.5 = 1/2; 而二进制数 可以表示 1/2  1/2^2 ...
+	 直接字符串拼接 
+	 是否是小数  
+	double s1 = 1.1;
+		double s2 = 1.0;
+		System.out.println((long)s1 == s1);
+		System.out.println((long)s2 == s2);
+
+	这样就可以判断
+
+ list 强转 
+	List<Integer> list = new ArrayList<>();
+	List<Number> collect = list.stream().collect(Collectors.toList());
+
+
+set 是否添加了重复数据
+	如果 set 添加了重复数据的话 set.add() 会 返回 false;添加成功返回 true
+
+
+
+位移操作不能对小数 double float 使用
+
+
+刷新排行榜
+	客户端请求的时候发送一个时间戳 这个时间戳是服务器发送给客户端的。第一次请求没有默认就为 0
+
+	服务端收到请求就检查时间戳, 通过时间戳判断上一次给客户端数据是什么时候,如果超过了排行榜数据刷新的时间 就将数据发送给客户端,然后带上当前时间戳
+
+	如果没有超过排行榜数据刷新的时间 就不发送数据, 而是直接将当前时间戳发送给客户端，让客户端更新时间戳
+
+
+
+class A {
+    static final int temp = 1;
+    static {
+        System.out.println("A被初始化了!!!");
+    }
+}
+
+Test
+    public void test14() {
+    // 运行一个静态变量的 final 的时候不会触发类的初始化 对就是初始化 而不是加载
+      System.out.println(A.temp);
+    }
+
+
+关于HashMap可能出现的内存泄漏，当我们定义一个类作为key，同时我们又重写了hashCode()方法，hash值的生成依赖于该类的一个属性，
+这个属性对外暴露写方法，当该类的一个实例作为key已经被put进入了HashMap，在此之后与hash值生成有关的那个属性的值又被改变了，
+那么生成的hash值就很有可能不与put时的hash值相同，那么这个key对应的value就再也不能被检索到，刚好这个HashMap的生命周期又足够长，
+就造成了内存泄漏。当然，内存泄漏的场景可能不止这一种，这是我最先能想到的一种场景，若有其他场景，请各位不吝赐教！
+
+
+URL url = getClassLoade.getResource("com.zhu.hah");
+1、getResource
+加载当前类加载器以及父类加载器所在路径的资源文件
+将遇到的第一个资源文件直接返回
+比如当前工程累路径有 com.zhu.hah 文件,引入的第三方 jar 包中也有这个文件
+返回的是当前工程下这个资源文件
+
+
+Enumeration<URL> enumeration = loader.getResources("com.zhu.hah");
+2、getResources
+加载当前类加载器以及父类加载器所在路径的资源文件
+将遇到的所有资源文件全部返回
+比如当前工程类路径有 com.zhu.hah 文件，引入的第三方 jar 包中也有这个文件
+则将这些文件全部返回
+
+
+
+
+final 修饰的变量修改
+	编译器的内联优化，即编译时吧该 final 的值直接放到了引用它的地方。即使是反射修改了该属性也没有用
+	么 Java 会对什么类型的 final 值进行内联编译呢？它们基本类型 byte, char, short, int, long, float, 
+	double, boolean; 再加上 Literal String 类型(直接双引号字符串)。只要是不被编译器内联优化的 final 属性
+	都可以通过反射有效的进行修改(修改后能使用到新的值)
+	
+	但是你是 new String("d"); 这样子不会被放入常量池也不会进行 内联优化
+
+
+
+
+
+数据库
+	EXPLAIN  select * from user order by a1,a2 asc
+	经过试验 order by 并不会使用索引 
+	只有在 覆盖索引的时候才会使用索引
+	EXPLAIN  select a1,a2 from user where a1 = 1 order by a3,a1 desc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
