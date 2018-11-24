@@ -1,0 +1,681 @@
+Lucene
+
+    过程是 获取原始文档 创建文档对象  分析文档 创建索引
+    
+   1. 获取原始文档就是利用爬虫等各种手段获取文档。
+    
+    
+   2. 创建文档对象就是将文档变成一个 Document 对象，然后创建 Field 域。就相当于对象里面的属性。
+        就是将文档分类，将 file_name file_path 等提取出来变成一个 field  每一个 field 都有一个 Name 和 value
+                name 就是这个域里面的vlaue里面表达的是什么，value 就是详细信息
+                比如 file_name 域  的name ：file_name  value : springmvc.txt
+    
+
+            每一个 Document(文档) 有多个 域 Field(就相当于对象的属性)
+            Field 域 又有 Name 和 value 字段
+
+            每个 Document 可以有多个 Field，不同的 Field,同一个 Docunent 可以有相同的 Field （域名和域值都相等）
+            每一个文档都有一个唯一的编号，就是文档 id  Id从 0 开始自增长加一
+                    索引从 0开始 就算删除 索引 id 也不会消失，就和 musql 的自增一样
+            
+           什么叫做索引
+              将非结构化数据中的一部分信息提取出来，重新组织，使其变得有一定结构，然后对此有一定结构的数据
+              进行搜索，从而达到搜索相对较快的目的。这部分从非结构化数据中提取出的然后重新组织的信息，
+              我们称之为索引。
+           
+           
+              全文检索就是将
+                    这种先建立索引，再对索引进行搜索的过程就叫全文检索
+
+     
+
+    3. 分析文档  就是从域中分析有用的信息创建 Term ，也就是索引
+        将原始内容创建为包含域(Field) 的文档(document),需要再对域中的内容进行分析，分析的过程是经过对原始
+            文档提取单词、将字母转为小写、去除标点符号、去除停用词、连接词(and、的、是、is)等过程生成最终的词汇单元，
+            可以将语汇理解为一个个的单词
+
+            每一个单词叫做一个 Term, 不同的域中拆分出来的相同的单词是不同的 term. term 中包含两部分
+               一部分是文档的域名
+               另一部分是单词的内容
+                
+                Term 包含两部分  K V  格式的
+     
+            Term 就是你提取出来的语汇单词。Term 包含两部分  K V  。key 就是所属的 Field. Value 就是 Term 的值
+            Term 最终会变成索引保存到索引库
+
+            创建索引就是(创建 Term )
+
+        
+     4. 创建索引
+            对所有文档分析得出的语汇单词进行索引，索引的目的是为了索引，最终要实现只搜索
+            被索引的语汇单元从而找到 Document（文档）
+            将是将 Term 对象存储到索引库，然后与文档对象关联起来.
+            如果有不同的文档对象拥有想同的 Term 会使用同一个 Term 不会创建新的 索引。
+            Term 存到了索引库里面，与 Document 对象关联起来了，就变成了索引。
+            索引上面有 Document 的唯一 id。两个文档都指向同一个 Document ，那么就是两个 id 都在 一个索引上。
+
+        
+
+    
+
+   查询索引的过程
+    1. 用户查询接口
+    2. 创建查询
+    3. 执行查询
+    4. 渲染结果(就是将用户搜索的关键字显示高亮)
+        
+        查询的时候先返回  符合条件多的 document
+        比如 查询 spring document1 有三个域符合 spring, document2 有两个域符合 spring, 
+            那么就是先返回  document1  然后返回 document2
+
+    创建索引是对语汇单元索引，通过词语找文档，这种索引的结构叫做 倒排索引结构
+
+    传统方法是根据文件找到该文件的内容，在文件内容中匹配搜索关键字，这种方法是顺序扫描方法，
+        数据量大、搜索慢
+
+
+
+    搜索语法为 fileName:lucene  表示搜索出 fileName 域中包含 Lucene 的文档
+
+        搜索过程就是在索引上查找域为 fileName 并且关键字为 Lucene 的 term 并根据 term  找到 文档 id 列表
+        
+
+
+Lucene 自带的中文分词器
+
+    StandardAnalyzer 
+        单字分词，将中文一个一个拆分
+    
+    CJKAnalyzer
+        二分法分词
+           两个两个字分词 
+
+
+    注意搜索使用的分析器要和索引使用的分析器一致
+
+
+我们要使用的是第三方 analyzer
+    IKAnalyer
+
+
+
+lucene 解析器查询
+    
+    使用  *:* 这种的
+    
+    范围查询 
+            filesize:[1 TO 1000}  [ 表示包含 1 {表示不包含1000
+                [1 TO *} 表示 1 到无穷大
+         lucene 支持数值类型，不支持字符串类型，也就说是你直接  filesize:[1 TO 1000} 是没有用的
+            必须使用 NumericReangeQuery 对象来查询
+         在 solr 中支持字符串类型
+
+    组合条件查询
+           Occur.MUST 查询条件必须满足,相当于 and  + 
+           Occur.SHOULD 查询条件可选,相当于 or     空格   should
+           Occur.MUST_NOT 查询条件必须不满足 相当于 not - 
+
+         第二种写法
+          条件1 AND 条件2  表示 条件1 和 条件2 都得满足
+          条件1 OR 条件2   表示 条件1 和 条件2 满足一样就可以了
+          条件1 NOT 条件2  表示 条件1 和 条件2 都不能满足
+
+
+ 
+  从非结构化数据中提取一部分数据，再重新组织的数据叫索引
+
+  先创建索引，再对索引进行搜索的过程叫全文检索
+
+
+
+实现流程
+  创建索引  原始文档   获取文档  创建文档对象   分析文档  创建索引(写入索引库)    
+  
+  查询索引  创建索引接口  创建查询索引的对象  执行查询  渲染结果  
+
+
+
+solr 和 Lucene 区别
+
+    Lucene 是一个开放源代码的全文检索引擎工具包。
+    
+    solr 是一个基于 Lucene 的搜索引擎项目
+
+
+
+
+uniquekey
+    就是用来标记 id 的
+    uniquekey 的作用是唯一标识索引，当有插入操作时，若uniquekey的值相同，solr会覆盖前一个索引。这也是一种优化策略吧。
+    而给多张表建索引，网上的建议是数据库表新建一个id字段关联索引，但是这样的话，多张表的id得保证唯一性，
+    否则后面的ID相同的数据会覆盖前面的。目前，我的做法是把uniquekey注释掉。不完美。
+
+copyField
+
+    其实说的简单一点，比如现在你要查询包涵"Java"的博客， 那么你肯定要查内容，标题是否包含Java，但是solr不能像SQL那样，
+    where tittle like '%Java%' or content like '%Java%'. 这个时候copyField就派上用场了， 定义一个新字段，
+    将title和content 复制到这个新字段，索引的时候，直接从这个新字段查询，这样就达到目地了。 这便是copyField的典型应用场景 。注意：如果dest由多个source构成，就需要将其指定为multiValued。
+
+
+solr 的 multivalued
+
+    一般用在 copyField 上面，代表一个 Field 可以有多个值，搜索任何一个都可以搜索到
+
+
+solr 怎么安装中文分词器
+    使用 IKAnalyzer 中文分析器
+    
+    第一步: 把 IKAnalyzer2012FF_u1.jar 添加到 solr/WEB-INF/lib 目录下
+    第二步: 赋值 IKAnalyzer 的配置文件和自定义词典和停用词词典到 solr 的 classpath 下
+    第三步：
+        <fieldType name="text_ik" class="solr.TextField"> <!-- name 随便起不要重复就好 -->
+          <analyzer class="org.wltea.analyzer.lucene.IKAnalyzer"/>
+        </fieldType>
+    
+    
+solr 
+    删除
+      Document Type  必须是 XML 不能是 JSON 的
+     
+  使用 id 删除
+      <delete>
+        <id>1</id>
+      </delete>
+        <commit/> <!-- 提交 -->
+      
+  
+  使用条件删除
+       <delete>
+        <query>name:change</query>
+      </delete>
+        <commit/> <!-- 提交 -->
+
+      使用 XML 的时候 ，solr 的自动提交不好使。你必须手动提交
+
+
+
+---------------------------------
+
+
+安装 solr
+
+  你主要注意的是 solr 里面的
+    bin       启动 solr 使用的是内置服务器 
+    contrib   插件 第三方的插件就放在了这里
+    dist      案例
+    docs      文档
+    example   例子
+    licenses  许可
+
+
+    example 重点还是 example 文件夹
+    里面的
+       lib solr webapps 三个最重要
+     
+             lib 文件夹下面有 jetty*.jar 是 jetty 服务器的jar，我们不需要
+              ext 文件夹里面的需要  这里面的 jar 需要导入
+         
+     solr 是 solr 的家目录，就是存放索引的目录。
+      collection1 是一个存放索引的目录可以有多个
+           collection2... 你可以复制一个 collection1 然后改名字，注意你还需要改 core.properties 文件
+                    里面有一个 name=collection1 将其改名字 
+       collection1 里面在运行的时候会自动生成一个 data/index 目录来保存索引
+
+
+    对于还有一个 weblogic.xml 这个是 weblogin 服务器的入口 
+    我们只用 tomcat 
+
+---------------------------------
+
+     war 包保存地址  需要移动到 tomcat
+            /opt/solr-4.10.3/dist/ 
+            移动完以后启动 tomcat 就会将 war 包解压缩，然后关闭  tomcat 将
+            war 包删除。留下解压的 solr 工程
+
+      solr jar 需要移动到 solr.war 包的 lib 下面
+            /opt/solr-4.10.3/example/lib/ext/
+            将里面的 jar 包全部复制到 tomcat 的 solr 工程的 lib 下面
+        
+      solr home
+            /opt/solr-4.10.3/example/solr
+           将其文件夹复制到与 Tomcat 同目录下。然后在 solr 工程里面配置
+
+      solrhome 你需要在 web.xml 里配置
+        关联solr及solrhome。需要修改solr工程的web.xml文件。
+        <env-entry>
+           <env-entry-name>solr/home</env-entry-name>
+           <!-- 配置 solrhome 所在的地址  -->
+           <env-entry-value>/usr/local/solr/solrhome/</env-entry-value>          
+           <env-entry-type>java.lang.String</env-entry-type>
+        </env-entry>
+
+
+---------------------------------
+
+
+
+  solr 后台管理页面的按钮介绍
+    Dashboard   仪表盘，当前 solr 服务器的一些状态
+    Logging     配置文件
+    Core Admin  colection 管理  如果不能加 就手动加
+    Java Properties  java 的信息
+    Thread Dump   每次操作 solr 都会给我们记录起来
+
+
+    然后就是 collection1 里面的介绍
+      Overview      状态
+      Analyzer      查看不同的域的分词器分词的效果 查看怎么分词什么的
+      Dataimport    数据导入。可以定义数据导入处理器，从关系数据库将数据导入到 solr 索引库中 
+      Documents   查询
+      Fields
+      Ping   和 redia 的 ping 一样，测试响应速度
+      Plugins 加载的插件 也就是 solr 目录里面的 contrib 第三方提供的插件
+      Query 查询
+      Replication   配置文件，其实就是 conllection 的 conf 里面的配置文件
+      Schema Browser  solr 里面的域的查看,solr 的域必须先提前定义好，没有定义就无法存取  
+
+
+-------------------------------------
+
+    对于 
+     Documents
+        Request-Handler (qt)
+           指的是使用的是什么处理器  /update
+        Document Type 
+           数据的格式是什么样的
+        Document(s)
+            数据就往这框里面输入
+        Commit Within
+            1000 毫秒以后自动提交，如果是  XML 格式的不会自动提交，要手动 <commit/> 标签
+        Overwrite
+            数据是否覆盖  true 覆盖
+        Boost 数据的比重。一般都默认 1.0 就好了，越大排的越前面，相关度
+
+
+  对于
+    Query
+        Request-Handler (qt)
+           指的是使用的是什么处理器  /selete
+        q 
+           你要查询的数据的语句   *:*
+        fq  
+           过滤器，想过滤可以在这里写语句和 q 里面一样写，符合的才会被筛选出来
+        sort
+            排序 使用  字段 desc   或 字段 asc
+        start, rows
+            返回的行数， 1,3 从第一行开始返回三行。默认 0,10  和 mysql 的 limit 一样
+        fl  Field list, comma separated  表示你只想要看哪里字段，那么输入 id，想要看多个，就那
+             ","  隔开
+        df  默认查询的域
+        wt  什么格式显示 默认 json
+        hl  高亮 
+            hl.fl  高亮的域 
+            hl.simple.pre  <em>
+            hl.simple.post </em>
+            要高亮的字(只有你搜索的关键字会变高亮) 会用 <em></em> 标签包裹起来，你也可以加上样式
+                <em style="color=red">
+            
+            高亮的数据和查询出来的数据不在一个容器里面，会分开的
+
+--------------------------------------
+
+solr 域
+     schema.xml
+    schema.xml 在 collection 的 conf 里面。
+    conf 里面你只要懂两个
+       solrconfig.xml
+       schema.xml
+    
+    而 schema.xml 里面配置的是大量的域
+
+
+
+配置中文分词器
+
+
+    建对应的业务域。需要制定中文分析器。
+
+    创建步骤：
+    第一步：把中文分析器添加到工程中。
+    1、把IKAnalyzer2012FF_u1.jar添加到solr工程的lib目录下
+
+    2、把扩展词典、配置文件放到solr工程的WEB-INF/classes目录下。
+            ext_stopword.dic IKAnalyzer.cfg.xml mydict.dic   classes 没有就自己创建
+
+    第二步：配置一个FieldType，制定使用IKAnalyzer
+    修改schema.xml文件  在 solr 的 solrhome 文件夹下
+        /solrhome/collection1/conf
+
+    修改Solr的schema.xml文件，在末尾添加FieldType：
+    <fieldType name="text_ik" class="solr.TextField"> <!-- name 随便起不要重复就好 -->
+      <analyzer class="org.wltea.analyzer.lucene.IKAnalyzer"/>
+    </fieldType>
+
+        
+--------------------------------------------
+
+ 后台管理数据导入
+     批量导入数据
+     使用 dataimport 插件批量导入数据
+     第一步：吧 dataimport 插件依赖的 jar 包添加到 solrcore(collection1\lib)
+          jar 在 solr.zip(http://lucene.apache.org) 下载的 solr 的 dist 里面。
+            solr-dataimporthandler-extras-4.10.3.jar
+            solr-dataimporthandler-4.10.3.jar
+            没有 lib 就创建一个
+
+            你还需要一个 mysql 的驱动
+                mysql-connector-java-5.1.45-bin.jar 
+     
+     第二步：
+          配置 solrconfig.xml 文件,添加一个 requestHandler
+          <requestHandler name="/dataimport"
+            class="org.apache.solr.handler.dataimport.DataImportHandler">
+              <lst name="defaults">
+                <str name="config">data-config.xml</str>
+              </lst>
+          </requestHandler>
+     
+     第三步：
+          创建一个 data-config.xml 保存到 collection1/conf/ 目录下
+         <dataConfig>
+            <dataSource type="JdbcDataSource"
+                driver="com.mysql.jdbc.Driver"
+                url="jdbc:mysql://localhost:3306/e3mall"
+                user="root"
+                password="123"/>
+           
+                        
+         <document name="salesDoc">
+              <entity name="t_map_point"  
+                query="SELECT
+					  a.id,
+					  a.title,
+					  a.sell_point,
+					  a.price,
+					  a.image,
+					  b.name          category_name
+					FROM tb_item a
+					  LEFT JOIN tb_item_cat b
+						ON a.cid = b.id
+					WHERE a.status = 1" >
+               <field name="id" column="id" />
+               <field name="item_title" column="title" />
+               <field name="item_sell_point" column="sell_point" />
+               <field name="item_price" column="price" />
+               <field name="item_image" column="image" />
+			   <field name="item_category_name" column="category_name" />
+             </entity>
+           </document>
+        </dataConfig>
+
+ 
+ solr 查询
+    
+     范围查询 item_price:{18900 TO *]
+     排序     item_price asc   或 item_price desc
+
+
+
+
+
+
+
+------------------------------------------------------
+
+
+使用 SolrJ 管理索引库
+         索引 就是创建索引     搜索 就是查询索引
+    SolrJ 是访问 Solr 服务的 java 客户端，提供 索引 和 搜索 的请求方法， solrJ 通常嵌入在业务系统中，
+        通过 SolrJ 的 API 接口操作 solr 服务
+
+
+Solr 的 jar    
+    在 solr dist 文件夹下的
+        solr-solrj-4.10.3.jar  核心包
+     还有 solrj-lib 文件夹下的所有包
+
+
+
+
+// 与添加一致 只要 ID 相同就是更新， ID 不同就是添加
+
+
+
+
+
+    高亮
+         "highlighting": {
+    "536563": {
+      "item_category_name": [
+        "<em>手机</em>"
+      ],
+      "item_title": [
+        "new2 - 阿尔卡特 (OT-927) 炭黑 联通3G<em>手机</em> 双卡双待"
+      ]
+    },
+    "562379": {
+      "item_category_name": [
+        "<em>手机</em>"
+      ],
+      "item_title": [
+        "new8- 三星 W999 黑色 电信3G<em>手机</em> 双卡双待双通"
+      ]
+    }
+  }
+
+
+    Map<String, Map<String, List<String>>> 
+       Map K id  V Map 里面是 id 所属的要高亮的值
+
+    Map<String, List<String>>
+        Map K 域  List 值，因为一个域可能有多个值所以是 List 一般 List 只有一个值
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

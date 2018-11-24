@@ -1,0 +1,41 @@
+HashMap<Integer,String> map = new HashMap<Integer,String>();
+map.put(new Integer(2), "a");
+map.put(new Integer(5), "c");
+map.put(new Integer(1), "b");
+map.put(new Integer(3), "aa");
+List<Map.Entry<Integer,String>> li = new ArrayList<Map.Entry<Integer,String>>(map.entrySet());
+ // 为什么一定要 list 因为 Collection.srot(List,Comparator); 只支持 list 排序
+Collections.sort(li,new Comparator<Map.Entry<Integer,String>>(){
+    public int compare(Entry<Integer,String> a,Entry<Integer,String> b){
+        return a.getValue().compareTo(b.getValue());}});
+for(Map.Entry<Integer,String> me : li){System.out.println(me.getKey()+":"+me.getValue());}
+
+List 是可以删除添加的。
+
+所有的 map 等获取的元素都是可以删除的
+
+1. 你使用 map.entrySet();获取 map 的 entry 对象 set.然后 new 一个 list 将其 set 里面的值添加进去。
+    list 的构造函数就可以添加 set。
+2. 然后使用 collection.sort(); 对 list 进行排序，需要两个参数 第一个是 List 第二个是 comparator 比较器。
+   比较器里面接收 entry 对象，然后你想比较 key value 都随便你。
+
+   最后将其 list 遍历就排序好了
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

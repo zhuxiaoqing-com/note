@@ -1,0 +1,1299 @@
+Nosql
+
+  进化历史
+ 1 单机 MySql 的美好年代
+    当数据量的总大小 一个机器放不下时
+    数据的索引（B+Tree）一个机器放不下时
+    访问量(读写混合)一个实例不能承受时
+
+ 2 Memcached(缓存)+MySQL+ 垂直拆分
+    后来，随着访问量的上升，几乎大部分使用 MySQL 架构的网站在数据库上否开始出现了性能问题，web 程序不再仅仅专注功能上，同时也在追求性能。程序员们开始
+    大量的使用缓存技术来缓解数据库的压力，优化数据库的结构和索引。开始比较流行的是通过文件缓存来缓解数据库压力，但是当访问量继续增大的时候，多台 web 机器通过
+    文件缓存不能共享，大量的小文件缓存也带来了比较高的 IO 压力。在这个时候，Memcached 就自然的成为了一个非常时尚的技术产品。
+    
+    垂直分割指的是：表的记录并不多，但是字段却很长，表占用空间很大，检索表的时候需要执行大量的IO，严重降低了性能。这时需要把大的字段拆分到另一个表，并且该表与原表是一对一的关系。
+    水平分割：
+
+    例：QQ的登录表。假设QQ的用户有100亿，如果只有一张表，每个用户登录的时候数据库都要从这100亿中查找，会很慢很慢。如果将这一张表分成100份，每张表有1亿条，就小了很多，比如qq0,qq1,qq1...qq99表。
+
+    用户登录的时候，可以将用户的id%100，那么会得到0-99的数，查询表的时候，将表名qq跟取模的数连接起来，就构建了表名。比如123456789用户，取模的89，那么就到qq89表查询，查询的时间将会大大缩短。
+
+    这就是水平分割
+
+  3 Mysql 主从复制 读写分离
+      由于数据库的写入压力增加，Memcached 只能缓解数据库的读取压力。读写集中在一个数据库上让数据库不堪重负，大部分网站开始使用主从复制技术来达到读写分离，
+      以提高读写性能和读库的可扩展性。Mysql 的 master-slave 模式成为这个时候的网站标配了。
+
+  4. 分库分表+水平拆分+mysql集群
+      在 Memcached 的高速缓存，MySQL 的主从复制，读写分离的基础之上，这时 MySQL 主库的写压力开始出现瓶颈，而数据量的持续猛增，由于 MyISAM 使用表锁，
+      在高并发下会出现严重的锁问题，大量的高并发 MySQL 应用开始使用 InoDB 引擎代替 MyISAM
+
+      同时，开始流行使用分表分库来缓解压力和数据增长的扩展问题。这个时候，分表分库成了一个热门技术，是面试的热门问题也是业界讨论的热门技术问题。
+      也就在这个时候，MySQL 推出了还不太稳定的表分区，这也就给技术实力一般的公司带来了希望。虽然 MySQL 推出了 MySQL Cluster 集群，但性能也不能很好
+      满足互联网的要求，只是在高可靠性上提供了非常大的保证。
+
+  5. MySQL 的扩展性瓶颈
+    MySQL 数据库也经常存储一些大文本字段，导致数据库表非常的大，在做数据恢复的时候就导致非常的慢，不容易快速恢复数据库。比如 1000万4KB大小的文本
+    就接近40GB的大小，如果能把这些数据从MySQL省去，MySQL将变得非常的小。关系数据库很强大，但是它并不能应付所有的应用场景。MySQL 的扩展性差(需要复杂的技术来实现)，
+    大数据下 IO 压力大，表结构更改困难，正是当前使用 MySQL 的开发人员面临的问题。
+    
+  6. 是图片就不管了
+  7. 为什么用 NoSQL
+    今天我们可以通过第三方平台(如：Google,Facebook等)可以很容易和抓取数据。用户的个人信息，社交网络，地理位置，用户生成的数据和用户操作日志已经成倍的增加。
+    我们如果要对这些用户数据进行挖掘，那 SQL 数据库已经不适合这些应用了,NoSQL 数据库的发展也能很好的处理这些大的数据
+
+
+NoSQL 是什么
+    NoSQL(NoSQL = Not Only SQL) 不仅仅是 SQL 
+    泛指非关系型的数据库。随着互联网 web2.0 网站的兴起，传统的关系数据库在应付 web2.0 网站，特别是超大规模和高并发的 SNS 类型的 web2.0 纯动态
+    网站已经显得力不从心，暴露了很多难以克服的问题，而非关系型的数据库则由于其本身的特点得到了非常迅速的发展。NoSQL 数据库的产生就是为了解决大规模
+    数据集合多重数据种类带来的挑战，尤其是大数据应用难点，包括超大规模数据的存储
+
+    例如谷歌或Facebook每天为他们的用户收集亿万比特的数据。这些类型的数据村塾不需要固定的模式，无需多余操作就可以横向扩展。
+
+
+ NoSQL 特点
+    易扩展 大数据量高性能  多样灵活的数据模型  传统RDBMS VS NOSQL
+    
+    易扩展
+       NoSQL  数据库种类繁多，但是一个共同的特点都是去掉关系数据库的关系型特性。
+       数据之间无关系，这样就非常容易扩展，也无形之间，在架构的层面上带来了可扩展的能力。
+    
+    大数据量高性能
+       NoSQL 数据库都具有非常高的读写性能，尤其在大数据量下，同样表现优秀。
+       这得益于它的无关系性，数据库的结构简单。
+       一般 MySQL 使用 Query Cache, 每次表的更新 Cache 就失效，是一种大粒度的 Cache.
+       在针对 web2.0 的交互频繁的应用，Cache 性能不高。
+       而NoSQL 的 Cache 是记录级的，是一种细粒度的Cache,所以NoSQL在这个层面上来说就要性能高很多了
+
+    多样灵活的数据模型
+       NoSQL 无需事先为要存储的数据建立字段，随时可以存储自定义的数据格式。而在关系数据库里，增删字段是一件非常麻烦的事情。
+       如果是非常大数据量的表，增加字段简直就是一个噩梦。
+
+ 传统RDBMS VS NOSQL
+    RDBMS 
+     - 高度组织化结构化数据
+     - 结构化查询语言(SQL)
+     - 数据和关系都存储在单独的表中
+     - 数据操纵语言，数据定义语言
+     - 严格的一致性
+     - 基础事务
+
+   NoSQL
+     - 代表着不仅仅是 SQL 
+     - 没有声明性查询语言
+     - 没有预定义的模式
+     - 键 值对存储，列存储，文档存储，图形数据库
+     - 最终一致性，而非 ACID 属性
+     - 非结构化和不可预知的数据
+     - CAP 定理
+     - 高性能，高可用性和可伸缩性
+
+3V 3高
+大数据时代的3V  
+    海量  Volume
+    多样  Variety
+    实时  Velocity
+
+互联网需求的3高
+    高并发
+    高可扩
+    高性能
+
+  纵向的指的是提高机器的性能 纵向就像是往上升的感觉
+  横向的指的是集群，增加机器的数量 横向就像是排队，越来越多
+
+
+非关系型数据库四大分类
+    KV键值  redir tair 等
+    文档型数据库(bson可是比较多)  MongoDB
+    列储存数据   HBase
+    图关系数据库 Neo4J, InfoGrid
+    
+
+CAP 分布式系统的理论
+CAP原则又称CAP定理，指的是在一个分布式系统中，Consistency（一致性）、 Availability（可用性）、Partition tolerance（分区容错性），三者不可得兼
+CAP原则是NOSQL数据库的基石。
+
+
+
+CAP 分布式系统
+    传统 ACID
+    Atomicity 原子性
+    Consistency 一致性
+    Isolation  独立性
+    Durability 原子性
+   
+  CAP 
+    Consistency 强一致性
+    Availability 可用性
+    Partition tolerance  区分容错性
+
+  CAP 的 3进2
+    CAP 理论的核心是：一个分布式系统不可能同时很好的满足一致性，可用性和分区容错性这三个需求，最多只能同时较好的满足两个。
+    因此根据 CAP 原理将 NoSQL 数据库分成了满足  CA 原则、满足 CP 原则和满足 AP 原则三大类：
+        CA- 单点集群，满足一致性，可用性的系统，通常在可扩展性上不太强大。RDBMS 数据库  mysql 等数据库
+        CP- 满足一致性，分区容错性的系统，通常性能不是特别的高     Redis
+        AP- 满足可用性，分区容错性的系统，通常可能对一致性要求低一些   Riak 
+
+    AP理论就是说在分布式存储系统中，最多只能实现上面的两点。
+    而由于当前的网络硬件肯定会出现延迟丢包等问题，所以
+
+        分区容忍性是我们必须需要实现的。
+        所以我们只能在一致性和可用性之间进行权衡，没有NoSQL系统能同时保证这三点。
+        CA 传统Oracle数据库
+       AP 大多数网站架构的选择
+       CP Redis、Mongodb
+
+
+   ***   一个分布式系统里面，节点组成的网络本来应该是连通的。然而可能因为一些故障，使得有些节点之间不连通了，整个网络就分成了几块区域。
+      数据就散布在了这些不连通的区域中。这就叫分区。当你一个数据项只在一个节点中保存，那么分区出现后，和这个节点不连通的部分就访问不到
+      这个数据了。这时分区就是无法容忍的。提高分区容忍性的办法就是一个数据项复制到多个节点上，那么出现分区之后，这一数据项就可能分布到
+      各个区里。容忍性就提高了。然而，要把数据复制到多个节点，就会带来一致性的问题，就是多个节点上面的数据可能是不一致的。要保证一致，
+      每次写操作就都要等待全部节点写成功，而这等待又会带来可用性的问题。总的来说就是，数据存在的节点越多，分区容忍性越高，但要复制更
+      新的数据就越多，一致性就越难保证。为了保证一致性，更新所有节点数据所需要的时间就越长，可用性就会降低。
+
+    具体请看 CAP 简介
+
+
+
+=================================================================================
+
+**redis 什么输入密码    在 redis-cli    auth 密码
+
+redis 
+    Redis:REmote DIctionary Server(远程字典服务器)
+
+    是完全开源免费的，用C语言编写的，遵守BSD协议，
+    是一个高性能的(key/value)分布式内存数据库，基于内存运行
+    并支持持久化的NoSQL数据库，是当前最热门的NoSql数据库之一,
+    也被人们称为数据结构服务器
+
+Redis 与其他 key - value 缓存产品有以下三个特点
+    Redis支持数据的持久化，可以将内存中的数据保持在磁盘中，重启的时候可以再次加载进行使用
+    Redis不仅仅支持简单的key-value类型的数据，同时还提供list，set，zset，hash等数据结构的存储
+    Redis支持数据的备份，即master-slave模式的数据备份
+
+Redis 中文版 http://www.redis.cn/  官网 https://redis.io/
+   Redis命令查询 http://www.redis.cn/commands.html
+   VM 怎么加载光驱
+    虚拟机 --> 设置 --> CD/光驱
+安装  redis 运行 make 命令可能会失败 你需要安装 gcc 
+有网：    指令： yun install gcc-c++
+
+没网： 就要使用 rpm 从 镜像文件里面安装了
+加载 CentOS 光驱  我的是 CentOS_5.2_Final/CentOS
+    1.在终端输入 cd/media/CentOS....你光驱的名称/CenOS  就是进入到 光驱加载的镜像文件里面
+     没有  CenOS 那么就是 Packages 反正就是 放 rpm 包的地方
+    分别执行如下命令  
+    rpm -ivh cpp-.rpm  按 tab  因为每一个 CentOS 的版本不一样，安装的东西也是不一样的
+    rpm -ivh kernel-headers- rpm
+    rpm -ivh glibc-headers
+    rpm -ivh glibc-devel
+    rpm -ivh libgomp
+    rpm -ivh gcc
+   
+    
+   然后 
+   gcc -v
+    gcc 环境就安装好了
+
+    如果 make 又出现了 没有那个文件或目录
+    你需要清理 目录
+    make distclean
+
+就安装好了
+
+make test 不要测，时间很长
+    会帮你安装 TCL 
+
+
+
+
+33 ################################ GENERAL  #####################################
+ 34 
+ 35 # By default Redis does not run as a daemon （守护进程）. Use 'yes' if you need it.
+ 36 # Note that Redis will write a pid file in /var/run/redis.pid when daemonized.
+ 37 daemonize yes
+    你需要将 Redis 作为 守护进程
+   将 daemonize no 改为 yes
+    这样 redis 就可以运行在后台了
+
+
+在 redis /usr/local/bin
+    
+    -rw-r--r--. 1 root root  400092 5月   9 22:50 dump.rdb
+-rwxr-xr-x. 1 root root 4589155 5月   9 22:04 redis-benchmark  测试 redis 在我们机器上的性能
+-rwxr-xr-x. 1 root root   22217 5月   9 22:04 redis-check-aof
+-rwxr-xr-x. 1 root root   45435 5月   9 22:04 redis-check-dump 
+-rwxr-xr-x. 1 root root 4693114 5月   9 22:04 redis-cli  进入 redis 操作  SHUTDOWN 退出 ，然后再 exit 或者直接 Crtl+C 退出  
+                    退出后 redis 服务就关闭了
+lrwxrwxrwx. 1 root root      12 5月   9 22:04 redis-sentinel -> redis-server
+-rwxr-xr-x. 1 root root 6466389 5月   9 22:04 redis-server    启动 redis 服务 redis-server /myredis/redis.conf
+                         因为我们在  /myredis/redis.conf 里面设置饿了 将 Redis 作为 守护进程，所以 redis 会在后台运行
+
+
+    首先 redis-server /../..conf 指定配置文件
+    然后 redis-cli -p 6379  指定端口号
+
+    如果要输入密码使用 AUTH 密码
+    就可以使用了
+
+redis 是单进程  以 Epoll 包装了以后 在 Linux 下多路复用 IO 接口 select/poll 的增强版本
+    默认 16 数据库  
+    Select 命令切换数据库  0-15  一共16个
+    Dbsize 查看当前数据库的 key 的数量
+    keys * 查看当前数据库的所有 key   * 代表多个 ? 代表一个占位符 和 Mysql 一样
+    flushdb  删除当前库
+    flushall 删除所有库
+    redis 索引都是从零开始
+    默认端口是 6379
+
+
+Redis的五大数据类型
+    string（字符串）
+            string是redis最基本的类型，你可以理解成与Memcached一模一样的类型，一个key对应一个value。
+            string类型是二进制安全的。意思是redis的string可以包含任何数据。比如jpg图片或者序列化的对象 。
+            string类型是Redis最基本的数据类型，一个redis中字符串value最多可以是512M
+
+    hash（哈希，类似java里的Map）
+            Hash（哈希）
+            Redis hash 是一个键值对集合。
+            Redis hash是一个string类型的field和value的映射表，hash特别适合用于存储对象。
+            类似Java里面的Map<String,Object>
+
+    List（列表）
+            Redis 列表是简单的字符串列表，按照插入顺序排序。你可以添加一个元素导列表的头部（左边）或者尾部（右边）。
+            它的底层实际是个链表
+
+    Set（集合）
+            Redis的Set是string类型的无序集合。它是通过HashTable实现实现的
+
+    zset(sorted set：有序集合)
+            Redis zset 和 set 一样也是string类型元素的集合,且不允许重复的成员。
+            不同的是每个元素都会关联一个double类型的分数。
+            redis正是通过分数来为集合中的成员进行从小到大的排序。zset的成员是唯一的,但分数(score)却可以重复。
+
+
+    哪里去获得 redis 常见的数据类型操作命令
+        http://redisdoc.com/
+
+
+key 常用的
+    keys * 查看当前数据库的所有 key   * 代表多个 ? 代表一个占位符 和 Mysql 一样
+    exists key的名字 判断某个 Key 是否存在 1 存在 0不存在
+    move key db 剪切 key 到 db 库
+    expire key 秒钟 ：为给定的 Key 设置过期时间
+    persist key1 让 Key1 持久化，就是取消其过期时间，让其永久存在
+            移除给定 key 的生存时间，将这个 key 从『易失的』(带生存时间 key )转换成
+            『持久的』(一个不带生存时间、永不过期的 key )。
+                当生存时间移除成功时，返回 1 .
+                如果 key 不存在或 key 没有设置生存时间，返回 0 。
+    ttl key 查看还有多少秒过期，-1 表示永不过期，-2已过期
+            过期的
+    type key 查看你的 key 是什么类型
+    del key 删除某个键
+
+    Select 命令切换数据库  0-15  一共16个
+    Dbsize 查看当前数据库的 key 的数量
+    keys * 查看当前数据库的所有 key   * 代表多个 ? 代表一个占位符 和 Mysql 一样
+    flushdb  删除当前库
+    flushadd 删除所有库
+    redis 索引都是从零开始
+
+   
+ 
+    
+
+String  
+    append key 往 String 里面追加 数据
+    strlen key  获取 string 的长度
+    Incr/decr/incrby/decrby  一定要是数字才能进行加减  如果 key 不存在会为其自动创建 key ，如果之前是 "031" 这样的值，经过 incr 以后会变成 32，0会消失
+        Incr 每次给key 里面的值 + 1         increment  增加
+        decr 每次给key 里面的值 - 1         decrement  减少
+        incrby key num 给 Key 加 num 值
+        decrby key num 给 Key 减 num 值
+    
+    getrange 获取指定区间范围内的值，类似 between...and的关系   0123   0-3 的话就是 0123
+                从零到负一表示全部  如果区间不存在返回 "" 空字符串  getrange 0 -1  -1 在后面代表最后一位，在前面就是代表-1，因为没有-1，
+                所以自动就是零
+    setrange 设置指定区间范围内的值。格式是 setrange key index 具体值 ，setrange k1 1 xxx 从1角标开始赋值 xxx，会覆盖后面的值
+                    意思就是说 k1 : 0123  setrange k1 0 xxx 结果是 xxx3
+
+**redis 什么输入密码    在 redis-cli    auth 密码
+
+    setex(set with expire)键秒值/setnx(set if not exist)
+        setex k4 10 v4  ： 给 k4 设置 10 秒时间  
+        setnx k1 v11 : 如果 k1 不存在则赋值 v11 如果存在就不赋值
+        mset/mget/msetnx
+            m = more  mset/mget 表示 一次设置多个值，mset k1 v1 k2 v2 k3 v3
+            msetnx  使用多个 setnx 一个不成功就全部不成功
+        getset 先 get 再 set
+            getset k2 v3 先获取 k2 的值，然后将 v3 存入 k2 里面
+
+
+
+List 
+    L = Left 因为底层是双向链表 所有可以往 左边和右边放值 
+        Lpush list名称 值1 值2 ...  是追加，原有的值不会消失
+        Lrange list名称 startIndex(包含) endIndex(包含) endIndex 为 -1 代表最后一位
+            Left 是不断的往左链表放的值，所以 放了 1 2 3 4 5 的话 5 是最后一个放的，1是第一个放的
+                所以 5 是 零角标，1 是最后一个角标   正着放。正着出 
+    R=right         
+        Rpush list名称 startIndex(包含) endIndex(包含) endIndex 为 -1 代表最后一位
+            Riget 是不断的往右边放值，所以是正常的list 一样，后放的角标在后面   正着去反着出
+
+        lpop 弹出 Left 的第一个值  弹出就相当于删除，将left的值获取并删除
+        rpop 弹出 right 的第一个值 弹出就相当于删除，将right的值获取并删除
+        lindex 按照索引下标获得元素(从左到右)  lindex key 1  获取 Key 的 1 下标
+        llen list 的长度
+        lrem list key   lrem list 2 3  删除 list 里面的 2 个 3  从零角标开始搜索，超出范围就是将 list 里面符合条件的全部删除
+        ltrim list 开始index 结束index, 截取指定范围内的值，然后再赋给 list 
+        rpoplpush list01 list02 可以看成 rpop lpush 将,将 List01 rpop 的值 lpush 给 List02
+        lset key index value 
+               从left 角标开始 将 key index下标的值 设置成 value
+        linsert key before/after 值1 值2 ：往 值1的 前面/后面 插入值2，从左边找找到第一个符合 值1的value,插入值2，然后结束
+        
+        性能总结：
+            它是一个字符串链表，left、right 都可以插入添加;
+            如果键不存在，创建新的链表
+            如果键以存在，新增内容
+            如果值全移除，对应的键也就消失了
+            链表的操作无论是头和尾效率都极高，但是假如是对中间元素进行操作，效率就很惨淡了
+
+
+set 
+     Redis的Set是string类型的无序集合。它是通过HashTable实现实现的
+            member ： 成员
+        sadd 添加值 如果值有重复，就覆盖添加
+        smembers set : 获取全部 set 的值
+        sismember set value : 查询 set 里面是否包含 value   
+        scard set : 获取set 里面的元素个数
+        srem key value 删除集合中的元素，将其 value 从 set 里面删除 可以删除多个用空格分隔
+        srandmember key number : 就是在 key 里面随机选出 number 个数字
+        spop key 随机出栈 随机将 一个 value 显示并删除
+        smove key1 key2 在key1里面的某个值 ：作用是将 key1 里的某个值移动到 key2
+        数学集合类
+            差集 sdiff ：在第一个set里面而不再后面任何一个set里面的项
+            交集 sinter ：所有 key 的交集部分
+            并集 sunion : 所有 key 里面的值全部获取，自动去重
+
+Hash
+    Hash（哈希）
+    Redis hash 是一个键值对集合。
+    Redis hash是一个string类型的field和value的映射表，hash特别适合用于存储对象。
+    类似Java里面的Map<String,Object>
+    kv模式不变，但V是一个键值对
+    也就是说 k 里面，存着一个键值对
+    
+    hset   hset user id 1  往 User 的Key 里面存 Id 1 键值对，可以映射多个键值对，
+           hset user name zhangsan   user 就相当于一个对象，而 name 和 id 都是 user 的属性
+    hget   hget user id  先获取 user 里面的键值对 然后 获取 id 里面的值 
+    hmset  hmet user id 1 name zhangsan  ：m=more 一次性往 user key 里面存多个键值对
+    hmget  hmget user id name ：一次性往 user 里面取多个值 
+    hgetall hgetall user : 一次性将 user 里面的值全部获取  获取的是键值对
+    hdel  hdel user id ：删除 user 的 id 键值对。不能用来删除 key 就是 User    
+    hlen  hlen user 获取 User 的长度，也就是 user 拥有的键值对的数量
+    hexists hexists user id 判断 user 里面有没有 id 键值对  
+    hkeys/hvals  hkeys user 获取所有的 user 的 key, hvals 获取user所有的values
+    hincrby ：hincrby user age 3 使 user 的 age + 3
+    hincrbyfloal：和上面一样，不过加的是小数
+    hsetnx : hsetnx user age 12 如果 age 不存在就将12岁存进去，如果存在就不存
+
+
+
+ZSet
+     Redis zset 和 set 一样也是string类型元素的集合,且不允许重复的成员。
+     不同的是每个元素都会关联一个double类型的分数。
+     redis正是通过分数来为集合中的成员进行从小到大的排序。zset的成员是唯一的,但分数(score)却可以重复。
+     在 set 的基础上，加一个score值。之前set是 k1 v1 k2 v2,现在zset是 k1 score1 v1 score2 v2
+
+     
+     zadd : zadd zset01 1 v1 4 v2  2 v3 通过 v* 前面的数字为 v* 来排列  数字是 float 类型的
+     zrange : zrange zset01 0 -1 withscores ; 连值带scores 全部显示
+     zrangebyscore key ：
+                1. zrangebyscore zset01 score1 score2 将 score1 score2 的值之间的 value 取出
+                2. withscores 
+                3. ( 不包含  zrangebyscore (score1 （score2 ，score1 到 score2 之间的数，不包含 score2,和score1 本身
+                4. limit 返回限制 相当于分页， zrangebyscore zset01 score1 score2 limit 2,2 从0开始计数的，从2角标开始截取2个
+                        zrangebyscore zset01 (1 150 withscores limit 1 2
+
+     zrem ： zrem  key 某 score 下对应的 value 值，作用是删除元素   
+                zrem v1 删除 v1
+     zcard : zcard key  统计 key 的 value 个数
+     zcount : zcount zset01 1 80 统计 zset01 分数 1 到 80 的个数
+     zrank : zrank zset01 v4 获取 v4 的下标  下标从 0 开始
+     zscore : zscore zset01 v2 获取 v2 的分数 
+     zrevrank : zrevrank key values值，作用是逆序获得下标值  ZREVRANK zset01 v1 就是从后面开始数 v1 的下标
+            reverse : 反转
+     zrevrange : zrevrange zset01 0 -1  倒序排序 zset01 0 -1 之间的 value 值
+     zrevrangebyscore : zrevrange zset01 321 1  ：倒序排序 231  1 分数之间的数
+                                                   如果你是 1 231 是没有值的。因为是 reverse,比较特殊这个
+                                                    逆序排列薪水介于 231 和 1 之间的成员
+
+
+redis 配置
+    
+        INCLUDES包含
+              和我们的Struts2配置文件类似，可以通过includes包含，redis.conf可以作为总闸，包含其他  
+
+        GENERAL通用
+                daemonize yes 设置 redis 启动后是否作为后台进程
+                pidfile /var/run/redis.pid 进程管道文件在这里
+                port 6379 绑定端口
+                tcp-backlog
+                    设置tcp的backlog，backlog其实是一个连接队列，backlog队列总和=未完成三次握手队列 + 已经完成三次握手队列。
+                    在高并发环境下你需要一个高backlog值来避免慢客户端连接问题。注意Linux内核会将这个值减小到/proc/sys/net/core/somaxconn的值，
+                    所以需要确认增大somaxconn和tcp_max_syn_backlog两个值来达到想要的效果
+                bind 127.0.0.1
+                        端口的绑定 注释 需要不然只有 127.0.0.1 可以访问
+                timeout 0 
+                        表示多少秒，没有操作可以暂时关闭 redis  0 代表不关闭
+                tcp-keepalive
+                        单位为秒，如果设置为0，则不会进行Keepalive检测，建议设置成60 
+                loglevel notice
+                        日志级别
+                logfile "" 默认不输出
+                syslog-enabled no   日志关闭
+                syslog-ident redis  使用 redis 名字来输出
+                syslog-facility local0 使用的输出设备， local0 - local7
+                databases 16 默认的数据库数量
+
+          SNAPSHOTTING快照  (备份的机器和运行的不能同一台)
+                Save
+                    save <seconds> <changes>
+                    save ""  不保存到硬盘就写这个 
+                    save 900 1   900秒内写入一次就 持久化 
+                    save 300 10  300秒内写入 10次就持久化
+                    save 60 10000   60秒内写入 10000 次就持久化
+                
+                stop-writes-on-bgsave-error 
+                            yes 如果 writes 出错了，就会停止写。 
+                            no 的话出错了就不会停止写，这样会导致数据不一致
+                            如果配置成no，表示你不在乎数据不一致或者有其他的手段发现和控制
+                rdbcompression(建议 yes)：对于存储到磁盘中的快照，可以设置是否进行压缩存储。如果是的话，redis会采用
+                                LZF算法进行压缩。如果你不想消耗CPU来进行压缩的话，可以设置为关闭此功能
+                rdbchecksum(建议 yes)：压缩完了会验证，在存储快照后，还可以让redis使用CRC64算法来进行数据校验，但是这样做会增加大约
+                                10%的性能消耗，如果希望获取到最大的性能提升，可以关闭此功能
+                dbfilename : 持久化的时候的备份数据的名称
+                dir ： snapshot 存储的位置
+                        
+
+            APPEND ONLY MODE追加
+                     appendonly no 是否开启 aof
+                     appendfilename  appendfile备份文件 的名称 
+                     appendfsync 三个选项
+                            always：同步持久化 每次发生数据变更会被立即记录到磁盘  性能较差但数据完整性比较好
+                            everysec：出厂默认推荐，异步操作，每秒记录   如果一秒内宕机，有数据丢失
+                            no
+                     no-appendfsync-on-rewrite：重写时是否可以运用Appendfsync，用默认no即可，保证数据安全性。
+                     auto-aof-rewrite-min-size：设置重写的基准值  大于 64mb  大公司 3G 是起步价
+                     auto-aof-rewrite-percentage：设置重写的基准值 一倍 100
+
+
+
+          SECURITY 安全
+                在 数据库里面输入 config get requirepass  获取当前密码
+                                 config set requirepass "xxx" 设置当前密码。
+                                 设置了密码以后，你需要使用 auth xxx 输入密码后才能使用 redis 数据库
+          
+          LIMITS限制
+                maxclients      设置redis同时可以与多少个客户端进行连接。
+                maxmemory       设置redis可以使用的内存量
+                maxmemory-policy
+                        （1）volatile-lru：使用LRU算法移除key，只对设置了过期时间的键   对最近时间最少使用 key 进行移除 
+                        （2）allkeys-lru：使用LRU算法移除key   对最近时间最少使用 key 进行移除 
+                        （3）volatile-random：在过期集合中移除随机的key，只对设置了过期时间的键
+                        （4）allkeys-random：移除随机的key    
+                        （5）volatile-ttl：移除那些TTL值最小的key，即那些最近要过期的key   移除最近要过期的商品
+                        （6）noeviction：不进行移除。针对写操作，只是返回错误信息
+                maxmemory-samples
+                        设置样本数量，LRU算法和最小TTL算法都并非是精确的算法，而是估算值，所以你可以设置样本的大小，
+                        redis默认会检查这么多个key并选择其中LRU的那个
+
+
+        参数说明
+        redis.conf 配置项说明如下：
+        1. Redis默认不是以守护进程的方式运行，可以通过该配置项修改，使用yes启用守护进程
+          daemonize no
+        2. 当Redis以守护进程方式运行时，Redis默认会把pid写入/var/run/redis.pid文件，可以通过pidfile指定
+          pidfile /var/run/redis.pid
+        3. 指定Redis监听端口，默认端口为6379，作者在自己的一篇博文中解释了为什么选用6379作为默认端口，因为6379在手机按键上MERZ对应的号码，而MERZ取自意大利歌女Alessia Merz的名字
+          port 6379
+        4. 绑定的主机地址
+          bind 127.0.0.1
+        5.当 客户端闲置多长时间后关闭连接，如果指定为0，表示关闭该功能
+          timeout 300
+        6. 指定日志记录级别，Redis总共支持四个级别：debug、verbose、notice、warning，默认为verbose
+          loglevel verbose
+        7. 日志记录方式，默认为标准输出，如果配置Redis为守护进程方式运行，而这里又配置为日志记录方式为标准输出，则日志将会发送给/dev/null
+          logfile stdout
+        8. 设置数据库的数量，默认数据库为0，可以使用SELECT <dbid>命令在连接上指定数据库id
+          databases 16
+        9. 指定在多长时间内，有多少次更新操作，就将数据同步到数据文件，可以多个条件配合
+          save <seconds> <changes>
+          Redis默认配置文件中提供了三个条件：
+          save 900 1
+          save 300 10
+          save 60 10000
+          分别表示900秒（15分钟）内有1个更改，300秒（5分钟）内有10个更改以及60秒内有10000个更改。
+         
+        10. 指定存储至本地数据库时是否压缩数据，默认为yes，Redis采用LZF压缩，如果为了节省CPU时间，可以关闭该选项，但会导致数据库文件变的巨大
+          rdbcompression yes
+        11. 指定本地数据库文件名，默认值为dump.rdb
+          dbfilename dump.rdb
+        12. 指定本地数据库存放目录
+          dir ./  这个表示你是在哪里使用数据库的那么 持久化到硬盘的数据文件就在哪里 config get dir 获取目录  
+                   存的数据是指 服务器启动的地方 也就是 redis-server 指令启动的地方
+        13. 设置当本机为slav服务时，设置master服务的IP地址及端口，在Redis启动时，它会自动从master进行数据同步
+          slaveof <masterip> <masterport>
+        14. 当master服务设置了密码保护时，slav服务连接master的密码
+          masterauth <master-password>
+        15. 设置Redis连接密码，如果配置了连接密码，客户端在连接Redis时需要通过AUTH <password>命令提供密码，默认关闭
+          requirepass foobared
+        16. 设置同一时间最大客户端连接数，默认无限制，Redis可以同时打开的客户端连接数为Redis进程可以打开的最大文件描述符数，如果设置 maxclients 0，表示不作限制。当客户端连接数到达限制时，Redis会关闭新的连接并向客户端返回max number of clients reached错误信息
+          maxclients 128
+        17. 指定Redis最大内存限制，Redis在启动时会把数据加载到内存中，达到最大内存后，Redis会先尝试清除已到期或即将到期的Key，当此方法处理 后，仍然到达最大内存设置，将无法再进行写入操作，但仍然可以进行读取操作。Redis新的vm机制，会把Key存放内存，Value会存放在swap区
+          maxmemory <bytes>
+        18. 指定是否在每次更新操作后进行日志记录，Redis在默认情况下是异步的把数据写入磁盘，如果不开启，可能会在断电时导致一段时间内的数据丢失。因为 redis本身同步数据文件是按上面save条件来同步的，所以有的数据会在一段时间内只存在于内存中。默认为no
+          appendonly no
+        19. 指定更新日志文件名，默认为appendonly.aof
+           appendfilename appendonly.aof
+        20. 指定更新日志条件，共有3个可选值： 
+          no：表示等操作系统进行数据缓存同步到磁盘（快） 
+          always：表示每次更新操作后手动调用fsync()将数据写到磁盘（慢，安全） 
+          everysec：表示每秒同步一次（折衷，默认值）
+          appendfsync everysec
+         
+        21. 指定是否启用虚拟内存机制，默认值为no，简单的介绍一下，VM机制将数据分页存放，由Redis将访问量较少的页即冷数据swap到磁盘上，访问多的页面由磁盘自动换出到内存中（在后面的文章我会仔细分析Redis的VM机制）
+           vm-enabled no
+        22. 虚拟内存文件路径，默认值为/tmp/redis.swap，不可多个Redis实例共享
+           vm-swap-file /tmp/redis.swap
+        23. 将所有大于vm-max-memory的数据存入虚拟内存,无论vm-max-memory设置多小,所有索引数据都是内存存储的(Redis的索引数据 就是keys),也就是说,当vm-max-memory设置为0的时候,其实是所有value都存在于磁盘。默认值为0
+           vm-max-memory 0
+        24. Redis swap文件分成了很多的page，一个对象可以保存在多个page上面，但一个page上不能被多个对象共享，vm-page-size是要根据存储的 数据大小来设定的，作者建议如果存储很多小对象，page大小最好设置为32或者64bytes；如果存储很大大对象，则可以使用更大的page，如果不 确定，就使用默认值
+           vm-page-size 32
+        25. 设置swap文件中的page数量，由于页表（一种表示页面空闲或使用的bitmap）是在放在内存中的，，在磁盘上每8个pages将消耗1byte的内存。
+           vm-pages 134217728
+        26. 设置访问swap文件的线程数,最好不要超过机器的核数,如果设置为0,那么所有对swap文件的操作都是串行的，可能会造成比较长时间的延迟。默认值为4
+           vm-max-threads 4
+        27. 设置在向客户端应答时，是否把较小的包合并为一个包发送，默认为开启
+          glueoutputbuf yes
+        28. 指定在超过一定的数量或者最大的元素超过某一临界值时，采用一种特殊的哈希算法
+          hash-max-zipmap-entries 64
+          hash-max-zipmap-value 512
+        29. 指定是否激活重置哈希，默认为开启（后面在介绍Redis的哈希算法时具体介绍）
+          activerehashing yes
+        30. 指定包含其它的配置文件，可以在同一主机上多个Redis实例之间使用同一份配置文件，而同时各个实例又拥有自己的特定配置文件
+          include /path/to/local.conf
+
+
+
+======================================================================
+
+Redis 持久化 
+    
+    rdb
+    aof
+
+    rdb 是什么 RDB（Redis DataBase）
+        在指定的时间间隔内将内存中的数据集快照写入磁盘， (指定的时间在 snapshot 里面的  save <seconds> <changes> 配置)
+        也就是行话讲的 Snapshot 快照，它恢复时是将快照文件直接读到内存里    
+        
+        Redis会单独创建（fork）一个子进程来进行持久化，会先将数据写入到
+        一个临时文件中，待持久化过程都结束了，再用这个临时文件替换上次持久化好的文件。
+        整个过程中，主进程是不进行任何IO操作的，这就确保了极高的性能
+        如果需要进行大规模数据的恢复，且对于数据恢复的完整性不是非常敏感，那RDB方
+        式要比AOF方式更加的高效。RDB的缺点是最后一次持久化后的数据可能丢失。
+
+        fork 
+            fork的作用是复制一个与当前进程一样的进程。新进程的所有数据（变量、环境变量、程序计数器等）
+            数值都和原进程一致，但是是一个全新的进程，并作为原进程的子进程
+            
+        rdb 保存的是 dump.rdb 文件
+            
+            怎么修复 dump.rdb 文件 (如果被篡改什么的)  
+                    redis-check-dump --fix(参数不知道是不是这个，具体百度)
+
+            redis 每次启动时就会默认读取，dump.rdb 然后将其读取到内存里面，如果你 shutdown 以后就相当于提交了 commit ，
+            就会迅速的把内存里面的数据写入到 硬盘，保存成 dump.rdb 来替换 旧的 dump.rdb
+        
+       如何触发RDB快照
+        1.配置文件中默认的快照配置
+                 属于 配置文件的 redis.conf snapshot 配置
+        2.命令save或者是bgsave
+            > Save：save时只管保存，其它不管，全部阻塞
+            > BGSAVE：Redis会在后台异步进行快照操作，
+                    快照同时还可以响应客户端请求。可以通过 lastsave 命令获取最后一次成功执行快照的时间
+
+            > 执行 flushall 命令，也会产生dump.rdb文件，但里面是空的，无意义
+            > 执行 shutdown 关闭 redis 就会迅速的把内存里面的数据写入到 硬盘
+
+        3. 如何恢复
+                > 将备份文件 (dump.rdb) 移动到 redis 安装目录并启动服务即可
+                > CONFIG GET dir 获取目录
+
+        4.优势
+                > 适合大规模的数据恢复
+                > 对数据完整性和一致性要求不高
+        5.劣势  
+                > 在一定间隔时间做一次备份，所以如果redis意外down掉的话，就会丢失最后一次快照后的所有修改
+                > fork的时候，内存中的数据被克隆了一份，大致2倍的膨胀性需要考虑
+
+        6.如何停止
+            > 动态所有停止RDB保存规则的方法：redis-cli config set save ""
+            > 修改配置文件
+    
+        小总结：
+          优势
+            > RDB 是一个非常紧凑的文件
+            > RDB 在保存 RDB 文件时父进程唯一需要做的就是 fork 出一个子进程，接下来的工作全部由子进程来做，父进程不需要再做其他 IO 操作，
+                所以 RDB 持久化方式可以最大化 redis 的性能
+            > 与 AOF 相比，在恢复大的数据集的时候，RDB方式会更快一些
+          
+          劣势
+            > 数据丢失风险大
+            > RDB 需要经常 fork 子进程来保存数据集到硬盘上，当数据集比较大的时候，fork 的过程是非常耗时的，可能会到时 redis 
+                在一些毫秒级不能响应客户端请求
+
+    
+-----------------------------
+
+    aof AOF（Append Only File）
+        以日志的形式来记录每个写操作，将Redis执行过的所有写指令记录下来(读操作不记录)，
+        只许追加文件但不可以改写文件，redis启动之初会读取该文件重新构建数据，换言之，redis
+        重启的话就根据日志文件的内容将写指令从前到后执行一次以完成数据的恢复工作
+            
+        Aof保存的是appendonly.aof文件
+        
+        1. 配置位置 ：redis.conf APPEND ONLY MODE  追加
+                appendonly no     默认关闭 aof
+                appendfilename "appendonly.aof"  配置文件的名称
+                    appendonly.aof 里面都是你每次的 写指令，你可以自己 vim 修改
+
+         2.AOF启动/修复/恢复
+                正常恢复
+                    修改默认的appendonly no，改为yes
+                    将有数据的aof文件复制一份保存到对应目录(config get dir)
+                    恢复：重启redis然后重新加载
+                异常恢复
+                     备份被写坏的AOF文件
+                     如果 AOF 里面有坏的(由于网络等原因出现了不符合语法规范的 命令，导致 redis 服务无法启动)
+                     你可以使用：
+                     redis-check-aof --fix xxx.aof文件  进行修复 将不符合语法规范的文件全部删除
+                     恢复：重启redis然后重新加载
+         
+            AOF 和 RDB 可以在一块
+                有 AOF 默认读取 AOF,但是备份的话是 AOF 和 RDB 都是要备份的
+
+         3.rewrite
+              是什么：
+                    AOF采用文件追加方式，文件会越来越大为避免出现此种情况，新增了重写机制,
+                    当AOF文件的大小超过所设定的阈值时，Redis就会启动AOF文件的内容压缩，
+                    只保留可以恢复数据的最小指令集.可以使用命令 bgrewriteaof
+               
+              重写原理
+                    AOF文件持续增长而过大时，会fork出一条新进程来将文件重写(也是先写临时文件最后再rename)，
+                    遍历新进程的内存中数据，每条记录有一条的Set语句。重写aof文件的操作，并没有读取旧的aof文件，
+                    而是将整个内存中的数据库内容用命令的方式重写了一个新的aof文件，这点和快照有点类似
+
+              触发机制
+                    Redis会记录上次重写时的AOF大小，默认配置是当AOF文件大小是上次rewrite后大小的一倍且文件大于64M时触发
+
+
+        4.优势
+            每修改同步：appendfsync always   同步持久化 每次发生数据变更会被立即记录到磁盘  性能较差但数据完整性比较好
+            每秒同步：appendfsync everysec    异步操作，每秒记录   如果一秒内宕机，有数据丢失
+            不同步：appendfsync no   从不同步
+
+         5.劣势
+            相同数据集的数据而言aof文件要远大于rdb文件，恢复速度慢于rdb
+            aof运行效率要慢于rdb,每秒同步策略效率较好，不同步效率和rdb相同
+
+      小总结：
+          优势
+            AOF 文件是一个只进行追加的日志文件
+            Redis 可以在 AOF 文件体积变得过大时，自动地在后台对 AOF 进行重写
+          劣势
+            对于相同的数据集来说，AOF 文件的体积通常要大于 RDB 文件的体积
+            根据所使用的 fsync 策略，AOF 的速度可能会慢于 RDB
+
+
+
+
+ 建议
+    只做缓存：如果你只希望你的数据在服务器运行的时候存在,你也可以不使用任何持久化方式.
+
+    因为RDB文件只用作后备用途，建议只在Slave上持久化RDB文件，而且只要15分钟备份一次就够了，只保留save 900 1这条规则。
+
+    
+    同时使用 RDB 和 AOF
+    RDB的数据不实时，同时使用两者时服务器重启也只会找AOF文件。那要不要只使用AOF呢？
+    作者建议不要，因为RDB更适合用于备份数据库(AOF在不断变化不好备份)，
+    快速重启，而且不会有AOF可能潜在的bug，留着作为一个万一的手段。
+
+
+如果Enalbe AOF，好处是在最恶劣情况下也只会丢失不超过两秒数据，启动脚本较简单只load自己的AOF文件就可以了。
+    代价一是带来了持续的IO，二是AOF rewrite的最后将rewrite过程中产生的新数据写到新文件造成的阻塞几乎是不可避免的。
+    只要硬盘许可，应该尽量减少AOF rewrite的频率，AOF重写的基础大小默认值64M太小了，可以设到5G以上。默认超过原大小
+    100%大小时重写可以改到适当的数值。
+
+
+如果不Enable AOF ，仅靠Master-Slave Replication 实现高可用性也可以。能省掉一大笔IO也减少了rewrite时带来的系统波动。代价是如
+    果Master/Slave同时倒掉，会丢失十几分钟的数据，启动脚本也要比较两个Master/Slave中的RDB文件，载入较新的那个。新浪微博就选用了这种架构
+
+
+
+======================================================================
+
+redis 事务
+    是什么
+        可以一次执行多个命令，本质是一组命令的集合。一个事务中的
+        所有命令都会序列化，按顺序地串行化执行而不会被其它命令插入，不许加塞
+    
+    能干嘛
+        一个队列中，一次性、顺序性、排他性的执行一系列命令
+    
+    命令
+        discard
+            取消事务，放弃执行事务块内的所有命令
+        exec
+            执行所有事务快内的命令
+        multi 
+            标记一个事务块的开始
+        unwatch
+            取消 watch 命令对所有 key 的监视
+        watch key [key...]
+            监视一个(或多个)key, 如果在事务执行之前(或这些)key 被其他命令所改动，那么事务将被打断
+                就是你监视的 Key 被其他不是这个监视 dos 窗口的命令进行了 写操作，那么就会报错。报监视的 Key 已经被改变
+
+    
+    悲观锁/乐观锁/CAS(Check And Set)
+        
+   悲观锁(Pessimistic Lock), 顾名思义，就是很悲观，每次去拿数据的时候都认为别人会修改，所以每次在拿数据的时候
+    都会上锁，这样别人想拿这个数据就会block直到它拿到锁。传统的关系型数据库里边就用到了很多这种锁机制，比如行锁
+    ，表锁等，读锁，写锁等，都是在做操作之前先上锁
+
+    
+
+ 乐观锁(Optimistic Lock), 顾名思义，就是很乐观，每次去拿数据的时候都认为别人不会修改，所以不会上锁，但是在更新的
+    时候会判断一下在此期间别人有没有去更新这个数据，可以使用版本号等机制。乐观锁适用于多读的应用类型，这样可以提
+    高吞吐量，
+    乐观锁策略:提交版本必须大于记录当前版本才能执行更新
+
+    Watch指令，类似乐观锁，事务提交时，如果Key的值已被别的客户端改变，
+    比如某个list已被别的客户端push/pop过了，整个事务队列都不会被执行
+
+    通过WATCH命令在事务执行之前监控了多个Keys，倘若在WATCH之后有任何Key的值发生了变化，
+    EXEC命令执行的事务都将被放弃，同时返回Nullmulti-bulk应答以通知调用者事务执行失败
+
+    
+    单独的隔离操作：事务中的所有命令都会序列化、按顺序地执行。事务在执行的过程中，不会被其他客户端发送来的命令请求所打断。
+
+    没有隔离级别的概念：队列中的命令没有提交之前都不会实际的被执行，因为事务提交前任何指令都不会被实际执行，
+            也就不存在”事务内的查询要看到事务里的更新，在事务外查询不能看到”这个让人万分头痛的问题
+
+    不保证原子性：redis同一个事务中如果有一条命令执行失败，其后的命令仍然会被执行，没有回滚
+
+       
+
+        有两种
+            127.0.0.1:6379> multi
+            OK
+            127.0.0.1:6379> set k1 v1
+            QUEUED
+            127.0.0.1:6379> set k2 v2
+            QUEUED
+            127.0.0.1:6379> setget k3
+            (error) ERR unknown command 'setget'
+            127.0.0.1:6379> set k4 v4
+            QUEUED
+            127.0.0.1:6379> exec
+        在你输入的时候就会判断你的语法是不是有错，出错了。就不会执行。事务全部失败。因为在执行之前就已经判断你的语句语法错误就全部不执行
+
+            127.0.0.1:6379> multi
+            OK
+            127.0.0.1:6379> set k1 v1
+            QUEUED
+            127.0.0.1:6379> set k1 v11
+            QUEUED
+            127.0.0.1:6379> INCRby k2 20
+            QUEUED
+            127.0.0.1:6379> set k3 v33
+            QUEUED
+            127.0.0.1:6379> exec
+            1) OK
+            2) OK
+            3) (error) ERR value is not an integer or out of range
+            4) OK
+        
+        如果你的语法没错的话就，错的不执行，对的全部执行 (k3 的值是 v33)
+
+
+
+======================================================================
+
+
+redis 发布和订阅
+    
+    是什么
+       进程间的一种消息通信模式：发送者(pub)发送消息，订阅者(sub)接收消息。     
+        了解就可以了
+
+
+===========================================
+
+Redis的复制(Master/Slave)
+    是什么
+        行话：也就是我们所说的主从复制，主机数据更新后根据配置和策略，
+            自动同步到备机的master/slaver机制，Master以写为主， Slave 以读为主
+     修改配置文件 
+        拷贝多个redis.conf文件
+        开启 daemonize yes
+        pid文件名字
+        指定端口
+        log文件名字
+        dump.rdb名字
+
+一主二从
+    
+
+  1. 通过 info replication 来查询redis 是主库还是从库
+         info replication
+        # Replication
+        role:master
+        connected_slaves:0
+        master_repl_offset:0
+        repl_backlog_active:0
+        repl_backlog_size:1048576
+        repl_backlog_first_byte_offset:0
+        repl_backlog_histlen:0
+        127.0.0.1:6382> 
+
+  2. 通过 slaveof ip 端口来  绑定 master
+
+   127.0.0.1:6380> slaveof 127.0.0.1 6382
+
+        然后通过 info replication
+
+        127.0.0.1:6380> info replication
+        # Replication
+        role:slave
+        master_host:127.0.0.1
+        master_port:6382
+        master_link_status:up
+        master_last_io_seconds_ago:2
+        master_sync_in_progress:0
+        slave_repl_offset:99
+        slave_priority:100
+        slave_read_only:1
+        connected_slaves:0
+        master_repl_offset:0
+        repl_backlog_active:0
+        repl_backlog_size:1048576
+        repl_backlog_first_byte_offset:0
+        repl_backlog_histlen:0
+
+        就变成了   role:slave 
+
+
+
+  问题
+    1.读写分离
+        master 只有主机能写
+        slave 是只读的
+
+    2.如果 master 死了，slave 还是 slave 会原地待命
+        master_link_status: down  会变成 down
+
+    3.如果 Master死了，又回来了，slave 会自动 重新连接 master
+    
+    4.如果 slave 死了，又回来了，默认断开 master/slave ,你必须手动关联 master，才能成为 slave
+        每次与master断开之后，都需要重新连接，除非你配置进redis.conf文件
+
+
+ 薪火相传
+       上一个Slave可以是下一个slave的Master，Slave同样可以接收其他
+        slaves的连接和同步请求，那么该slave作为了链条中下一个的master,
+        可以有效减轻master的写压力
+            
+        中途变更转向:会清除之前的数据，重新建立拷贝最新的
+
+        slaveof 新主库IP 新主库端口
+
+       master1 --> slave1 --> slave2(绑定 slave1)
+        
+        slave1 slaveof master1
+        slave2 slaveof slave1
+
+
+        slave1 
+            127.0.0.1:6381> info replication
+            # Replication
+            role:slave
+            master_host:127.0.0.1
+            master_port:6382
+            master_link_status:up
+            master_last_io_seconds_ago:1
+            master_sync_in_progress:0
+            slave_repl_offset:1040
+            slave_priority:100
+            slave_read_only:1
+            connected_slaves:1
+            slave0:ip=127.0.0.1,port=6380,state=online,offset=172,lag=1
+            master_repl_offset:172
+            repl_backlog_active:1
+            repl_backlog_size:1048576
+            repl_backlog_first_byte_offset:2
+            repl_backlog_histlen:171
+
+        slaveof slave1 的 redis
+            connected_slaves:1
+            slave0:ip=127.0.0.1,port=6380,state=online,offset=172,lag=1
+
+
+反客为主
+    
+        SLAVEOF no one
+
+    使当前数据库停止与其他数据库的同步，转成主数据库
+
+
+复制原理
+    slave启动成功连接到master后会发送一个sync命令
+
+    Master接到命令启动后台的存盘进程，同时收集所有接收到的用于修改数据集命令，
+    在后台进程执行完毕之后，master将传送整个数据文件到slave,以完成一次完全同步
+
+    首次连接 master
+    全量复制：而slave服务在接收到数据库文件数据后，将其存盘并加载到内存中。
+    
+    之后
+    增量复制：Master继续将新的所有收集到的修改命令依次传给slave,完成同步
+
+    但是只要是重新连接master,一次完全同步（全量复制)将被自动执行
+
+
+哨兵模式( sentinel )
+    是什么
+        反客为主的自动版，能够后台监控主机是否故障，如果故障了根据投票数自动将从库转换为主库
+    
+    怎么玩(使用步骤)
+        调整结构，6379带着80、81
+        自定义的/myredis目录下新建sentinel.conf文件，名字绝不能错
+        配置哨兵,填写内容
+             sentinel monitor 被监控数据库名字(自己起名字) 127.0.0.1 6379 1
+            上面最后一个数字1，表示主机挂掉后salve投票看让谁接替成为主机，得票数多少后成为主机
+        启动哨兵
+            redis-sentinel /myredis/sentinel.conf 
+            上述目录依照各自的实际情况配置，可能目录不同
+        
+        原有的master挂了
+        投票新选
+        重新主从继续开工,info replication查查看，主机变成了 slave 
+
+        问题：如果之前的master重启回来，会不会双master冲突？
+            回来以后会变成 slave 了
+        
+        要想让Redis的sentinel（士兵守护）进程在后台自动运行，只要在sentinel配置文件里加上 
+            *daemonize yes*
+    
+复制的缺点
+          
+    由于所有的写操作都是先在Master上操作，然后同步更新到Slave上，所以从Master同步到Slave机器有一定的延迟，当系统很繁忙的时候，
+    延迟问题会更加严重，Slave机器数量的增加也会使这个问题更加严重。
+
+
+=========================================================
+Jedis
+       请记住先检查再操作
+         Jedis jedis = new Jedis("192.168.238.128",6379);
+        System.out.println(jedis.ping()); // PONG
+        返回 PONG 再操作
+        如果没有连接就会报错
+
+    // 关闭 redis 关闭了服务就关了   
+       //System.out.println("shutdown : " + jedis.shutdown());// null
+       请注意不要关闭 jedis.shutdown();
+
+    具体看 eclipse
+        
+事务
+     // 事务
+        Jedis jedis = new Jedis("192.168.238.128", 6379);
+        Transaction multi = jedis.multi();
+        multi.set("k1", "v1");
+        multi.set("k2", "v2");
+        multi.exec();
+       // 回滚
+       //multi.discard(); 
+
+
+
+JedisPool
+    
+
+JedisPool的配置参数大部分是由JedisPoolConfig的对应项来赋值的。
+
+
+maxActive：控制一个pool可分配多少个jedis实例，通过pool.getResource()来获取；如果赋值为-1，则表示不限制；如果pool已经分配了maxActive个jedis实例，则此时pool的状态为exhausted。
+maxIdle：控制一个pool最多有多少个状态为idle(空闲)的jedis实例；
+whenExhaustedAction：表示当pool中的jedis实例都被allocated完时，pool要采取的操作；默认有三种。
+ WHEN_EXHAUSTED_FAIL --> 表示无jedis实例时，直接抛出NoSuchElementException；
+ WHEN_EXHAUSTED_BLOCK --> 则表示阻塞住，或者达到maxWait时抛出JedisConnectionException；
+ WHEN_EXHAUSTED_GROW --> 则表示新建一个jedis实例，也就说设置的maxActive无用；
+maxWait：表示当borrow一个jedis实例时，最大的等待时间，如果超过等待时间，则直接抛JedisConnectionException；
+testOnBorrow：获得一个jedis实例的时候是否检查连接可用性（ping()）；如果为true，则得到的jedis实例均是可用的；
+
+
+testOnReturn：return 一个jedis实例给pool时，是否检查连接可用性（ping()）；
+
+
+testWhileIdle：如果为true，表示有一个idle object evitor线程对idle object进行扫描，如果validate失败，此object会被从pool中drop掉；这一项只有在timeBetweenEvictionRunsMillis大于0时才有意义；
+
+
+timeBetweenEvictionRunsMillis：表示idle object evitor两次扫描之间要sleep的毫秒数；
+
+
+numTestsPerEvictionRun：表示idle object evitor每次扫描的最多的对象数；
+
+
+minEvictableIdleTimeMillis：表示一个对象至少停留在idle状态的最短时间，然后才能被idle object evitor扫描并驱逐；这一项只有在timeBetweenEvictionRunsMillis大于0时才有意义；
+
+
+softMinEvictableIdleTimeMillis：在minEvictableIdleTimeMillis基础上，加入了至少minIdle个对象已经在pool里面了。如果为-1，evicted不会根据idle time驱逐任何对象。如果minEvictableIdleTimeMillis>0，则此项设置无意义，且只有在timeBetweenEvictionRunsMillis大于0时才有意义；
+
+
+lifo：borrowObject返回对象时，是采用DEFAULT_LIFO（last in first out，即类似cache的最频繁使用队列），如果为False，则表示FIFO队列；
+
+
+==================================================================================================================
+其中JedisPoolConfig对一些参数的默认设置如下：
+testWhileIdle=true
+minEvictableIdleTimeMills=60000
+timeBetweenEvictionRunsMillis=30000
+numTestsPerEvictionRun=-1
+
+
+
+
+
+
+
+
+
+
+
+11、session 分布式处理参考，不错
+
+第一种：粘性session
+
+粘性Session是指将用户锁定到某一个服务器上，比如上面说的例子，用户第一次请求时，负载均衡器将用户的请求转发到了A服务器上，
+    如果负载均衡器设置了粘性Session的话，那么用户以后的每次请求都会转发到A服务器上，相当于把用户和A服务器粘到了一块，这就是粘性Session机制
+
+第二种：服务器session复制
+
+原理：任何一个服务器上的session发生改变（增删改），该节点会把这个 session的所有内容序列化，然后广播给所有其它节点，
+    不管其他服务器需不需要session，以此来保证Session同步。
+
+第三种：session共享机制
+
+使用分布式缓存方案比如memcached、Redis，但是要求Memcached或Redis必须是集群。
+
+原理：不同的 tomcat指定访问不同的主memcached。多个Memcached之间信息是同步的，能主从备份和高可用。用户访问时首先在tomcat中创建session，然后将session复制一份放到它对应的memcahed上
+
+第四种：session持久化到数据库
+
+原理：就不用多说了吧，拿出一个数据库，专门用来存储session信息。保证session的持久化。 优点：服务器出现问题，session不会丢失 缺点：如果网站的访问量很大，把session存储到数据库中，会对数据库造成很大压力，还需要增加额外的开销维护数据库。
+
+第五种terracotta实现session复制
+
+原理：就不用多说了吧，拿出一个数据库，专门用来存储session信息。保证session的持久化。 优点：服务器出现问题，session不会丢失 缺点：如果网站的访问量很大，把session存储到数据库中，会对数据库造成很大压力，还需要增加额外的开销维护数据库
+
+
+
+
+
+
+redis 是单线程的，如果你有某个 get set 操作比较久，后面的都得等
+     所以操作尽可能操作比较小的数据
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

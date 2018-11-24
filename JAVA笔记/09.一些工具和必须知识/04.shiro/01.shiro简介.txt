@@ -1,0 +1,1003 @@
+shiro 的 maven jar 
+    <!-- Shiro的版本管理 -->  
+        <properties>  
+            <shiro.version>1.2.3</shiro.version>  
+        </properties>  
+          
+        <!-- shiro -->  
+        <dependency>  
+            <groupId>org.apache.shiro</groupId>  
+            <artifactId>shiro-core</artifactId>  
+            <version>${shiro.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.apache.shiro</groupId>  
+            <artifactId>shiro-web</artifactId>  
+            <version>${shiro.version}</version>  
+        </dependency>  
+        <dependency>  
+            <groupId>org.apache.shiro</groupId>  
+            <artifactId>shiro-spring</artifactId>  
+            <version>${shiro.version}</version>  
+        </dependency>  
+
+
+简介
+    Apache Shiro 是 Java 的一个安全(权限)框架
+    Shiro 可以非常容易的开发出足够好的应用，其不仅可以用在 java SE 环境，也可以用在 JavaEE 环境。
+    Shiro 可以完成：认证、授权、加密、会话管理、与Web集成、缓存等
+
+authentication 认证
+authorization 授权
+session manager 绘画管理
+cryptography  密码学
+
+
+
+功能简介
+    Authentication: 身份认证/登录，验证用户是不是拥有相应的身份;
+    Authorization: 授权，即权限验证，验证某个已认证的用户是否拥有某个权限;即判断用户是否能进行什么操作，
+        如：验证某个用户是否拥有某个角色。或者细粒度的验证某个用户对某个资源是否具有某个权限
+    Session Manager: 会话管理，即用户登录后就是一次回话，在没有退出之前，它的所有信息都在会话中;会话可以是
+        普通的 JavaSE环境，也可以是 Web 环境的;
+    Cryptography: 加密，保护数据的安全性，如密码加密存储到数据库，而不是明文存储;
+    Web Support: Web 支持，可以非常容易的集成到 Web 环境
+    Caching: 缓存，比如用户登录后，其用户信息、拥有的角色/权限不必每次 去查，这样可以提高效率;
+    Concurrency: Shiro 支持多线程应用的并发验证，即如在一个线程中开启另一个线程，能把权限自动传播过去
+    Testing ： 提供测试支持
+    Run As: 允许一个用户假装为另一个用户(如果允许)的身份进行访问
+    Remember Me：记住我，这是一个非常常见的功能，即一次登录后，下次再来的话就不用登录了
+
+Shiro 架构
+    Subject: 应用代码直接交互的对象是 Subject,也就是说 Shiro 的对外 API 核心就是 Subject.Subject 代表了当前"用户"，
+        这个用户不一定是一个具体的人，与当前应用交互的任何东西都是 Subject,如网络爬虫，机器人等，与 Subject 
+        的所有交互都会委托给 SecurityManager; Subject 其实是一个门面， SecurityManager 才是实际的执行者;
+    
+    SecurityManager : 安全管理器;即所有与安全有关的操作都会与 SecurityManager 交互;且其管理着所有的 Subject;
+        可以看出他是 Shiro 的核心，它负责与 Shiro 的其他组件交互，它相当于 SpringMVC 中的 DispatcherServlet 的角色
+    
+    Realm(范围): Shiro 从 Realm 获取安全数据(如：用户、角色、权限)，就是说 SecurityManager 要验证用户身份，
+        那么它需要从 Realm 获取相应的用户进行比较以确定用户身份是否合法;也需要从 Realm 看成是 DataSource
+
+    详细简介
+     
+     Subject: 任何可以与应用交互的"用户"
+     SecurityManager：相当于 SpringMVC 中的 DispatcherServlte; 是 Shiro 的心脏;所有具体的交互都通过 SecurityManager 进行控制;
+        它管理着所有 Subject、且负责进行认证、授权、会话及缓存管理
+     Authenticator(认证者): 负责 Subject 认证，是一个扩展点，可以自定义实现; 可以使用认证策略(Authentication Strategy),即什么情况下算用户认证通过了
+     Authorizer(授权器)：授权器、即访问控制器，用来决定主体是否有权限进行相应的操作;即控制着用户能访问应用中的哪些功能;
+     Realm: 可以有 1 个或多个 Realm，可以认为是安全实体数据源，即用于获取安全实体的;可以是 JDBC 实现，可以是内存实现等等;
+        由用户提供;所以一般在应用中都需要实现自己的 Realm
+     SessionManager：管理 Session 生命周期的组件;而 Shiro 并不仅仅可以用在 Web 环境，也可以用在如普通的 JavaSE 环境
+     CacheManager: 缓存控制器，来管理如用户、角色、权限的缓存的;因为这些数据基本上很少改变，放到缓存中后可以提高访问的性能
+     Cryptograpy(密码学): 密码模块，Shiro 提高了一些常见的加密组件用于密码加密/解密。
+
+
+
+在 web.xml 里面配置 shiro
+    <!-- 1.配置 shiro 的 filter
+		2. DelegatingFilterProxy 实际上是 Filter 的一个代理对象，默认情况下,Spring 会到 IOC 容器中查找
+		和 <filter-name> 对应的 filter bean. 也可以通过 targetBeanName 的初始化参数来配置 filter bean 的 id
+		
+	 -->
+	<filter>
+		<filter-name>shiroFilter</filter-name>
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+		<init-param>
+			<param-name>targetFilterLifecycle</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>shiroFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+
+在 applicationContext 里面配置
+    
+
+    
+
+与 Web 集成
+    Shiro 提供了与 Web 集成的支持，其通过一个 ShiroFilter 入口来拦截需要安全控制的 URL,然后进行相应的控制。
+    ShiroFilter 类似于如 Struts2/SpringMVC 这种 web 框架的前端控制器，是安全控制的入口点，其负责读取配置(如 ini 配置文件)
+    ，然后判断 URL 是否需要登录/权限等工作。
+
+
+shiro springmvc 详解
+    <!--
+		 配置哪些页面需要保护 
+		以及访问这些页面需要的权限
+		1. anon 可以被匿名访问
+		2. authc 必须认证(及登录)后才可能访问的页面
+		
+	-->
+	<property name="filterChainDefinitions">
+		<value>
+			/login.jsp=anon
+			/**=authc
+		</value>
+	</property>	
+	
+filterChainDefinitions
+    部分细节
+       [urls] 部分的配置，其格式是: "url=拦截器[参数]"，拦截器"[参数]";
+       如果当前请求的 url 匹配 [urls] 部分的某个 url 模式，将会执行其配置的拦截器。
+       anon( anonymous )拦截器表示匿名访问(即不需要登录即可访问)
+       authc( authentication )拦截器表示需要身份认证通过后才能访问
+
+URL 匹配模式
+    url 模式使用 Ant 风格模式
+    Ant 路径通配符支持 ?,*,**, 注意统配符匹配不包括目录分隔符"/"
+        - ? : 匹配一个字符
+        - * ：匹配零个或多个字符
+        - **：匹配路径中的零个或多个路径
+    
+   URL 匹配顺序
+     URL 权限采取第一次匹配优先的方式，即从头开始使用第一个匹配的 url 模式对应的拦截器链。
+     如：
+        - /bb/**=filter1
+        - /bb/aa=filter2
+        - /**=filter3
+        - 如果请求是 Url 是 "/bb/aa",因为按照声明顺序进行匹配，那么将使用 filter1 进行拦截
+    
+------------------------------------------
+认证
+Shiro 认证思路分析
+    
+    1. 获取当前的 Subject. 调用 SecurityUtils.getSubject();
+    2. 测试当前的用户是否已经被认证.即是否已经登录.调用 Subject 的 isAuthentcated()
+    3. 若没有被认证，则把用户名和密码封装为 UsernamePasswordToken 对象
+     1).创建一个表单页面
+     2).把请求提交到 SpringMVC 和 Handler
+     3).获取用户名和密码
+     4).执行登录：调用 Subject 的 login(AuthenticationToken) 方法
+     5).自定义 Realm 的方法，从数据库中获取对应的记录，返回给 Shiro
+      1>.实际上需要继承 org.apache.shiro.realm.AuthticationRealm 类
+      2>.实现 deGetAuthenticationInfo(AuthenticationToken) 方法
+     6).有 Shiro 完成对密码的对比
+
+    首先
+        你需要在 Controller 的方法里面写
+
+                  // 获取 Subject 对象
+                Subject currentUser = SecurityUtils.getSubject();
+                // 如果 currentUser 没有经过验证
+                if(!currentUser.isAuthenticated()) {
+                    // 把用户名和密码封装成一个 UsernamePasswordToken 对象
+                    UsernamePasswordToken token = new UsernamePasswordToken(username, password);
+                    token.setRememberMe(true);
+                    try {
+                        //执行登录
+                        currentUser.login(token); // 会进入 Realm 
+                    } catch(AuthenticationException ae) {
+                        System.out.println("登录失败：" + ae.getMessage());
+                    }
+                }
+               // 默认 只会拦截 重定向不会拦截转发
+                return "redirect:/list.jsp";
+        //        return "list";
+            }
+   
+   
+   然后
+        创建自定义 Realm 
+        public class ShiroRealm extends AuthenticatingRealm  继承 AuthenticatingRealm 抽象类
+        实现 AuthenticationInfo 方法
+
+            public class ShiroRealm extends AuthenticatingRealm {
+
+    @Override
+    protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken token) throws AuthenticationException {
+        System.out.println("secondReaml : " + token);
+        // 1. 把 AuthenticationToken 转换为 UsernamePasswordToken 
+        UsernamePasswordToken upToken = (UsernamePasswordToken) token;
+        // 2. 从 UsernamePasswordToken 中获取 username
+        String username = upToken.getUsername();
+        // 3. 调用数据库的方法，从数据库中查询 username 对应的用户记录时
+        System.out.println("username" + username);
+        // 4. 若用户不存在，则可以抛出 UnknownAccountExeption 异常
+        if("unknown".equals(username)) {
+            throw new UnknownAccountException("用户名不存在");
+        }
+        // 5. 根据用户信息的情况，决定是否需要抛出其他的 AuthenticationException 异常
+        if("monster".equals(username)) {
+            throw new LockedAccountException("用户被锁定");
+        }
+        // 6. 根据用户的情况，来构建 Authentication 对象并返回 通常实现类为 SimpleAuthenticationInfo
+        // 以下信息是从数据库获取的
+        //1). principal 认证的实体信息，可以是 username,也可以是数据表对应的用户的实体类对象
+        Object principal = username;
+        //2). credentials 密码
+        Object credentials = null;
+        if("user".equals(username)) {
+            credentials = "098d2c478e9c11555ce2823231e02ec1";
+        } else if("admin".equals(username)) {
+            credentials = "038bdaf98f2037b31f1e75b5b4c9b26e";
+        }
+        //3). realmName : 当前 realm 对象的 name. 调用父类的 getName() 方法即可
+        String realmName = super.getName();
+        //4). 盐值加密
+        ByteSource credentialsSalt = ByteSource.Util.bytes(username);
+        // 这个对象应该会自动帮我们验证密码
+        //SimpleAuthenticationInfo info = new SimpleAuthenticationInfo(principal, credentials, realmName);
+        SimpleAuthenticationInfo info = new SimpleAuthenticationInfo(principal, credentials, credentialsSalt, realmName);
+
+        return info;
+    }
+    }
+          
+
+    你还需要在 配置文件里面配置 你的自定义 realm
+        
+        <!--
+             3.配置 realm
+        -->
+        <bean id="jdbcRealm" class="cn.zhu.shiro.realm.ShiroRealm">
+            <property name="credentialsMatcher">
+                <bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+                    <property name="hashAlgorithmName" value="MD5"></property>
+                    <!-- 指定加密的次数 -->
+                    <property name="hashIterations" value="1024"></property>
+                </bean>
+            </property>
+        </bean>
+
+    如果是多 realm 的话你还需要配置认证器 
+        <!-- 配置认证器 -->
+            <bean id="authenticator" class="org.apache.shiro.authc.pam.ModularRealmAuthenticator">
+		        <property name="authenticationStrategy">
+			        <bean class="org.apache.shiro.authc.pam.AtLeastOneSuccessfulStrategy"></bean>
+		        </property>
+	        </bean>
+    
+    然后所有的 realm 都要在 SecurityManager 里面注册
+        <!-- 1. 配置SecurityManager -->
+        <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+            <property name="cacheManager" ref="cacheManager"></property>
+            <property name="authenticator" ref="authenticator"></property> // 注册 authenticator
+            <property name="realms"> // 注册 多个 Realm 
+                <list>
+                    <ref bean="jdbcRealm"/>
+                    <ref bean="secondRealm"/>
+                </list>
+            </property>
+        </bean>
+
+
+
+
+
+
+
+
+ 
+
+
+MD5 加密
+    1. 如何把一个字符串加密为 MD5
+    2. 替换当前 Realm 的 credentialsMatcher 属性。直接使用 HashedCredentialsMatcher 对象，并设置加密算法即可
+        有 MD5 和 SHA1 两种加密算法
+  
+  密码的比对：
+    通过 AuthenticatingRealm 的  credentialsMatcher 属性来进行的密码的对比
+    credentials(证书)
+
+new SimpleHash(hashAlgorithmName, credentials, salt, hashIterations);
+
+    salt 盐值
+    hashAlgorithmName ： 使用的加密算法
+    credentials ：要加密的密码
+    hashIterations ： 加密的次数
+
+使用 盐值加密
+    为什么要使用盐值加密：因为防止两个人的密码明文是一样的。加密也就一样了。所以加入盐值就不一样了
+  
+  如何做到
+    1). 在 doGetAuthenticationInfo 方法返回值创建 SimpleAuthenticationInfo 对象的时候，需要使用 
+        SimpleAuthenticationInfo info = new SimpleAuthenticationInfo(principal, credentials, credentialsSalt, realmName);构造器
+    2). 使用 ByteSource.Util.bytes() 来计算盐值。
+    3). 盐值需要唯一：一般使用随机字符串或 username
+    4). 使用盐值加密
+        ByteSource credentialsSalt = ByteSource.Util.bytes(username);
+           
+  
+  多 realm
+   <!-- 配置认证器 -->
+	<bean id="authenticator" class="org.apache.shiro.authc.pam.ModularRealmAuthenticator">
+		<property name="realms">
+			<list>
+				<ref bean="jdbcRealm"/>
+				<ref bean="secondRealm"/>
+			</list>
+		</property>
+	</bean>
+
+认证策略
+    AuthenticationStrategy
+    AuthenticationStrategy 接口的默认实现：
+     FirstSuccessfulStrategy : 只要有一个 Realm 验证成功即可，只返回第一个 Realm 身份验证成功的认证信息，其他的忽略;
+     AtLeastOneSuccessfulStrategy ：只要有一个 Realm 验证成功即可，和 FirstSuccessfulStrategy 不同，将返回所有
+        Realm 身份验证成功的认证信息;
+     AllSuccessfulStrategy : 所有 Realm 验证成功才算成功，且返回所有 Realm 身份验证成功的认证信息，如果有一个失败就失败了。
+     ModularRealmAuthenticator 默认是 AtLeastOneSuccessfulStrategy
+
+-------------------------------------------
+
+授权
+    
+    授权,也叫访问控制，即在应用中控制谁访问哪些资源(如访问页面/编辑数据/页面操作等)。在授权中需了解的几个关键对象：
+        主体(Subject)、资源(Resource)、权限(Permission)、角色(Role).
+    
+    主体(Subject): 访问应用的用户，在 Shiro 中使用 Subject 代表该用户。用户只有授权后才允许访问相应的资源。
+    
+    资源(Resource): 在应用中用户可以访问的 URL ，比如访问 JSP 页面、查看/编辑某些数据、访问某个业务方法、打印
+        文本等等都是资源。用户只有授权后才能访问。
+    
+    权限(Permission): 安全策略中的原子授权单位，通过权限我们可以表示在应用中用户有没有操作某个资源的权力.即
+        权限表示在应用中用户能不能访问某个资源.如:访问用户列表页面查看/新增/修改/删除用户数据(即很多时候都是 CRUD)
+        式权限控制等).权限代表了用户有没有操作某个资源的权利，即反映在某个资源上的操作允不允许。
+     
+    Shiro 支持粗粒度权限(如用户模块的所有权限)和细粒度权限(操作某个用户的权限,即实例级别的)
+
+    角色(Role): 权限的集合,一般情况下会赋予用户角色而不是权限，即这样用户可以拥有一组权限，赋予权限时比较方便。
+        典型的如：项目经理、技术总监、CTO、开发工程师等都是角色,不同的角色拥有一组不同的权限。
+
+ 
+ 授权方式
+    Shiro 支持三种授权方式
+        - 编程式：通过写 if/else 授权代码块完成
+        - 注解式：通过在执行的 java 方法上放置相应的注解完成，没有权限将抛出相应的异常
+        - JSP/GSP 标签： 在 JSP/GSP 页面通过相应的标签完成
+
+    if(subject.hasRole("admin")) {
+        // 有权限
+    } else {
+        // 无权限
+    }
+    
+    <shiro:hasRole name="admin">
+    <!-- 有权限 -->
+    </shiro:hasRole>
+    
+    @RequiresRoles("admin")
+    public void hello() {
+        // 有权限
+    }
+
+------------------------------------------
+
+    拦截器详细介绍
+        
+        
+身份验证相关的
+
+    authc
+        org.apache.shiro.web.filter.authc.FormAuthenticationFilter
+        基于表单的拦截器；如“/**=authc”，如果没有登录会跳到相应的登录页面登录；
+        主要属性：
+        usernameParam：表单提交的用户名参数名（ username）；  
+        passwordParam：表单提交的密码参数名（password）； rememberMeParam：表单提交的密码参数名（rememberMe）；  
+        loginUrl：登录页面地址（/login.jsp）；successUrl：登录成功后的默认重定向地址； 
+        failureKeyAttribute：登录失败后错误信息存储key（shiroLoginFailure）；
+
+    authcBasic
+        org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter
+        Basic HTTP身份验证拦截器，主要属性： applicationName：弹出登录框显示的信息（application）；
+
+    logout
+    org.apache.shiro.web.filter.authc.LogoutFilter
+    退出拦截器，主要属性：redirectUrl：退出成功后重定向的地址（/）;示例“/logout=logout”
+
+    user
+    org.apache.shiro.web.filter.authc.UserFilter
+    用户拦截器，用户已经身份验证/记住我登录的都可；示例“/**=user”
+
+    anon
+    org.apache.shiro.web.filter.authc.AnonymousFilter
+    匿名拦截器，即不需要登录即可访问；一般用于静态资源过滤；示例“/static/**=anon”
+
+
+
+授权相关的
+
+    roles
+        org.apache.shiro.web.filter.authz.RolesAuthorizationFilter
+        角色授权拦截器，验证用户是否拥有所有角色；
+        主要属性： loginUrl：登录页面地址（/login.jsp）；unauthorizedUrl：未授权后重定向的地址；示例“/admin/**=roles[admin]”
+    
+    perms
+        org.apache.shiro.web.filter.authz.PermissionsAuthorizationFilter
+        权限授权拦截器，验证用户是否拥有所有权限；属性和roles一样；示例“/user/**=perms["user:create"]”
+    
+    port
+        org.apache.shiro.web.filter.authz.PortFilter
+        端口拦截器，主要属性：port（80）：
+        可以通过的端口；示例“/test= port[80]”，如果用户访问该页面是非80，将自动将请求端口改为80并重定向到该80端口，其他路径/参数等都一样
+        
+    rest
+        org.apache.shiro.web.filter.authz.HttpMethodPermissionFilter
+        rest风格拦截器，
+        自动根据请求方法构建权限字符串（GET=read, POST=create,PUT=update,DELETE=delete,HEAD=read,TRACE=read,OPTIONS=read, MKCOL=create）
+        构建权限字符串；示例“/users=rest[user]”，会自动拼出“user:read,user:create,user:update,user:delete”权限字符串进行权限匹配（所有都得匹配，isPermittedAll）；
+        
+    ssl
+        org.apache.shiro.web.filter.authz.SslFilter
+        SSL拦截器，只有请求协议是https才能通过；否则自动跳转会https端口（443）；其他和port拦截器一样；
+
+
+
+其他
+
+    SessionCreation
+        org.apache.shiro.web.filter.session.NoSessionCreationFilter
+        不创建会话拦截器，调用 subject.getSession(false)不会有什么问题，
+        但是如果 subject.getSession(true)将抛出 DisabledSessionException异常；
+
+------------------------------------
+
+ Permissions 配置规则
+
+    规则 ：
+        资源标识符：操作：对象实例ID 
+        即对哪个资源的哪个实例可以进行什么操作，其默认支持通配符权限字符串，
+        : 表示资源/操作/实例的分割；
+        , 表示操作的分割
+        * 表示任意资源/操作/实例
+
+    多层次管理
+        例如： user:query 、user:edit
+       - 冒号是一个特殊字符，它用来分隔权限字符串的下一部分: 
+            第一部分是权限被操作的领域(打印机)
+            第二部分是被执行的操作
+       - 多个值：每个部件能够保护多个值。因此，除了授予用户 user:query 和 user:edit 权限外，也可以简单的授权他们一个：
+          user:query,edit
+       - 还可以用 * 号代替所有的值，如：user:*  也可以写 *:query  表示某个用户在所有的领域都有 query 的权限
+            
+Shiro 的 Permission
+    
+    实例级访问控制
+       - 这种情况通常会使用三个部件：域、操作、被付诸实施的实例。如： user:edit:manager
+       - 也可以使用通配符来定义，如: user:edit:*     user:*:*    user:*:manager
+       - 部分省略通配符：
+            缺少的部件意味着用户可以访问所有与之匹配的值，
+                比如：user:edit 等价于 user:edit:*、 user 等价于 user:*:*
+       - 注意：通配符只能从字符串的结尾处省略部件，也就是说 user:edit 并不等价于 user:*:edit
+       
+
+-------------------------------------------------------------
+
+ 授权需要 Realm 继承 org.apache.shiro.realm.AuthorizingRealm 类
+    实现 doGetAuthorizationInfo() 抽象方法  授权
+    实现 AuthenticationInfo() 抽象方法 认证
+    
+   // 授权会被 shiro 回调的方法
+    @Override
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
+        //1. 从 PrincipalCollection 中来获取登录用户的信息
+        Object principal = principals.getPrimaryPrincipal();
+        //2. 利用登录用户的信息来获取当前用户的角色或权限(可能需要查询数据库)
+        Set<String> roles = new HashSet<>();
+        roles.add("user");
+        if("admin".equals(principal)) {
+            roles.add("admin");
+        }
+        //3. 创建  SimpleAuthorizationInfo , 并设置 reles 属性
+        SimpleAuthorizationInfo info = new SimpleAuthorizationInfo(roles);
+        //4. 返回 SimpleAuthorizationInfo 对象
+        return info;
+    }
+ 
+
+ ---------------------------------------------
+
+ Shiro 标签
+    你需要引入
+        <%@taglib prefix="shiro" uri="http://shiro.apache.org/tags" %>
+    Shiro 提供了 JSTL 标签用于在 JSP 页面进行权限控制，如根据登录用户显示相应的页面按钮。
+    guest 标签： 用户没有身份验证时显示相应信息，即游客访问信息。
+        <shiro:guest>
+            欢迎游客访问，<a herf="login.jsp">登录</a>
+        </shiro:guest>
+
+    user 标签：用户已经经过认证/记住我登录后显示相应的信息。
+        <shiro:user>
+            欢迎[<shiro:principal/>]登录，<a herf="logout.jsp">退出</a>
+        </shiro:user>
+
+    authenticated 标签：用户已经身份验证通过，即 Subject.login 登录成功的，不是记住我登录的，是正儿八经账号密码登录的
+        <shiro:authentication>
+            欢迎[<shiro:principal/>]已身份验证通过
+        </shiro:authentication>
+    
+    notAuthenticated 标签：用户未进行身份验证，即没有调用 Subject.login 进行登录，包括记住我自动登录的也属于未进行身份验证
+        <shiro:notAuthenticated>
+            未身份验证(包括记住我)
+        </shiro:notAuthenticated>
+        
+    pincipal 标签 : 显示用户身份信息，默认调用 Subject.getPrincipal()获取，即 Primary Principal
+        <shiro:principal property="username"/> // 获取 用户的 username 属性
+    
+    hasRole 标签：如果当前 Subject 有角色将显示 body 体内容
+        <shiro:hasRole name="admin">
+            用户[<shiro:principal/>]拥有角色 admin <br/>
+        </shiro:hasRole>
+
+    hasAnyRoles 标签 ：如果当前 Subject 有任意一个角色(或的关系)将显示 body 体内容
+        <shiro:hasAnyRoles name="admin,user">
+            用户[<shiro:principal/>]拥有角色 admin 或 User <br/>
+        </shiro:hasAnyRoles>
+
+    lacksRole : 如果当前 Subject 没有角色将显示 body 体内容
+        <shiro:lacksRole name="admin,user">
+            用户[<shiro:principal/>]没有角色admin <br/>
+        </shiro:lacksRole>
+
+
+---------------------------------------------
+
+权限注解
+    
+    @RequiresAuthentication : 表示当前 Subject 已经通过 login 进行了身份验证
+        即 Subject.isAuthenticated() 返回 true 
+    @RequiresUser : 表示当前 Subject 已经通过身份验证或通过记住我登陆过的
+    @RequiresGuest : 表示当前 Subject 没有身份验证或通过记住我登陆过，即是游客
+    @RequiresRoles(value={"admin", "user"}, logical = Logical.AND) 表示当前 Subject 需要 admin 和 user
+    @RequiresPermissions(value={"user:a", "user:b"}, logical = Logical.OR) 
+        表示当前 Subject 需要权限 user:a 或 user:b 
+
+    需要注意的地方 ：你不能在已经使用 transaction 事务的 service 上使用注解。
+    因为你使用注解的对象已经是一个代理对象，你只能用在 controller 上
+
+    还有你用注解的类只能是在 applicationContext.xml 里面写的 <bean class="xxx"/>
+        不能用在使用 注解注入的类。 不知道是不是版本的问题。(是我忘记吧 springmvc 里的自动扫描忘记关了
+            因为忘记关了 而你的 shiro 是在 applicationContext.xml 里面配置的，而你的 Bean 在 spingmvc 容器里面，所以 shiro 访问
+            不到这个里面。)
+
+   解决办法   
+         在 springmvc 中加上 ，在 applicationContext.xml 里面没用
+        <!-- <aop:config proxy-target-class="true"></aop:config>   -->
+        <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" depends-on="lifecycleBeanPostProcessor">
+        <property name="proxyTargetClass" value="true" />
+
+    
+
+   要 public 方法才能生效。。。浪费了一晚上时间了  
+    
+
+--------------------------------------------
+
+
+Shiro_从数据表中初始化资源和权限
+
+怎么注入权限
+    因为权限是从数据库查询出来的，不能固定在配置文件里面，
+        <property name="filterChainDefinitions">
+		<value>
+			/login.jsp = anon
+			/shiro/login = anon
+			/shiro/logout = logout
+
+			/user.jsp = roles[user]
+			/admin.jsp = roles[admin]
+			
+			/** = authc
+		</value>
+	    </property>	
+
+    这样做是不行的，我们通过查询源码发现 org.apache.shiro.spring.web.ShiroFilterFactoryBean 类
+
+        public void setFilterChainDefinitionMap(Map<String, String> filterChainDefinitionMap) {
+        this.filterChainDefinitionMap = filterChainDefinitionMap;
+        }
+    
+        权限是通过 filterChainDefinitionMap 来注入的
+
+        那么我们可以通过注入 filterChainDefinitionMap 来注入权限。
+        其 Map 我们可以创建一个工厂类，然后再创建 map 之前，先在工厂里面查询数据库，获取数据库里面的权限
+        然后将其存入 map。返回 map . 因为这是一个工厂类，所以你返回的 map 就是一个新的 Bean.
+
+        <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+            <property name="filterChainDefinitionMap" ref="filterChainDefinitionMap"></property>
+        </bean>
+        <!-- 配置一个 bean 该 bean 实际上是一个 map 通过实例工厂方法的方式 -->
+        <bean id="filterChainDefinitionMap" factory-bean="filterChainDefinitionMapBuilder" factory-method="buildFilterChainDefinitionMap"></bean>
+        <!-- 工厂类 -->
+        <bean id="filterChainDefinitionMapBuilder" class="cn.zhu.shiro.factory.FilterChainDefinitionMapBuilder"></bean>
+	
+        这样的话就能每次从数据库获取相应的权限了
+
+
+
+          工厂类
+            public class FilterChainDefinitionMapBuilder {
+    
+            public LinkedHashMap<String, String> buildFilterChainDefinitionMap() {
+                LinkedHashMap<String, String> map = new LinkedHashMap<>();
+                // 访问数据库，将 LinkedHashMap 初始化
+                // 必须是 LinkedHashMap 因为 LinkedHashMap 有先后顺序，而 url 的匹配也是有先后顺序的
+                // {/login.jsp=anon, /shiro/login=anon, /shiro/logout=logout,
+                // /user.jsp=roles[user], /admin.jsp=roles[admin], /**=authc}
+                map.put("/login.jsp", "anon");
+                map.put("/shiro/login", "anon");
+                
+                map.put("/user.jsp", "roles[user]");
+                map.put("/admin.jsp ", "roles[admin]");
+                
+                map.put("/**", "authc");
+                
+                return map;
+            }
+        }
+
+
+--------------------------------------------
+
+    概述
+  Shiro 提供了完整的企业级会话管理功能，不依赖底层容器(如 web 容器 tomcat),不管 JavaSE 还是 JavaEE 环境都可以使用，
+    提供了会话管理、会话事件监听、会话存储/持久化、容器无关的集群、失败/过期支持、对 web 的透明支持、SSO
+    单点登录的支持等特性。
+   
+
+    会话相关的 API
+      Subject.getSession() 即可获取会话;其等价于 Subject.getSession(true),即如果当前没有创建 Session 对象会创建
+          一个; Subject.getSession(false),如果当前没有创建 Session 则返回 null
+      
+      session.getId(); 获取当前会话的唯一标识
+
+      session.getHost(); 获取当前 Subject 的主机地址
+
+      session.getTimeout()&session.setTimeout(毫秒): 获取/设置当前 session 的过期时间
+
+      session.getStartTimestamp()& session.getLastAccessTime();
+          获取会话的启动时间及最后访问时间;如果是 JavaSE 应用需要自己定期调用 session.touch() 去更新最后访问时间;
+          如果是 Web 应用，每次进入 ShiroFilter 都会自动调用 session.touch() 来更新最后访问时间
+
+      session.touch()&session.stop() 更新会话最后访问时间及销毁会话;当 Subject.logout() 时会自动调用 stop 方法来
+          销毁会话。如果在 web 中，调用 HttpSession.invalidate() 也会自动调用 Shiro Session.stop 方法进行销毁
+          Shiro 的会话
+      
+      session.setAttribute(key,val)&
+      session.getAttribute(key)&
+      session.removeAttribute(key): 设置/获取/删除会话属性;在整个会话范围内都可以对这些属性进行操作
+
+
+
+   还提供了一个 会话监听器
+     会话监听器用于监听会话创建、过期及停止事件
+        sessionListener
+            void onSrart(Session)
+            void onStop(Session)
+            void onExpiration(Session)
+
+
+    源码分析
+        ：
+    shiro 的 session 就是 HttpSession 所以你往 httpSession 里面存值，就是往 apache.Session 里面存值
+    
+        Session session = SecurityUtils.getSubject().getSession();
+            等于 DelegatingSubject 对象的
+                  public Session getSession() {
+                    return getSession(true);
+                }
+             然后又调用了 本类的 
+
+            public Session getSession(boolean create) {
+                // 先判断 create 就是 getSession(true);的 true 和 session 有没有被缓存起来
+                
+                 if (this.session == null && create) { 
+                    // 如果都没有就开始获取 session
+                    SessionContext sessionContext = createSessionContext(); 
+                    Session session = this.securityManager.start(sessionContext);
+                    this.session = decorate(session); // 将获取的 session 缓存起来，放到成员变量里面
+
+                 }
+                 return this.session; // 将 session 返回
+                 }
+                
+                从 SessionContext sessionContext = createSessionContext();  来获取 sessionContext
+                    
+                    点进去到了 WebDelegatingSubject 类的
+                     protected SessionContext createSessionContext() {
+                        WebSessionContext wsc = new DefaultWebSessionContext();
+                        String host = getHost();
+                        if (StringUtils.hasText(host)) {
+                            wsc.setHost(host);
+                        }
+                        wsc.setServletRequest(this.servletRequest);
+                        wsc.setServletResponse(this.servletResponse);
+                        return wsc;
+                    }
+                    
+                    将 wsc.setServletRequest(this.servletRequest);
+                        wsc.setServletResponse(this.servletResponse);
+                      设置进去。
+                    
+                    那么 servletRequest 和  servletResponse 又是什么哪里获取的呢
+
+                    我们点击发现
+                        public WebDelegatingSubject(PrincipalCollection principals, boolean authenticated,
+                                String host, Session session, boolean sessionEnabled,
+                                ServletRequest request, ServletResponse response,
+                                                        SecurityManager securityManager) {
+                                super(principals, authenticated, host, session, sessionEnabled, securityManager);
+                                this.servletRequest = request;
+                                this.servletResponse = response;
+                            }
+                    初始化的时候获取的
+                         
+                         我们通过断点发现 
+                         
+                         点击 DefaultWebSubjectFactory 类
+                            public Subject createSubject(SubjectContext context) {
+                                if (!(context instanceof WebSubjectContext)) {
+                                    return super.createSubject(context);
+                                }
+                                WebSubjectContext wsc = (WebSubjectContext) context;
+                                SecurityManager securityManager = wsc.resolveSecurityManager();
+                                Session session = wsc.resolveSession();
+                                boolean sessionEnabled = wsc.isSessionCreationEnabled();
+                                PrincipalCollection principals = wsc.resolvePrincipals();
+                                boolean authenticated = wsc.resolveAuthenticated();
+                                String host = wsc.resolveHost();
+                                ServletRequest request = wsc.resolveServletRequest();
+                                ServletResponse response = wsc.resolveServletResponse();
+
+                                return new WebDelegatingSubject(principals, authenticated, host, session, sessionEnabled,
+                                        request, response, securityManager);
+                            }
+
+                         是在 创建 createSubject 的时候初始化的 request response 方法。
+                         具体还要看源码
+                          
+                           设置了 servletRequest 和  servletResponse 和 host 以后将其返回
+
+                        返回了以后
+                             SessionContext sessionContext = createSessionContext();
+                             Session session = this.securityManager.start(sessionContext);
+                            
+                            进入 Session session = this.securityManager.start(sessionContext);
+
+                            到了 ServletContainerSessionManager 类
+                          的
+                             public Session start(SessionContext context) throws AuthorizationException {
+                                return createSession(context);
+                            }
+
+                            然后我们看见了
+                                 protected Session createSession(SessionContext sessionContext) throws AuthorizationException {
+                                    if (!WebUtils.isHttp(sessionContext)) {
+                                        String msg = "SessionContext must be an HTTP compatible implementation.";
+                                        throw new IllegalArgumentException(msg);
+                                    }
+
+                                    HttpServletRequest request = WebUtils.getHttpRequest(sessionContext);
+
+                                    HttpSession httpSession = request.getSession(); // 从 request.getSession 里面获取了 httpSession
+
+                                    //SHIRO-240: DO NOT use the 'globalSessionTimeout' value here on the acquired session.
+                                    //see: https://issues.apache.org/jira/browse/SHIRO-240
+
+                                    String host = getHost(sessionContext);
+
+                                    return createSession(httpSession, host);
+                                }
+
+                                protected Session createSession(HttpSession httpSession, String host) {
+                                     // 将其 httpSession 的引用  放入了 shiro 的 apache.session 里面
+                                    return new HttpServletSession(httpSession, host); 
+
+                                }
+
+                                到此就结束了
+                                接下来就是  return this.session; // 将 session 返回 将 session 返回
+
+
+
+
+------------------------------------------------------
+
+  SessionDao
+        
+AbstractSessionDAO 提供了 SessionDAO 的基础实现，如生成会话 ID 等
+CachingSessionDAO （父类 AbstractSessionDAO ）提供了对开发者透明的会话缓存的功能，需要设置相应的 CacheManager
+MemorySessionDAO （父类 AbstractSessionDAO ）直接在内存中进行会话维护
+EnterpriseCacheSessionDAO （父类 CachingSessionDAO） 提供了缓存功能的会话维护，默认情况下使用 MapCache 实现,内部使用 ConcurrentHashMap 保存会话。
+
+
+一般不用的
+
+---------------------------------------------------------------
+
+会话验证
+    Shiro 提供了会话验证调度器，用于定期的验证会话是否已过期，如果过期将停止会话。
+    出于性能的考虑，一般情况下都是获取会话时来验证会话是否过期并停止会话的;但是如在 WEB 环境中，
+    如果用户不主动退出是不知道会话是否过期的，因此需要定期的检测会话是否过期，Shiro 提供了会话
+    验证调度器
+        SessionValidationScheduler
+       Shiro也提供了使用 Quartz 会话验证调度器：
+        QuartzSessionValidationScheduler
+
+
+===============================================
+
+缓存
+    CacheManagerAware 接口
+        shiro 内部相应的组件 ( DefaultSecurityManager )会自动检测相应的对象( 如 Realm )是否实现了
+        CacheManagerAware 并自动注入相应的 CacheManager
+
+===============================================
+
+RememberMe
+ shiro 提供了记住我(RememberMe) 的功能，比如访问如淘宝等一些网站时，关闭了浏览器，下次再打开时还是能
+    记住你是谁，下次访问时无需再登录即可访问,基本流程如下：
+     1. 首先在登录页面选中 RememberMe 然后登录成功;如果是浏览器登录，一般会把 RememberMe 的 Cookie
+        写到客户端并保存下来;
+     2. 关闭浏览器再重新打开; 会发现浏览器还是记住你的。
+     3. 访问一般的网页服务器端还是知道你是谁，且能正常访问;
+     4. 但是比如我们访问淘宝时，如果要查看我的订单或进行支付时，此时还是需要再进行身份认证的，以确保当前的用户还是你
+
+
+认证 和 记住我
+    subject.isAuthenticated() 表示用户进行来身份验证登录的，即用 Subject.login 进行了登录
+    subject.isRemembered() 表示用户是通过记住我登录的，此时可能并不是真正的你(如你的朋友使用你的电脑)，
+        或者你的 Cookie 被窃取) 在访问的
+
+    两者选其一，即 subject.isAuthenticated() == true ，则 subject.isRemembered()==false;反之一样
+
+
+建议
+    访问一般网页：如个人在主页之类的，我们使用 User 拦截器即可，user 拦截器只要用户登录
+        ( isRemembered() || isAuthenticated() ) 过即可访问成功;
+     
+    访问特殊网页 : 如我的订单，提交订单页面，我们使用 authc 拦截器即可，authc 拦截器会判断用户是否是
+        通过 Subject.login (isAuthentication()== true) 登录的，如果是才放行，否则会跳转到登录页面叫你
+            重新登录。
+    
+
+
+
+===============================================
+
+
+你可以到 DefaultFilter  里面查询有哪些 权限 Filter
+
+
+你不需要配置 logout 页面，因为其 LogoutFilter 已经帮你 subject.logout(); 了
+
+
+
+首先你要到 SecuotityUtil.getSubject(); 然后判断是否已经登录,没有登录就将其页面传过来的账号密码封装成 Token 对象，(UsernamePasswordToken)
+    然后，使用 Subject.login(Token); 进行登录，内部使用 SecurityManager.login(Token) 进行登录，然后进入 自定义的 realm ，继承了
+       AuthoriztingRealm 的 realm。进行查询数据库授权和认证。
+
+
+
+
+=======================================================
+
+
+
+因为 shiro 
+
+
+
+
+
+org.apache.shiro.web.filter.authc.FormAuthenticationFilter
+
+ protected boolean onAccessDenied()
+ 对于 这个方法的返回参数
+
+参数：请求传入的ServletRequestresponse：
+    
+    如果请求继续被处理，则为true;
+        如果请求由 shiro 处理就返回 true
+
+
+    如果子类将直接处理/呈现响应，则为false
+        如果你想自己重定向转发就返回 false
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

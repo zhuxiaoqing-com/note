@@ -1,0 +1,1743 @@
+
+宜立方商城
+    
+  电商模式
+    B2B : 商家到商家。阿里巴巴
+    B2C : 商家到用户  京东
+    C2C : 用户到用户  淘宝
+    B2B2C : 商家到商家到用户  天猫
+    O2O : 上线到线下  百度外卖、美团
+            就是线上订货 线下提货
+
+
+一个 tomcat 大概能支撑 300 并发
+
+1000并发
+    可以使用 服务器建立集群处理
+
+    需要 20 台服务器做 tomcat 集群。当 tomcat 集群中节点数量增加，服务能力先增加后下降，
+    所以集群中节点数量不能太多，一般也就5个左右。
+        因为 tomcat 会忙着做广播  将 session 传播出去，由其他 tomcat 进行复制。
+        而其他 tomcat 也会进行广播 都是相互的
+
+10000并发
+    需要按照功能点把系统拆分，拆分成独立的功能。单独为某一个节点添加服务器。需要系统之间配合才能
+    完成整个业务逻辑。叫做分布式
+
+    因为 session 复制太多了 所以节点只能有那么多。多了 session 复制就忙不过来了
+
+    那么可以不进行 session 复制，我们使用  token .
+    将登陆功能 提取出来。作为一个单独的功能
+
+
+    分布式架构：
+        多个子系统相互协作才能完成业务流程。系统之间需要进行通信。
+
+    集群：
+        同一个工程部署到多台服务器上。
+
+    
+    分布式架构
+        把系统按照模块拆分成多个子系统
+    
+    优点
+        1. 把模块拆分，使用接口通信，降低模块之间的耦合度。
+        2. 把项目拆分成若干个子项目，不同的团队负责不同的子系统
+        3. 增加功能时只需要再增加一个子项目，调用其他系统的接口就可以
+        4. 可以灵活的进行分布式部署
+    
+    缺点
+        1、系统之间交互需要使用远程通信，接口开发增加工作量。
+        2、各个模块有一些通用的业务逻辑无法共用。
+
+
+-----------------------------------------------------
+
+ 基于 SOA 架构
+    
+    因为分布式 服务层有很多重复，所以你可以将服务层单独提取出来
+
+
+    SOA：Service Oriented Architecture面向服务的架构。也就是把工程拆分成服务层、表现层两个工程。服务层中包含业务逻辑，
+        只需要对外提供服务即可。表现层只需要处理和页面的交互，业务逻辑都是调用服务层的服务来实现。
+
+
+
+
+Maven 
+    Maven 常见的打包方式 ： jar war pom
+    pom 工程一般都是父工程，管理 jar 包的版本、maven 插件的版本、统一的依赖管理。聚合工程。
+
+    maven 就是为了用哪个加哪个。所以不应该把所有的 jar 都放在同一个 maven 里面
+
+
+    e3-parent：父工程，打包方式pom，管理jar包的版本号。
+        |           项目中所有工程都应该继承父工程。
+    |--e3-common：通用的工具类通用的pojo。打包方式jar
+    |--e3-manager：服务层工程。聚合工程。Pom工程
+    |--e3-manager-dao：打包方式jar
+    |--e3-manager-pojo：打包方式jar
+    |--e3-manager-interface：打包方式jar
+    |--e3-manager-service：打包方式：jar
+        |--e3-manager-web：表现层工程。打包方式war
+
+
+
+org.springframework.web.util.NestedServletException: Request processing failed;
+nested exception is org.apache.ibatis.binding.BindingException: Invalid bound statement (not found): 
+        cn.e3mall.dao.TbItemMapper.selectByExample
+
+
+此异常的原因是由于mapper接口编译后在同一个目录下没有找到mapper映射文件而出现的。
+由于maven工程在默认情况下src/main/java目录下的mapper文件是不发布到target目录下的。
+
+
+
+
+
+解决方法 在你的 dao 的 pom 文件下添加
+
+    <!-- 如果不添加此节点mybatis的mapper.xml文件都会被漏掉。 -->
+	<build>
+		<resources>
+            <resource>
+                <directory>src/main/java</directory>  <!-- 表示 src/main/java 是资源目录  -->
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
+                </includes>
+                <filtering>false</filtering>
+            </resource>
+
+            <resource>
+                <directory>src/main/resources</directory> <!-- 表示 src/main/resource 是资源目录  -->
+                <includes>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
+                </includes>
+                <filtering>false</filtering>
+                </resource>
+        </resources>
+	</build>
+
+当然你也可以将 mapper 放到 resouce 下面
+
+注意 Maven src 下默认是不编译 除 .java 以外的文件的
+    那么 resource 应该就是不编译  .java 文件的
+
+
+经过测试
+    !-- sessionFactory -->
+	<bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="configLocation" value="classpath:mybaits/SqlMapConfig.xml"></property>
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="mapperLocations">
+			<value>classpath:cn/e3mall/**/mapper/*.xml</value> // 这样写是错的。你不能写 /**/
+		</property> 
+	</bean>
+	<!-- dao 注入到 spring 中 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="cn.e3mall.**.dao"></property>
+		<property name="sqlSessionFactoryBeanName" value="sessionFactory"></property>
+	</bean>
+
+
+
+-------------------------------------------------------
+
+
+将工程改造为 SOA 架构
+  
+  由于宜立方商城是基于 soa 的架构，表现层和服务层是不同的工程。所以要实现商品列表查询需要两个系统之间进行通信。
+
+  如何实现远程通信？
+    1. Webservice ：效率不高基于 soap 协议。项目中不推荐使用
+    2. 使用 restful 形式的服务：http+json 很多项目中应用。如果服务太多，服务之间调用关系混乱，需要治疗服务。
+    3. 使用 dubbo. 使用 rpc 协议进行远程调用，直接使用 socket 通信。传输效率高，并且可以统计出系统之间的调用关系、调用次数
+
+
+    dubbo
+    什么是 dubbo 
+    随着互联网的发展，网站应用的规模不断扩大，常规的垂直应用架构已无法应对，分布式服务架构以及流动计算架构在必行。
+    需要一个治理系统保证架构有条不絮的演进
+
+    就是服务治理工具
+
+
+    单一应用架构
+      当网站流量很小时，只需一个应用，将所有功能都部署在一起，以减少部署节点和成本
+      此时，用于简化增删改查工作量的 数据访问框架(ORM) 是关键
+
+
+垂直应用架构 
+    当访问量逐渐增大，单一应用增加机器带来的加速度越来越小，将应用拆成互不相干的几个应用，以提升效率。
+    此时，用于加速前端页面开发的 Web框架(MVC) 是关键。
+
+分布式服务架构 
+    当垂直应用越来越多，应用之间交互不可避免，将核心业务抽取出来，作为独立的服务，逐渐形成稳定的服务中心，
+      使前端应用能更快速的响应多变的市场需求。
+    此时，用于提高业务复用及整合的 分布式服务框架(RPC) 是关键。
+
+流动计算架构 
+    当服务越来越多，容量的评估，小服务资源的浪费等问题逐渐显现，此时需增加一个调度中心基于访问压力实时管理集群容量，提高集群利用率。
+  此时，用于提高机器利用率的 资源调度和治理中心(SOA) 是关键。
+
+
+Dubbo 就是资源调度和治理中心的管理工具。
+
+    
+    Dubbo的架构
+     
+     0. 服务容器负责启动，加载，运行 服务提供者
+     1. 服务提供者在启动时，向注册中心注册自己提供的服务
+     2. 服务消费者在启动时，向注册中心订阅自己所需的服务
+     3. 注册中心返回服务提供者地址列表给消费者，如果有变更，注册中心将基于长连接推送变更数据给消费者。
+     4. 服务消费者，从提供者地址列表中，基于软负载均衡算法，选一台提供者进行调用，如果调用失败，再选另一台调用。
+     5. 服务消费者和提供者，在内存中累计调用次数和调用时间，定时每分钟发送一次统计数据到监控中心。
+
+
+远程服务：
+在本地服务的基础上，只需做简单配置，即可完成远程化：
+
+将服务定义部分放在服务提供方remote-provider.xml，将服务引用部分放在服务消费方remote-consumer.xml。
+并在提供方增加暴露服务配置<dubbo:service>，在消费方增加引用服务配置<dubbo:reference>。
+发布服务：
+<!-- 和本地服务一样实现远程服务 -->
+<bean id="xxxService" class="com.xxx.XxxServiceImpl" />
+<!-- 增加暴露远程服务配置 -->
+<dubbo:service interface="com.xxx.XxxService" ref="xxxService" />
+
+调用服务：
+<!-- 增加引用远程服务配置 -->
+<dubbo:reference id="xxxService" interface="com.xxx.XxxService" />
+<!-- 和本地服务一样使用远程服务 -->
+<bean id="xxxAction" class="com.xxx.XxxAction">
+	<property name="xxxService" ref="xxxService" />
+</bean>
+
+
+
+
+2.3.2.Zookeeper的安装
+安装环境：
+Linux：centos6.4
+Jdk:1.7以上版本
+
+Zookeeper是java开发的可以运行在windows、linux环境。需要先安装jdk。
+安装步骤：
+第一步：安装jdk
+第二步：把zookeeper的压缩包上传到linux系统。
+第三步：解压缩压缩包
+tar -zxvf zookeeper-3.4.6.tar.gz
+第四步：进入zookeeper-3.4.6目录，创建data文件夹。
+第五步：把zoo_sample.cfg改名为zoo.cfg
+    [root@localhost conf]# mv zoo_sample.cfg zoo.cfg
+    进入 zoo.cfg 修改 data  为你创建的 data 目录的实际目录 
+第六步：修改data属性：dataDir=/root/zookeeper-3.4.6/data
+第七步：启动zookeeper
+    [root@localhost bin]# ./zkServer.sh start
+    关闭：[root@localhost bin]# ./zkServer.sh stop
+    查看状态：[root@localhost bin]# ./zkServer.sh status
+
+注意：需要关闭防火墙。
+service iptables stop
+永久关闭修改配置开机不启动防火墙：
+chkconfig iptables off
+如果不能成功启动zookeeper，需要删除data目录下的zookeeper_server.pid文件。
+
+
+
+
+
+  因为 dubbo 默认依赖了 spring 所以你要将 spring 依赖的排除
+<!-- dubbo相关 -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>dubbo</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.jboss.netty</groupId>
+					<artifactId>netty</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.zookeeper</groupId>
+			<artifactId>zookeeper</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.sgroschupf</groupId>
+			<artifactId>zkclient</artifactId>
+		</dependency>
+
+
+
+
+
+
+	<!-- 使用dubbo发布服务 -->
+	<!-- 提供方应用信息，用于计算依赖关系 -->
+	<dubbo:application name="e3-manager" />  <!-- dubbo 的名称 就是一个唯一标识符 -->
+	<dubbo:registry protocol="zookeeper"    <!--  注册信息 -->
+		address="192.168.25.154:2181,192.168.25.154:2182,192.168.25.154:2183" />    <!-- 集群 ip 是你 zookeeper 服务器所在的电脑的 ip  -->
+	<!-- 用dubbo协议在20880端口暴露服务 -->
+	<dubbo:protocol name="dubbo" port="20880" />
+	<!-- 声明需要暴露的服务接口 -->
+	<dubbo:service interface="cn.e3mall.service.ItemService" ref="itemServiceImpl" />
+
+
+
+
+
+<!-- 引用dubbo服务 -->
+	<dubbo:application name="e3-manager-web"/>  <!-- 名称和 发布的不能一样，是唯一标识 -->
+	<dubbo:registry protocol="zookeeper" address="192.168.25.154:2181,192.168.25.154:2182,192.168.25.154:2183"/>	
+	<dubbo:reference interface="cn.e3mall.service.ItemService" id="itemService" />
+
+
+
+如果启动不起来了就将 log4j.properties 加到你启动不起来的 项目里面去
+
+我的错误是 
+    <dubbo:registry protocol="zookeeper"    <!--  注册信息 -->
+		address="192.168.25.154:2181,192.168.25.154:2182,192.168.25.154:2183" />  
+        address 的 ip 地址没有加 端口号！！！ 默认使用了 9090
+
+
+你必须在 发布服务的 service 启动以后才能进行 web 层获取服务启动
+
+
+
+怎么调试  maven tomcat plugin内置tomcat调试添加jar源码
+    
+    
+
+怎么设置 dubbo 的超时时间
+
+    <dubbo:service interface="cn.e3mall.service.ItemService" ref="itemServiceImpl" timeout="5000"/>
+        timeout 毫秒  默认1000 就是 1秒
+    超时以后默认重新请求 zookeeper 服务器 3 次，还不行就报错
+        重试 3 次，3次还不行就报错
+
+
+没有找到
+
+    使用  tail -f logs/catalina.out 
+        可以查看 tomcat 的日志，查看是否启动成功
+
+
+
+注册中心
+    密码    
+        如果监控中心和注册中心在同一台服务器上，可以不需要任何配置。
+        如果不在同一台服务器，需要修改配置文件：
+        /root/apache-tomcat-7.0.47/webapps/dubbo-admin/WEB-INF/dubbo.properties
+
+
+对于 tree 形状图
+    你需要 一个 节点Id，需要一个状态 下面是否还有节点的状态
+            一个节点 名称
+          这样的话你就可以 ajax 加载节点了，通过 是否为父节点，不是父节点就进入编辑，父节点就进行 ajax 获取子节点
+
+
+
+
+-----------------------------------
+
+4.	什么是nginx
+Nginx是一款高性能的http 服务器/反向代理服务器及电子邮件（IMAP/POP3）代理服务器。由俄罗斯的程序设计师
+    Igor Sysoev所开发，官方测试nginx能够支支撑5万并发链接，并且cpu、内存等资源消耗却非常低，运行非常稳定。
+
+
+
+
+    1、http服务器。Nginx是一个http服务可以独立提供http服务。可以做网页静态服务器。
+    2、虚拟主机。可以实现在一台服务器虚拟出多个网站。例如个人网站使用的虚拟主机。比如阿里巴巴云计算主机。我们买
+        的虚拟服务器就是，虚拟主机
+    3、反向代理，负载均衡。当网站的访问量达到一定程度后，单台服务器不能满足用户的请求时，
+        需要用多台服务器集群可以使用nginx做反向代理。并且多台服务器可以平均分担负载，不会因为某
+        台服务器负载高宕机而某台服务器闲置的情况。
+
+
+
+-----------------------------
+
+nginx 安装
+
+    linux 上的很多软件 提供的都是源码包，因为 linux 有很多发行版，不同的发行版的安装的软件是不同的
+    所以就直接提供源码包来给我们自己运行
+
+
+
+6.1.	要求的安装环境
+1、需要安装gcc的环境。yum install gcc-c++
+2、第三方的开发包。
+	PCRE
+	PCRE(Perl Compatible Regular Expressions)是一个Perl库，包括 perl 兼容的正则表达式库。nginx的http模块使用pcre来解析正则表达式，所以需要在linux上安装pcre库。
+yum install -y pcre pcre-devel
+注：pcre-devel是使用pcre开发的一个二次开发库。nginx也需要此库。
+	zlib
+	zlib库提供了很多种压缩和解压缩的方式，nginx使用zlib对http包的内容进行gzip，所以需要在linux上安装zlib库。
+yum install -y zlib zlib-devel
+
+	openssl
+	OpenSSL 是一个强大的安全套接字层密码库，囊括主要的密码算法、常用的密钥和证书封装管理功能及SSL协议，并提供丰富的应用程序供测试或其它目的使用。
+	nginx不仅支持http协议，还支持https（即在ssl协议上传输http），所以需要在linux安装openssl库。
+yum install -y openssl openssl-devel
+
+6.2.	安装步骤
+
+第一步：把nginx的源码包上传到linux系统
+第二步：解压缩
+[root@localhost ~]# tar zxf nginx-1.8.0.tar.gz 
+第三步：使用configure命令创建一makeFile文件。
+./configure \
+--prefix=/usr/local/nginx \
+--pid-path=/var/run/nginx/nginx.pid \
+--lock-path=/var/lock/nginx.lock \
+--error-log-path=/var/log/nginx/error.log \
+--http-log-path=/var/log/nginx/access.log \
+--with-http_gzip_static_module \
+--http-client-body-temp-path=/var/temp/nginx/client \
+--http-proxy-temp-path=/var/temp/nginx/proxy \
+--http-fastcgi-temp-path=/var/temp/nginx/fastcgi \
+--http-uwsgi-temp-path=/var/temp/nginx/uwsgi \
+--http-scgi-temp-path=/var/temp/nginx/scgi
+注意：启动nginx之前，上边将临时文件目录指定为/var/temp/nginx，需要在/var下创建temp及nginx目录
+[root@localhost sbin]# mkdir /var/temp/nginx/client -p
+第四步：make
+第五步：make install
+
+
+
+ \ 是 linux  的换行符号。使用了 \ 你就可以在 linux 的命令行再起一行
+
+
+如果安装出现了
+    make 出现了
+      没有规则可以创建“default”需要的目标“build”。 停止。
+    那么是你缺少 第三方的开发包 运行下上面提供的 gcc++ 等等源码 然后再
+    configure 下,就好用了
+
+
+启动 nginx 
+    sbin/nginx
+
+关闭 nginx
+    sbin/nginx  -s quit
+  或
+    sbin/nginx  -s stop
+
+重新加载  一般用来刷新配置文件
+    sbin/nginx -s reload
+
+
+
+ngnix.conf 配置文件
+
+    server {
+            listen       80;
+            server_name  localhost;
+
+            #charset koi8-r;
+
+            #access_log  logs/host.access.log  main;
+
+            location / {
+                root   html;
+                index  index.html index.htm;
+            }
+        }
+
+    一个server节点就是一个虚拟主机
+
+    Html是nginx安装目录下的html目录
+
+可以配置多个server，配置了多个虚拟主机。
+
+
+--------------------------------------
+
+域名
+
+网上的
+ 
+ 二级域名.顶级域名
+ .com .cn  在域名的最右边的点 的后面就是一级域名也叫顶级域名
+
+
+顶级域名左边的部分称为二级域名。
+
+二级域名的左边部分称为三级域名。
+
+三级域名的左边部分称为四级域名。以此类推。
+
+
+关于“www”问题：那常见的 www.163.com又是什么呢。从整体上来说，这是一个URL地址，而非域名。
+    细化来讲，www是一个主机名称，在这台主机上运行着网页服务器，当客户端输入 
+    www.163.com时，系统会在DNS系统上查询这个地址所对应的IP地址，如果一切正常则会很快
+    返回这台主机的IP地址，之后浏览器会向这个地址发起HTTP请求进行网页解析。
+
+
+老师的
+    一级域名： (需要购买)
+    Baidu.com
+    Taobao.com
+    Jd.com
+    二级域名：(二级、三级... 等都是自己定义的 都是你自己的)
+    www.baidu.com
+    Image.baidu.com
+    Item.baidu.com
+    三级域名：
+    1.Image.baidu.com
+    Aaa.image.baidu.com
+
+还是以老师的为准
+
+
+一个域名对应一个ip地址，一个ip地址可以被多个域名绑定。
+
+本地测试可以修改hosts文件。
+修改window的hosts文件：（C:\Windows\System32\drivers\etc）
+可以配置域名和ip的映射关系，如果hosts文件中配置了域名和ip的对应关系，不需要走dns服务器。
+
+
+
+  什么是反向代理
+
+        正向代理
+        代理服务器   可以上网   请求转发
+    就是你通过服务器上网。
+    你本来不能上网，但是你可以通过访问一台服务器，让服务器帮你上网
+    
+
+ 先说正向代理，比如要访问youtube,但是不能直接访问，只能先找个翻墙软件，通过翻墙软件才能访问youtube. 翻墙软件就叫做正向代理
+ 所谓的反向代理，指的是用户要访问youtube,但是youtube悄悄地把这个请求交给x-art来做，那么x-art就是反向代理了
+
+
+正向代理隐藏真实客户端，反向代理隐藏真实服务端
+
+正向代理是通过服务器帮我们访问别的服务器
+
+正向代理即是客户端代理, 代理客户端, 服务端不知道实际发起请求的客户端.
+
+
+反向代理即是服务端代理, 代理服务端, 客户端不知道实际提供服务的服务端.
+
+
+
+反向代理服务器决定哪台服务器提供服务。
+返回代理服务器不提供服务器。也是请求的转发
+
+
+
+Nginx实现反向代理
+
+     指的是两个域名指向同一台 nginx 服务器，用户访问不同的域名显示不同的网页内容
+    
+
+	负载均衡
+
+    如果一个服务由多条服务器提供，需要把负载分配到不同的服务器处理，需要负载均衡。
+ upstream tomcat2 {
+	server 192.168.25.148:8081;
+	server 192.168.25.148:8082;
+  }
+
+可以根据服务器的实际情况调整服务器权重。权重越高分配的请求越多，权重越低，请求越少。默认是都是1
+ upstream tomcat2 {
+	server 192.168.25.148:8081;
+	server 192.168.25.148:8082 weight=2;
+    }
+
+
+
+upstream tomcat2{
+            server 192.168.0.101:8081 weight=2;
+            server 192.168.0.101:8080 weight=1;
+        }
+        location / {
+        proxy_pass http://nginx;
+        index  index.html index.htm;
+        }
+
+
+如果 nginx 的 7层负载 的 5w 并发支撑不下去了
+
+那么你可以使用 硬件F5 或者软件 LVS(F5 60% 的能力) 是4层负载
+
+优点：性能高、支持各种网络协议
+
+缺点：对网络依赖大，负载智能方面没有7层负载好
+  F5 硬件性能很高但成本也高，需要人民币几十万
+
+
+
+基于 LVS 或 F5 来进行网络层负载均衡，然后到了 7层使用 ngnix 负载均衡
+   LVS 作为系统的入口，LVS将请求散步到不同的 ngnix 上，ngnix 再把请求散步到不同主机上
+
+
+什么是 keepalived
+    keepalived是集群管理中保证集群高可用的一个服务软件，用来防止单点故障。
+ 	Keepalived的作用是检测web服务器的状态，如果有一台web服务器死机，或工作出现故障，Keepalived将检测到，并
+    将有故障的web服务器从系统中剔除，当web服务器工作正常后Keepalived自动将web服务器加入到服务器群中，这些工
+    作全部自动完成，不需要人工干涉，需要人工做的只是修复故障的web服务器。
+也就是 双机热备 
+    实现了 ip 漂移  就是 ip 会自动绑定到能用的主机上
+
+
+ ngnix 
+    1. 静态资源访问
+    2. 反向代理 (一台服务器可以有不同的域名访问 ，一个 ip 可以访问不同的域名)
+    3. 负载均衡
+
+
+---------------------------------------------------
+
+什么是FastDFS？
+
+    FastDFS 是用 c 语言编写的一款开源的分布式文件系统。FastDFS为互联网量身定制，充分考虑了冗余备份、负载均衡、
+    线性扩容等机制，并注重高可用、高性能等指标，使用FastDFS很容易搭建一套高性能的文件服务器集群提供文件上传、下载等服务。
+
+
+FastDFS 原理
+
+首先你要有一个 client 
+                Tracker(追踪器) Server  
+                Storage(存储) Server
+   
+   client 请求 Tracker Server 进行文件的上传、下载，通过 Tracker Server
+   调度最终由 Storage Server 完成文件上传和下载 
+
+   client 请求 Tracker Server，Tracker Server 会返回一个合适的 Storager Server，的ip和端口，
+   然后你就可以将 文件上传到 指定 ip和端口 的 Storage Server 了
+    
+    Tracker server作用是负载均衡和调度，通过Tracker server在文件上传时可以根据一些策略找到Storage server
+        提供文件上传服务。可以将tracker称为追踪服务器或调度服务器。
+	Storage server作用是文件存储，客户端上传的文件最终存储在Storage服务器上，Storage server没有实现自己
+        的文件系统而是利用操作系统 的文件系统来管理文件。可以将storage称为存储服务器。
+
+
+
+
+  fastdfs-client-java
+
+    在中央仓库是没有的
+        我们需要手动将其安装到我们的私人仓库
+      你可以到官网下载。
+
+
+
+
+关于 @Value("${IMAGE_SERVER_URL}")
+
+首先你需要 <context:property-placeholder location="classpath:conf/resource.properties"/>
+在 spring 的容器里面读取 配置文件，
+然后你就可以使用   @Value("${IMAGE_SERVER_URL}") ${properties文件里面的key} 来读取 value
+ 
+
+
+解决浏览器兼容性的问题
+    KindEditor的图片上传插件，对浏览器兼容性不好。
+使用@ResponseBody注解返回java对象，
+Content-Type:application/json;charset=UTF-8
+ 
+你需要使其返回字符串。那么你就要提前将其 map 对象等等类型先手动转换成 String 再返回 
+返回字符串时：
+Content-Type:text/plan;charset=UTF-8
+
+KindEditor的多图片上传插件最后响应的content-type是text/plan格式的json字符串。兼容性是最好的。
+
+指定返回的字符串的编码格式
+    @RequestMapping(value="/pic/upload", produces=MediaType.TEXT_PLAIN_VALUE+";charset=UTF-8")
+        MediaType.TEXT_PLAIN_VALUE 就是 text/plain
+
+
+
+  
+
+富文本编译器
+
+
+ String string = String.format("%02d", int);
+    如果 int 不足两位就自动将其前面补零 
+
+
+
+
+CMS 
+    内容管理系统
+
+
+
+
+dubbo 其实不是 war 包，不用 tomcat 也可以运行，因为其本质就是初始化一个 spring 容器，将其服务对象
+    初始化，等待消费者调用，所以你只要写一个死循环然后就能被消费者调用了。
+
+    dubbo 提供 provider 首先到 注册中心 register ,然后 Consumer 到 zookeeper 查找相应的 provider 
+    查找到以后将其返回给 consumer , 然后 consumer 直接使用 provider 提供的服务
+
+    注册中心基于接口名查询服务提供者的IP地址
+
+
+
+
+
+select last_insert_id() 
+    取的是当前事务的最后一次生成的主键 id 
+
+   所以不用担心你用的时候取不到正确的 id 
+    
+
+
+redis
+    redis 集群
+
+  架构细节：
+    1. 所有的 redis 节点彼此互联 PING-PONG 机制，内部使用二进制协议优化传输速度和带宽
+    2. 节点的 fail 是通过集群超过半数的节点检测失效时才生效.(所以最少也要三台机器集群
+            因为两台的话票数永远又不会超过半数)
+    3. 客户端与 redis 节点直连，不需要中间 proxy 层，客户端不需要连接集群所有节点,
+        连接集群中任何一个可用节点即可
+    4. redis-cluster 把所有的物理节点映射到[0-16383]slot 上,cluster 负责维护node<->slot<->value
+        Redis 集群中内置了 16384 个哈希槽，当需要在 Redis 集群中放置一个 key-value 时，redis 
+        先对 key 使用 crc16 算法算出一个结果，然后把结果对 16384 求余数，这样每个 key 都会对
+        应一个编号在 0-16383 之间的哈希槽，redis 会根据节点数量大致均等的将哈希槽映射到不同的节点
+
+
+
+
+搭建伪集群 redis 你要在 redis 配置文件中  打开 cluster-enabled yes 
+
+cluster-enabled yes
+
+
+批处理
+    vim start-all.sh
+    masterSlave
+
+
+
+redis6380.conf
+    
+
+    你需要把 redis 编译后的文件，我的是存在 usr/local/bin/ 里面的
+    将  usr/local/bin/ 复制6份，然后把 redis.conf 复制 6 份就可以了
+
+
+    你只复制 redis.conf 是不行的
+
+    然后你需要 到 redis 源代码的 src 下找到 redis-trib.rb 脚本
+
+
+使用ruby脚本搭建集群。需要ruby的运行环境。
+安装ruby
+yum install ruby
+yum install rubygems
+
+  安装了 ruby 你还需要
+
+  redis-3.0.0.gem
+  这个文件 在这个 txt 同文件夹下我准备了
+  然后安装这个 .gem 文件
+
+   gem install redis-3.0.0.gem 
+
+ 然后就可以启动了
+    使用ruby脚本搭建集群
+    ruby 启动需要参数 
+        ./redis-trib.rb create --replicas 1 192.168.25.100:6380 192.168.25.100:6381 192.168.25.100:6382 192.168.25.100:6383 192.168.25.100:6384 192.168.25.100:6385
+    
+    1  表示 每个节点有几个备份机 
+     表示每个节点有1个备份机
+
+    
+    然后集群就搭建完毕了
+
+    开启redis 的时候需要注意
+    redis-cli -p 6380 -c 
+    需要加上 -c 来表示连接的是一个集群
+    cluster
+
+
+单机版  Jedis
+public void testJedisPool() throws Exception {
+		// 第一步：创建一个JedisPool对象。需要指定服务端的ip及端口。
+		JedisPool jedisPool = new JedisPool("192.168.25.153", 6379);
+		// 第二步：从JedisPool中获得Jedis对象。
+		Jedis jedis = jedisPool.getResource();
+		// 第三步：使用Jedis操作redis服务器。
+		jedis.set("jedis", "test");
+		String result = jedis.get("jedis");
+        jedis.close();
+		// 第五步：关闭JedisPool对象。
+		jedisPool.close();
+
+
+集群 JedisCluster
+
+    public void testJedisCluster() throws Exception {
+		// 第一步：使用JedisCluster对象。需要一个Set<HostAndPort>参数。Redis节点的列表。
+		Set<HostAndPort> nodes = new HashSet<>();
+		nodes.add(new HostAndPort("192.168.25.153", 7001));
+		nodes.add(new HostAndPort("192.168.25.153", 7002));
+		nodes.add(new HostAndPort("192.168.25.153", 7003));
+		nodes.add(new HostAndPort("192.168.25.153", 7004));
+		nodes.add(new HostAndPort("192.168.25.153", 7005));
+		nodes.add(new HostAndPort("192.168.25.153", 7006));
+		JedisCluster jedisCluster = new JedisCluster(nodes);
+		// 第二步：直接使用JedisCluster对象操作redis。在系统中单例存在。
+		jedisCluster.set("hello", "100");
+		String result = jedisCluster.get("hello");
+		// 第三步：打印结果
+		System.out.println(result);
+		// 第四步：系统关闭前，关闭JedisCluster对象。
+		jedisCluster.close();
+	}
+
+
+
+quit 退出 redis.cli
+
+redis-trib.rb check 127.0.0.1:6380 检查集群
+
+
+redis cluster配置集群与使用Jedis的ShardedJedis做Redis集群的区别
+    jedis客户端操作redis主要三种模式：单台模式、分片模式（ShardedJedis）、集群模式（BinaryJedisCluster），
+     分片模式是一种轻量级集群
+    
+
+1. redis 3.0 如果使用jedis的 JedisCluster 做服务端集群 ，是不是就不支持连接池了，没有一个类似JedisClusterPool
+    这样的东西。// 后面补充，应该不需要 pool 了。因为并不需要使用 JedisCluster 创建连接，而是直接使用 JedisCluster 来操作 redis
+2. redis 2.x  ，如果使用ShardedJedisPool做客户端分片，似乎就不支持选择db了。
+    
+    
+    redis从3.0开始支持集群功能
+
+  ShardedJedisPool 实现原理。
+    
+    ShardedJedisPool 是客户端分片
+      
+    它散列的规则是基于你传入的 Key 为基础的，之后通过 hash 算法，获取到 hash 值,再从切片
+    的集合中获取到指定的 hash 值对应的 redis 服务器，然后发起请求
+
+
+
+    因为 redis 单机版是类是 JedisPool
+    集群版是 JedisCluster
+    我们切换的时候很难切换，因为类是不同的，也没有共同的父类
+    其实我们可以自己手写以后 接口，然后写两个实现类，在实现类里面使用 JedisPool 和 JedisCluster 
+    实现最常用的几种操作 redis 的方法，
+    然后我们就可以使用 这个接口作为多态了
+    
+    这也叫  策略模式 
+    切换也只要在 spring 配置文件里面切换一下 bean 就可以了
+
+
+    redis的 Cluster 是只开启 redis 的一个库 就是 0 号库
+
+----------------------
+
+缓存添加
+    1. 查询内容列表时添加缓存
+    2. 查询数据库之前先查询缓存
+    3. 查询不到，缓存中没有需要查询数据库
+    4. 把查询结果添加到缓存中
+    5. 返回结果
+
+
+对于 dubbo 的 JSON
+     List<TbContent> parse = JSON.parse(json, List.class);
+     转 list 可以这么转
+
+
+缓存同步，将其redis里面的信息删除
+  对内容信息做增删改操作后只需要把对应缓存删除即可。
+   1. 这样做可能会出现脏数据，一个并发操作，你一个更新操作，一个读操作。
+        更新先将缓存中的数据删除。读操作读取缓存，没有数据
+        然后查询数据库,将数据存到 cache 里面。
+        update 操作，更新数据库。这样脏数据就出现了。
+     
+   2. 先更新db，再更新cache。这种方式“怕两个并发的写操作导致脏数据。“，
+      产生脏数据的原因是因为A先更新db,然后B再更新db,接着是B更新cache,
+      最后才是A更新cache？也就是说A更新cache应该比B更新cache早才对，
+      但是因为网络等原因，B却比A更早更新了cache。
+
+
+    select lock in share mode  共享锁
+    select for update          排他锁
+
+-------------------------------------------------------
+
+solr
+      solr
+        war 包保存地址  需要移动到 tomcat
+            /opt/solr-4.10.3/dist/ 
+            移动完以后启动 tomcat 就会将 war 包解压缩，然后关闭  tomcat 将
+            war 包删除。留下解压的 solr 工程
+
+      solr jar 需要移动到 solr.war 包的 lib 下面
+            /opt/solr-4.10.3/example/lib/ext/
+            将里面的 jar 包全部复制到 tomcat 的 solr 工程的 lib 下面
+        
+      solr home
+            /opt/solr-4.10.3/example/solr
+           将其文件夹复制到与 Tomcat 同目录下。然后在 solr 工程里面配置
+
+      solrhome 你需要在 web.xml 里配置
+        关联solr及solrhome。需要修改solr工程的web.xml文件。
+        <env-entry>
+           <env-entry-name>solr/home</env-entry-name>
+           <!-- 配置 solrhome 所在的地址  -->
+           <env-entry-value>/usr/local/solr/solrhome/</env-entry-value>          
+           <env-entry-type>java.lang.String</env-entry-type>
+        </env-entry>
+
+
+
+ 配置业务域
+   
+
+建对应的业务域。需要制定中文分析器。
+
+创建步骤：
+第一步：把中文分析器添加到工程中。
+1、把IKAnalyzer2012FF_u1.jar添加到solr工程的lib目录下
+
+2、把扩展词典、配置文件放到solr工程的WEB-INF/classes目录下。
+        ext_stopword.dic IKAnalyzer.cfg.xml mydict.dic   classes 没有就自己创建
+
+第二步：配置一个FieldType，制定使用IKAnalyzer
+修改schema.xml文件  在 solr 的 solrhome 文件夹下
+    /solrhome/collection1/conf
+
+修改Solr的schema.xml文件，在末尾添加FieldType：
+<fieldType name="text_ik" class="solr.TextField"> <!-- name 随便起不要重复就好 -->
+  <analyzer class="org.wltea.analyzer.lucene.IKAnalyzer"/>
+</fieldType>
+
+
+第三步：配置业务域，type制定使用自定义的FieldType。
+设置业务系统Field
+<field name="item_title" type="text_ik" indexed="true" stored="true"/>
+<field name="item_sell_point" type="text_ik" indexed="true" stored="true"/>
+<field name="item_price"  type="long" indexed="true" stored="true"/>
+<field name="item_image" type="string" indexed="false" stored="true" />
+<field name="item_category_name" type="string" indexed="true" stored="true" />
+
+<field name="item_keywords" type="text_ik" indexed="true" stored="false" multiValued="true"/>
+
+<copyField source="item_title" dest="item_keywords"/>
+<copyField source="item_sell_point" dest="item_keywords"/>
+<copyField source="item_category_name" dest="item_keywords"/>
+第四步：重启tomcat
+copyField 指的是将 item_title 存到 item_keywords 里面，缓存起来
+
+
+
+solr 将商品和商品 分类 查询出来 变成一个 Document 存入到 索引库中。
+查询的时候根据 title(标题) 查询索引库就好了
+
+
+------------------
+
+什么是 SolrCloud
+    
+    SolrCloud 是 solr 提供的分布式搜索方案，当你需要大规模，容错，分布式索引和检索能力时使用 SolrCloud
+    当一个系统的索引数据量少的时候是不需要使用 SolrCloud 的，当索引量很大，搜索请求并发很高，这时需要
+    使用 SolrCloud 来满足这些需求
+
+SolrCloud 是基于 Solr 和 Zookeeper 的分布式搜索方案，他的主要思想是使用 Zookeeper 作为集群的配置信息中心
+       
+       它有几个特色功能：
+    1）集中式的配置信息
+    2）自动容错
+    3）近实时搜索
+    4）查询时自动负载均衡
+
+
+
+
+
+./zkcli.sh -zkhost 192.168.25.100:2191,192.168.25.100:2192,192.168.25.100:2193 -cmd upconfig -confdir /usr/local/solr-cloud/solrhome01/collection1/conf -confname myconf
+
+zkHost : zookeeper 的地址列表
+
+
+
+
+-------------------------------------------
+
+
+ActiveMQ
+
+    一种是点对点的，即一个生产者和一个消费者一一对应；
+另一种是发布/订阅模式，即一个生产者产生消息并进行发送后，可以由多个消费者进行接收。
+JMS定义了五种不同的消息正文格式，以及调用的消息类型，允许你发送并接收以一些不同形式的数据，提供现有消息格式的一些级别的兼容性。
+　　• StreamMessage -- Java原始值的数据流
+　　• MapMessage--一套名称-值对
+　　• TextMessage--一个字符串对象
+　　• ObjectMessage--一个序列化的 Java对象
+　　• BytesMessage--一个字节的数据流
+
+
+ ActiveMQ 有两种格式
+    一种是 Topic 是广播形式  不会讲数据保存在 ActiveMQ 里面，发送以后会立刻广播出去，如果没有 consumer 的话，那么消息就消失了
+        其实也是可以持久化的，只是需要配置
+    一种是 Queue 是点对点 PTP  会将数据保存(持久化)在 ActiveMQ 里面，如果没有 consumer 的话就会等待，直到被消费。
+
+    ActiveMQ 后台客户端访问的 端口是 8161
+    API的端口是 61616
+
+
+
+
+如果你遇到  cvc-complex-type.2.4.c: 通配符的匹配很全面, 但无法找到元素 'context:component-scan' 的声明。
+
+
+xsi:schemaLocation 加上：
+
+http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+
+可能是少了 tx xsd 
+
+
+@Service 
+   请注意不要导成 dubbo 的 @Service 要 spring 才可以
+
+
+
+
+spring 整合 activeMQ 
+            
+            <dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-jms</artifactId>
+			</dependency>
+			
+            <dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-context-support</artifactId>
+			</dependency>
+
+            <dependency>
+				<groupId>org.apache.activemq</groupId>
+				<artifactId>activemq-all</artifactId>
+			</dependency>
+
+
+对于 slf4j
+
+    import org.slf4j.Logger;
+
+是对日志的封装 底层还是相应的 log4j 等
+    是对 log4j 等日志的封装。
+  就相当于一个接口一样，帮你封装了 日志工具 。你改变 日志工具类，也不需要改变代码。
+   所以注入使用日志的时候最好使用
+    import org.slf4j.Logger;
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExcepionResolver.class);
+    logger.error("系统发生异常    ", ex);       
+    
+      使用还是一样使用的
+
+
+
+
+怎么在 代码中实现
+    当商品添加完成后发送一个TextMessage，包含一个商品id。
+    
+    1、接收消息。需要创建MessageListener接口的实现类。
+    2、取消息，取商品id。
+    3、根据商品id查询数据库。
+    4、创建一 SolrInputDocument 对象。
+    5、使用 SolrServer 对象写入索引库。
+    6、返回成功，返回 e3Result。
+
+
+
+
+
+
+对于商品详情 也将其缓存到 redis 因为有些商品很久没人点，有些商品是热点商品，那么要怎么选择缓存呢？
+    其实你只要给他设置一个缓存时间，一段时间没有人访问就自动过期，有人的话就更新缓存时间
+
+
+1、根据商品id到缓存中命中
+2、查到缓存，直接返回。
+3、差不到，查询数据库
+4、把数据放到缓存中
+5、返回数据
+
+缓存中缓存热点数据，提供缓存的使用率。需要设置缓存的有效期。一般是一天的时间，可以根据实际情况跳转。
+
+需要使用String类型来保存商品数据。
+可以加前缀方法对象redis中的key进行归类。
+ITEM_INFO:123456:BASE
+ITEM_INFO:123456:DESC
+
+如果把二维表保存到redis中:
+1、表名就是第一层(也可以是自定义的)
+2、主键是第二层
+3、字段名第三次 （自定义的）用于分别，同样的 id 不同的数据
+    我这里是因为，商品信息和商品详细是分开查询，和分开存储的。都是引用商品 id 的。所以 商品信息就用 后缀 BASE ，
+                商品详细就用 DESC 来作为后缀。商品信息就商品描述。而商品详情是大文本(text)主要就是包含html 标签的信息，一般都是
+                一整页都是的，就是将 html 信息也放入了，直接显示就有 html 信息。
+三层使用“:”分隔作为key， value 就是字段中的内容。
+    value 就是 JSON
+
+    “:” 用 : 分割的 key 在非官方redis客户端（好像没有官方客户端，就是图形化界面） 里面，会将其当做目录分割符 
+        如 a:b  a:c key 那么 在图形化客户端里面，a是一个文件夹，里面有 b,c 两个 Key
+
+------------------------------------------------------
+
+
+freeMarker
+
+    2.1.	什么是freemarker
+    FreeMarker是一个用Java语言编写的模板引擎，它基于模板来生成文本输出。FreeMarker与Web容器无关，
+    即在Web运行时，它并不知道Servlet或HTTP。它不仅可以用作表现层的实现技术，而且还可以用于生成XML，JSP或Java 等。
+
+    目前企业中:主要用Freemarker做静态页面或是页面展示
+
+
+    2.2.	Freemarker的使用方法
+把freemarker的jar包添加到工程中。
+Maven工程添加依赖
+<dependency>
+  <groupId>org.freemarker</groupId>
+  <artifactId>freemarker</artifactId>
+  <version>2.3.23</version>
+</dependency>
+
+
+
+使用步骤：
+第一步：创建一个Configuration对象，直接new一个对象。构造方法的参数就是freemarker对于的版本号。
+第二步：设置模板文件所在的路径。
+第三步：设置模板文件使用的字符集。一般就是utf-8.
+第四步：加载一个模板，创建一个模板对象。
+第五步：创建一个模板使用的数据集，可以是pojo也可以是map。一般是Map。
+第六步：创建一个Writer对象，一般创建一FileWriter对象，指定生成的文件名。
+第七步：调用模板对象的process方法输出文件。
+第八步：关闭流。
+
+
+
+
+
+插件安装 
+ 将 freemarker 的插件目录扔在 eclipse 目录的 dropins 目录下  
+
+
+
+访问map中的key
+
+    ${key}
+
+访问pojo中的属性
+
+    将 pojo 放进 map 里面
+    然后 ${pojo.Field}
+
+    当然你也可以直接将 pojo 存进
+        template.process(student, out);
+       这样你只要
+         ${Field} 直接使用 pojo 里面的属性就好了
+
+
+取集合中的数据
+    
+    <#list studentList as student>
+      ${student.id}/${studnet.name}
+    </#list>
+
+
+    <table border="1">
+            <#list list as student>
+            <tr>
+                <th>学生信息:</th>
+                <th>学号:${student.id}</th>
+                <th>姓名:${student.name}</th>
+                <th>年龄:${student.age}</th>
+                <th>家庭住址:${student.address}</th>
+            </tr>
+            </#list>
+        </table>
+
+
+取循环中的下标
+
+    <#list studentList as student>
+	    ${student_index}
+    </#list>
+
+    <th>${student_index+1}</th>
+
+判断
+    <#if student_index % 2 == 0>
+        符合条件的
+        <#else>
+        不符合条件的
+    </#if>
+
+
+
+        <#list list as student>
+            <tr>
+                <th>${student_index+1}</th>
+                <#if student.id % 2 ==0>
+                <th>${student.id}偶</th>
+                <#else>
+                    <th>${student.id}奇数</th>
+                </#if>
+                <th>${student.name}</th>
+                <th>${student.age}</th>
+                <th>${student.address}</th>
+            </tr>
+            </#list>
+
+
+
+日期类型格式化
+    当前日期: ${date?date}
+    当前时间：${date?time}
+    当前日期和时间: ${date?datetime}
+    自定义日期格式：${date?string("yyyy:MM:dd HH:mm:ss")}
+
+
+
+Null值的处理
+    ${val!}
+        val 没有被赋值就是 Nul
+        ! 后面跟默认值，没有默认值就是空
+    ${val!"dd"}
+        不为 null，就不会读取 ! 后面的值
+    
+
+    <#if val??>
+	    val中有内容
+	<#else>
+	    val为null
+	</body>
+
+     val?? 就是判断 val 是否为 null。为 null 就返回 false
+            不为 null 就返回 true
+
+
+
+include标签
+    <#include "hello.ftl" />
+    和 jsp 的 include 一样 先拼接再运行
+
+
+
+@ResponseBody
+    是直接使用 Response 对网页进行输出
+    而不进入视图渲染
+
+freemarker 
+    如果认为是数值类型会自动使用 "," 隔开 3个 3个 隔 222,333,444
+
+
+
+
+那么怎么使用 freemarker 使页面静态化呢？
+    
+    分析
+        静态页面保存的位置 : 保存到磁盘的任意位置
+        静态页面的访问 : 使用 nginx 访问静态页面
+
+
+
+   方案
+        输出文件的名称：商品id+“.html”
+        输出文件的路径：工程外部的任意目录。
+        网页访问：使用nginx访问网页。在此方案下tomcat只有一个作用就是生成静态页面。
+        工程部署：可以把e3-item-web部署到多个服务器上。
+        生成静态页面的时机：商品添加后，生成静态页面。可以使用Activemq，订阅topic（商品添加）
+
+
+静态页面
+    使用 nginx 来访问静态页面，使用 tomcat 来进行静态页面生成。后台管理修改静态页面以后，使用 ActiveMQ
+    发送 topic 来进行发布修改信息，然后由生成 静态页面的服务器来进行 消息接收，更新 静态数据。
+    
+    然后实现高可用，使用两个 nginx 来进行高可用
+    再使用一个 nginx 来进行反向代理和负载均衡
+
+
+
+记得将 js 什么的也全部放到 nginx 服务器上面
+    
+
+
+
+
+---------------------------------------------------
+
+
+
+怎么实现数据最终一致
+    使用 ActiveMQ ，使用 手动应答，等处理成功了，正常结束了，才给 应答，如果失败, ActiveMQ 会重新发送数据。
+
+
+
+
+Sso系统分析
+
+    SO英文全称Single Sign On，单点登录。SSO是在多个应用系统中，用户只需要登录一次就可以访问所有相互信任的应用系统。
+    它包括可以将这次主要的登录映射到其他应用中用于同一个用户的登录的机制。它是目前比较流行的企业业务整合的
+    解决方案之一。
+
+
+    集群环境下会出现要求用户多次登录的情况。
+    解决方案：
+    1、配置tomcat集群。配置tomcatSession复制。节点数不要超过5个。
+    2、可以使用Session服务器，保存Session信息，使每个节点是无状态。需要模拟Session。
+
+    单点登录系统是使用redis模拟Session，实现Session的统一管理。
+
+
+
+
+
+    根据 HTTP 规范，GET 用于信息获取，而且应该是幂等的。也就是说，当使用相同的URL重复GET请求会返回预期的相同结果时，
+    GET方法才是适用的。当对一个请求有副作用的时候（例如，提交数据注册新用户时），应该使用POST请求而不是GET。
+    所以浏览器会对GET请求做缓存处理。 
+
+    所以你使用 get 请求的时候注意加上随机字符，比如当前时间的毫秒等。
+
+
+   ** 注意：验证码的话会被缓存，所以记得加 new Date() 或 Math.random();
+
+
+
+  Digest ：消化；吸收；融会贯通 精华
+ DigestUtils.md5DigestAsHex(user.getPassword().getBytes());
+    是 Spring 自带的 MD5加密工具
+
+
+
+
+对于 cookie 跨域 只能跨三级域名
+    www.baidu.com
+
+    www 就是 三级域名
+    com 是 一级域名
+    baidu 是 二级域名
+
+
+
+
+Js不可以跨域请求数据。  服务器可以正常响应成功 成功码 200 ，但是浏览器不会接受，浏览器会报错
+什么是跨域：
+1、域名不同
+2、域名相同端口不同。
+
+解决js的跨域问题可以使用jsonp。
+
+Jsonp不是新技术，跨域的解决方案。使用js的特性绕过跨域请求。Js可以跨域加载js文件。
+
+
+  js 加载以后，因为 js 会自动执行加载进来的 callback。 然后 callback 执行，执行以后加载的进来的 js 就运行了
+
+
+    <script type="text/javascript">
+    $(document).ready(function(){
+        var url = "http://www.practice-zhao.com/student.php?id=1&callback=jsonhandle";
+        var obj = $('<script><\/script>');
+        obj.attr("src",url);
+        // 此时开始调用
+        $("body").append(obj);
+    });
+</script>
+    原理就是这样
+    其实就和 你 加载 img  一样的，你添加一个 img 标签，也是会立即请求  服务器的
+    只不过换成了 '<script><\/script>'
+
+  原理就是这样
+    其实就和 你 加载 img  一样的，你添加一个 img 标签，也是会立即请求  服务器的
+    只不过换成了 '<script><\/script>'
+
+
+
+
+html 会把所有的 Html 加载成一个 domTree , 只要变化就会重新渲染页面
+    因为我们操作了 dom 树，所以页面会变化。代码会执行，
+    浏览器就会重新渲染页面
+
+@RequestMapping(value="/user/token/{token}", produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
+ 指定响应的数据为 application/json
+
+
+
+第一种方法
+    @RequestMapping(value="/user/token/{token}", produces=MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @ResponseBody
+    public String getUserBToken(@PathVariable String token, String callback) throws Exception {
+        E3Result result = null;
+        try {
+            result = tokenService.getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace(); 
+        }
+        // 响应结果之前判断是否为 jsop 请求 
+        if (callback != null && !callback.isEmpty()) {
+            return callback + "(" + JSON.json(result) + ");";
+        }
+        return JSON.json(result);
+    }
+
+
+第二种方法
+
+     @RequestMapping(value="/user/token/{token}")
+    @ResponseBody
+    public Object getUserBToken(@PathVariable String token, String callback) throws Exception {
+        E3Result result = null;
+        try {
+            result = tokenService.getUserByToken(token);
+        } catch (Exception e) {
+            e.printStackTrace(); 
+        }
+        // 响应结果之前判断是否为 jsop 请求 
+        if (callback != null && !callback.isEmpty()) {
+            // spring 自带的 类 spring 4.1 以后支持
+            MappingJacksonValue jacksonValue = new MappingJacksonValue(result);
+            jacksonValue.setJsonpFunction(callback);
+            return jacksonValue;
+        }
+        return result;
+    }
+}
+
+
+
+---------------------------------------
+
+
+购物车
+    未登录的时候，购物车信息，放入 cookie 中，因为服务器要这些没有登录的数据没有用呀，等登录以后再从 cookie 中取出，
+    一般要设置 cookie 的有效期，使其关闭浏览器，再打开也可以看见购物车信息
+
+
+    在不登陆的情况下也可以添加购物车。把购物车信息写入cookie。
+    优点：
+    1、不占用服务端存储空间
+    2、用户体验好。
+    3、代码实现简单。
+    缺点：
+    1、cookie中保存的容量有限。最大4k
+    2、把购物车信息保存在cookie中，更换设备购物车信息不能同步。
+
+用户未登录前：
+        业务逻辑：
+    1、从cookie中查询商品列表。
+    2、判断商品在商品列表中是否存在。
+    3、如果存在，商品数量相加。
+    4、不存在，根据商品id查询商品信息。
+    5、把商品添加到购车列表。
+    6、把购车商品列表写入cookie。
+
+
+
+    Cookie保存购物车
+    1）key：TT_CART
+    2）Value：购物车列表转换成json数据。需要对数据进行编码。
+    3）Cookie的有效期：保存7天。
+
+    商品列表：
+    List<TbItem>，每个商品数据使用TbItem保存。当根据商品id查询商品信息后，取第一张图片保存到image属性中即可。
+
+    读写cookie可以使用CookieUtils工具类实现。
+
+
+
+    至于  cookie 的转码 使用 encode 编码 和 decode 译码 来进行转码。
+        
+     encode 就是将字符以某种编码格式(UTF-8, GBK 等)将其转换成 二进制的字节码，然后每个字节使用包含 3 个字符串
+        "%xy" 表示，其实 xy 为该字节的两位十六进制表示形式. 
+    URL编码需要先指定一种字符编码，把字符串解码后，得到byte[],然后把小于0的字节+256，再转换成16进制，前面再添加一个%; 
+    对于URL默认编码为UTF-8。UTF-8所有的非ASCII单词二进制数都是1开头的
+
+
+    将其 cookie encode 以后然后将其存入 cookie 
+
+
+就是 http://..  由于URL是采用ASCII字符集进行编码的，所以如果URL中含有非ASCII字符集中的字符，那就需要对其进行编码。
+    再者，由于URL中好多字符是保留字，他们在URL中具有特殊的含义。如“&”表示参数分隔符，如果想要在URL中使用这些保留字，
+    那就得对他们进行编码。
+    
+    所以我们要使用 encode 将其编码成 url 能识别的 字节码
+
+
+
+使用 springMVC 框架进行异步请求，报 406 错误，是因为你少了 sacjson jar 包，服务器不知道怎么把对象转换成 String, 所以报错了
+    这是 90% 的可能
+    还有 10%  是因为你请求的 URL 是 *.html 格式的，在 springMVC 里面 请求的 URL 是 *.html， 是不能响应 JSON 数据的
+
+
+redis 是单线程的，如果你有某个 get set 操作比较久，后面的都得等
+     所以操作尽可能操作比较小的数据
+
+
+
+用户登录后：
+
+    实现购车商品数据同步：
+    1、要求用户登录。
+    2、把购物车商品列表保存到数据库中。推荐使用redis。
+    3、Key：用户id，value：购车商品列表。推荐使用hash，hash的field：商品id，value：商品信息。
+    4、在用户未登录情况下写cookie。当用户登录后，访问购物车列表时，!!!!!!!!!!!!
+    a)	把cookie中的数据同步到redis。
+    b)	把cookie中的数据删除
+    c)	展示购物车列表时以redis为准。
+    d)	如果redis中有数据cookie中也有数据，需要做数据合并。相同商品数量相加，不同商品添加一个新商品。
+    5、如果用户登录状态，展示购物车列表以redis为准。如果未登录，以cookie为准。
+
+
+    展示 cart 是我们服务器给 前台一个 list，前台遍历出来就可以了，并没有 js 自己从 cookie 取等
+
+
+添加购物车
+    登录状态下直接将商品数据保存到 redis 中
+    未登录状态保存到 cookie 中
+
+
+
+    1、使用 springmvc 的拦截器实现。需要实现一个接口 HandlerInterceptor 接口。
+    2、业务逻辑
+        a)	从 cookie 中取 token。
+        b)	没有 token，需要跳转到登录页面。
+        c)	有token。调用sso系统的服务，根据token查询用户信息。
+        d)	如果查不到用户信息。用户登录已经过期。需要跳转到登录页面。
+        e)	查询到用户信息。放行。
+
+
+
+判断用户是否登录
+    应该使用拦截器实现
+        1. 实现一个 HandlerInerceptor 接口
+        2. 在执行 handler 之前做业务处理
+        3. 从 cookie 中取 token 。使用 CookieUtils 工具类实现
+        4. 没有取到 token 用户未登录，放行。 
+        5. 取到 token, 调用 sso 系统的服务，根据 token 查询用户信息
+        6. 没有返回用户信息。登录已经过期，未登录，放行
+        7. 返回用户信息。用户是登录状态。可以把用户对象保存到 request 中，在 Controller 中可以通过判断 reqeust 中
+            是否包含用户对象，确定是否为登录状态。
+
+
+
+
+删除 Cookie 
+    cookie.setValue(null);  
+    cookie.setMaxAge(0);
+    
+    主要还是将其 Value 设置为 null.
+    存活时间设置为，浏览器关闭就消失 就是 0
+
+
+
+
+Cookie是可以覆盖的，如果重复写入同名的Cookie，那么将会覆盖之前的Cookie。
+ 前提是 path 和 domain 都一样
+
+      public static void main(String[] args) {
+        // List list = new ArrayList();
+        List list = null;// 会报错 NullPointerException
+        for (Object object : list) {
+            System.out.println(object);
+        }
+
+
+
+----------------------------------------------------
+
+
+
+        1、在订单确认页面点击“提交订单”按钮生成订单。
+        2、请求的url：/order/create
+        3、参数：提交的是表单的数据。保存的数据：订单、订单明细、配送地址。
+        a)	向tb_order中插入记录。
+        i.	订单号需要手动生成。
+        要求订单号不能重复。
+        订单号可读性好。
+        可以使用redis的incr命令生成订单号。订单号需要一个初始值。
+        ii.	Payment：表单数据
+        iii.	payment_type：表单数据
+        iv.	user_id：用户信息
+        v.	buyer_nick：用户名
+        vi.	其他字段null
+        b)	向tb_order_item订单明细表插入数据。
+        i.	Id：使用incr生成
+        ii.	order_id：生成的订单号
+        iii.	其他的都是表单中的数据。
+        c)	tb_order_shipping，订单配送信息
+        i.	order_id：生成的订单号
+        ii.	其他字段都是表单中的数据。
+        d)	使用pojo接收表单的数据。
+        可以扩展TbOrder，在子类中添加两个属性一个是商品明细列表，一个是配送信息。
+        把pojo放到e3-order-interface工程中。
+
+
+
+--------------------------------------
+
+**** 切记 Service 层不要 try catch  你 try catch 也要抛出去异常，因为你 try catch 了，spring 的切面就认为你没有出异常，
+    因为被你 try catch 了。所以就会认为事务成功了。数据就错乱了
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,660 @@
+什么是权限管理
+    基本上涉及到用户参与的系统都要进行权限管理，权限管理属于系统安全的范畴，权限管理实现对用户访问系统的控制，按照安全规则或安全策略
+    控制用户可以访问而且只能访问自己被授权的资源
+
+    权限管理包括用户身份认证和授权两部分，简称认证授权。对于需要访问控制的资源用户首先经过身份认证，认证通过后用户具有该资源的
+    访问权限方可访问
+
+
+ 概念
+    身份认证，就是判断一个用户是否为合法用户的处理过程。最常用的简单身份认证方式是系统通过核对用户输入的用户名和口令，看其是否与
+    系统中存储的该用户的用户名和口令一致，来判断用户身份是否正确。对于采用指纹等系统，则出示指纹;对于硬件 Key 等刷卡系统，则需要刷卡。
+
+    用户 认证 和 授权
+    
+    用户认证
+        用户认证，用户去访问系统，系统要验证用户身份的合法性。
+    
+    用户授权
+        用户授权，简单理解为访问控制，在用户认证通过后，系统对用户访问资源进行控制，用户具有资源的权限方可访问。
+
+
+--------------------------------
+
+    关键对象
+
+    subject: 主体，理解为用户，可能是程序，都要去访问系统的资源，系统需要对 subject 进行身份认证 
+
+    principal (主要的): 身份信息，通常是唯一的，一个主体还有多个身份信息，但是都有一个主身份信息( primary (主要的) principal )
+
+    credential(凭证) : 凭证信息，可以是密码、证书、指纹
+
+    总结 ： 主体在进行身份认证时需要提供 身份信息 和 凭证信息  
+        
+
+    授权
+        授权的过程理解为: who 对 what( which ) 进行 how 操作
+
+        who : 主体即 subject, subject 在认证通过后系统进行访问控制
+
+        what(which) : 资源(Resource), subject 必须具备资源的访问权限才可访问该 资源。资源比如：系统用户
+            列表页面、商品修改菜单、商品 id 为 001 的商品信息
+            资源分为 资源类型 和 资源实例
+                系统的用户信息就是资源类型，相当于 java 类
+                系统中 id 为 001 的用户就是资源实例，相当于 new 的 java 对象。
+        
+        how : 权限/许可( permission   (权限) ),针对资源的权限或许可， subject 具有 permission 访问资源，
+            如何访问/操作需要定义 permission, 权限比如：用户添加、用户修改、商品删除
+
+
+---------------------------------
+
+
+权限模型
+
+    主体(账号、密码)
+    资源(资源名称、访问地址)
+    权限(权限名称、资源 id)
+    角色(角色名称)
+    角色和权限的关系(角色id、权限id)
+    主体和角色的关系(主体id、角色id)
+    
+
+
+     
+    主体和角色多对多
+    权限和角色是多对多
+
+    主体和角色多对多
+    角色和权限多对多
+    资源和权限 资源对权限  一对多   一个资源对应在多个权限
+
+
+    用户需要分配相应的权限才可访问相应的资源。权限是对于资源的操作许可。
+    通常给用户分配资源权限需要将权限信息持久化，比如存储在关系数据库中
+    把用户信息、权限管理、用户分配的权限信息写到数据库(权限数据模型)
+
+通常企业开发中将资源和权限表合并为一张权限表。
+    
+     资源(资源名称、访问地址)
+     权限(权限名称、资源 id)
+    
+    合并为：
+        权限(权限名称、资源名称、资源访问地址)
+
+    一般现有的企业都是 权限 角色 主体 多对多
+        
+    当然还有 角色 主体 权限 资源  资源和权限是一对多 其他都是多对多
+
+
+---------------------------------
+
+    权限控制(授权中心)
+    
+    分为 基于角色的访问控制  基于资源的访问控制
+
+基于角色的访问控制
+    
+    RBAC(role  based  access  control)，基于角色的访问控制。
+
+    系统代码中实现：
+        //如果该user是部门经理则可以访问if中的代码
+        if(user.hasRole('部门经理')){
+            //系统资源内容
+            //用户报表查看
+        }
+
+        问题：
+        角色针对人划分的，人作为用户在系统中属于活动内容，如果该 角色可以访问的资源出现变更，需要修改你的代码了，比如：需要变更为部门经理和总经理都可以进行用户报表查看，代码改为：
+
+        if(user.hasRole('部门经理') || user.hasRole('总经理')  ){
+            //系统资源内容
+            //用户报表查看
+        }
+
+        基于角色的访问控制是不利于系统维护(可扩展性不强)。
+
+   ** 其实基于角色的访问控制就是 有这个角色就给访问，没有就不给访问。而不是查看角色拥有的权限。
+        相当于角色就是权限。
+
+
+
+基于资源的访问控制
+
+    RBAC(Resource  based  access  control)，基于资源的访问控制。
+
+    资源在系统中是不变的，比如资源有：类中的方法，页面中的按钮。
+
+    对资源的访问需要具有permission权限，代码可以写为：
+
+    if(user.hasPermission ('用户报表查看（权限标识符）')){
+        //系统资源内容
+        //用户报表查看
+    }
+
+    上边的方法就可以解决用户角色变更不用修改上边权限控制的代码。
+
+    如果需要变更权限只需要在分配权限模块去操作，给部门经理或总经理增或删除权限。
+
+
+    建议使用基于资源的访问控制实现权限管理。
+
+    ** 基于资源的访问控制其实就是查看角色里面拥有的权限 然后通过判断角色有没有权限来进行是否给访问
+
+
+
+粗粒度和细粒度
+    粗粒度权限管理，是对资源的权限管理
+        资源类型：菜单、url 连接、用户添加页面、类方法、页面中的按钮
+
+    细粒度权限管理就是数据级别的权限管理
+        数据比如：部门经理只可以访问部门的员工信息，用户只可以看到自己的菜单。
+
+
+subject: 主体，可以是用户也可以是程序，主体要访问系统，系统需要对主体进行认证、授权
+
+securityManager : 安全管理器，主体进行认证和授权都是通过 securityManager 进行。
+
+authenticator : 认证器，主体进行认证最终通过 authenticator 进行的
+
+authorizer : 授权器，主体进行授权最终通过 authorizer 进行的。
+
+sessionManager : web 应用中一般都是用 web 容器对 session 进行管理，shiro 也提供一套 session 管理的方式
+
+sessionDao : 通过 sessionDao 管理 session 数据，针对个性化的 session 数据存储需要使用 sessionDao
+             一般都是分布式的时候使用，因为你分布式的时候 session 是有多个的
+
+Cache Manager : 缓存管理器，主要对 session 和授权数据进行缓存，比如将授权数据通过 cacheManager 进行缓存
+    管理，和 ehcache 整合对缓存数据进行管理。
+
+realm 域，领域，相当于数据源，通过 realm 存取认证、授权相关数据
+    注意： 在 realm 中存储授权和认证的逻辑
+
+cryptography ：密码管理，提供了一套加密/解密的组件，方便开发。比如提供常用的散列、加/解密等功能
+
+
+
+登录
+    原理
+     
+     使用 FormAuthenticationFilter 过滤器实现，原理如下：
+        
+     将用户没有认证时，请求 loginurl 进行认证，用户身份和用户密码提交到 loginurl
+     FormAuthenticationFilter 拦截住取出 request 中的 username 和 password (两个参数名称是可以配置的)
+     FormAuthenticationFilter 调用 realm 传入一个 token (username 和 password)
+     realm 认证时根据 username 查询用户信息(从数据库中查找) 如果查询不到，realm 返回 null.
+     FormAuthenticationFilter 向 request 域中填充一个参数 (记录了异常信息)
+            默认是 shiroLoginFailure
+
+    因为不管哪个页面都会进入 这个拦截器，会自动判断此页面是不是登录页面
+
+    首先会判断
+        <property name="loginUrl" value="/shiro/login"></property>
+
+        你的 url 符合配置的 /** = authc  然后会获取 loginUrl ，判断没有权限的方法是不是
+
+
+-------------
+
+FormAuthenticationFilter  源码分析
+
+protected boolean onAccessDenied(ServletRequest request, ServletResponse response) throws Exception {
+        if (isLoginRequest(request, response)) { // 判断访问的url 是否为 loginUrl 是就进入登录
+            if (isLoginSubmission(request, response)) { // 判断是否为 post 请求
+                if (log.isTraceEnabled()) {
+                    log.trace("Login submission detected.  Attempting to execute login.");
+                }
+                return executeLogin(request, response); // 执行登录
+            } else {
+                if (log.isTraceEnabled()) {
+                    log.trace("Login page view.");
+                }
+                //allow them to see the login page ;)
+                return true;
+            }
+        } else {
+            if (log.isTraceEnabled()) { 
+                log.trace("Attempting to access a path which requires authentication.  Forwarding to the " +
+                        "Authentication url [" + getLoginUrl() + "]");
+            }
+
+            saveRequestAndRedirectToLogin(request, response); // 如果不是登录请求执行这个 最终回到 loginUrl 页面
+            return false;
+        }
+    }
+
+
+--------------
+
+简单的运行流程
+org.springframework.web.filter.DelegatingFilterProxy
+
+    先从上面的类 开始     这个是没有登录的 状态
+    
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain)
+			throws ServletException, IOException {
+
+		// Lazily initialize the delegate if necessary.
+		Filter delegateToUse = this.delegate;
+		if (delegateToUse == null) {
+			synchronized (this.delegateMonitor) {
+				if (this.delegate == null) {
+					WebApplicationContext wac = findWebApplicationContext();
+					if (wac == null) {
+						throw new IllegalStateException("No WebApplicationContext found: " +
+								"no ContextLoaderListener or DispatcherServlet registered?");
+					}
+					this.delegate = initDelegate(wac);
+				}
+				delegateToUse = this.delegate;
+			}
+		}
+
+		// Let the delegate perform the actual doFilter operation.
+		invokeDelegate(delegateToUse, request, response, filterChain); // 从这里进入
+	} 
+
+    到了 org.apache.shiro.web.servlet.AbstractShiroFilter
+    
+ protected void doFilterInternal(ServletRequest servletRequest, ServletResponse servletResponse, final FilterChain chain)
+            throws ServletException, IOException {
+
+        Throwable t = null;
+
+        try {
+            final ServletRequest request = prepareServletRequest(servletRequest, servletResponse, chain);
+            final ServletResponse response = prepareServletResponse(request, servletResponse, chain);
+
+            final Subject subject = createSubject(request, response);// 获取的当前的 Subject 里面有所有信息
+
+            //noinspection unchecked
+            subject.execute(new Callable() {
+                public Object call() throws Exception {
+                    updateSessionLastAccessTime(request, response);
+                    executeChain(request, response, chain); // 从这句开始进入 真正的 shiro
+                    return null;
+                }
+            });
+        } catch (ExecutionException ex) {
+            t = ex.getCause();
+        } catch (Throwable throwable) {
+            t = throwable;
+        }
+
+        if (t != null) {
+            if (t instanceof ServletException) {
+                throw (ServletException) t;
+            }
+            if (t instanceof IOException) {
+                throw (IOException) t;
+            }
+            //otherwise it's not one of the two exceptions expected by the filter method signature - wrap it in one:
+            String msg = "Filtered request failed.";
+            throw new ServletException(msg, t);
+        }
+    }
+
+    
+    到了 org.apache.shiro.web.servlet.AbstractShiroFilter
+
+     protected FilterChain getExecutionChain(ServletRequest request, ServletResponse response, FilterChain origChain) {
+        FilterChain chain = origChain;
+
+        FilterChainResolver resolver = getFilterChainResolver();
+        if (resolver == null) {
+            log.debug("No FilterChainResolver configured.  Returning original FilterChain.");
+            return origChain;
+        }
+
+        FilterChain resolved = resolver.getChain(request, response, origChain); // 从这里进入
+        if (resolved != null) {
+            log.trace("Resolved a configured FilterChain for the current request.");
+            chain = resolved;
+        } else {
+            log.trace("No FilterChain configured for the current request.  Using the default.");
+        }
+
+        return chain;
+    }
+
+
+    到了 org.apache.shiro.web.filter.mgt.PathMatchingFilterChainResolver 类
+
+        
+  public FilterChain getChain(ServletRequest request, ServletResponse response, FilterChain originalChain) {
+        FilterChainManager filterChainManager = getFilterChainManager();
+        if (!filterChainManager.hasChains()) {
+            return null;
+        }
+
+        String requestURI = getPathWithinApplication(request);
+
+        //the 'chain names' in this implementation are actually path patterns defined by the user.  We just use them
+        //as the chain name for the FilterChainManager's requirements
+        for (String pathPattern : filterChainManager.getChainNames()) { // 循环判断符合其 pathPattern 的getChainNames(获取的是我们配置的 anon 之类的 Filter)规则
+
+            // If the path does match, then pass on to the subclass implementation for specific checks:
+            if (pathMatches(pathPattern, requestURI)) { // 判断是否符合
+                if (log.isTraceEnabled()) {
+                    log.trace("Matched path pattern [" + pathPattern + "] for requestURI [" + requestURI + "].  " +
+                            "Utilizing corresponding filter chain...");
+                }
+                return filterChainManager.proxy(originalChain, pathPattern); // 创建 filterChain 类对象
+            }
+        }
+
+        return null;
+    }
+
+    又回到了  org.apache.shiro.web.servlet.AbstractShiroFilter
+
+         protected FilterChain getExecutionChain(ServletRequest request, ServletResponse response, FilterChain origChain) {
+    
+ FilterChain resolved = resolver.getChain(request, response, origChain); // 从这里进入
+    返回 
+    }
+    返回最终到了
+        
+    org.apache.shiro.web.servlet.ProxiedFilterChain
+
+
+     public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
+        if (this.filters == null || this.filters.size() == this.index) {
+            //we've reached the end of the wrapped chain, so invoke the original one:
+            if (log.isTraceEnabled()) {
+                log.trace("Invoking original filter chain.");
+            }
+            this.orig.doFilter(request, response);
+        } else {
+            if (log.isTraceEnabled()) {
+                log.trace("Invoking wrapped filter at index [" + this.index + "]");
+            }
+            this.filters.get(this.index++).doFilter(request, response, this);// 都在这个里面
+        }
+    }
+
+     this.filters.get(this.index++).doFilter(request, response, this);// 都在这个里面
+        首先 filters.get(this.index++)
+            到了 public class SimpleNamedFilterList implements NamedFilterList
+             获取到了 anonc.xxx Filter链
+        
+        结束了不看了
+
+
+
+
+    结论就是 会在 org.apache.shiro.web.servlet.AbstractShiroFilter 类的  onAccessDenied 方法里面判断
+    用户是否已经登录没有登录就登录，登录了判断权限等
+
+
+
+
+
+
+--------------
+
+  shiro
+     -->
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<property name="securityManager" ref="securityManager"></property>
+		<property name="loginUrl" value="/shiro/login"></property>
+		<property name="successUrl" value="/list.jsp"></property>
+		<property name="unauthorizedUrl" value="/unauthorized.jsp"></property>
+	<!--
+		 配置哪些页面需要保护 
+		以及访问这些页面需要的权限
+		
+		因为 shiro 有缓存机制，所以我们登录以后必须登出
+		1. anon 可以被匿名访问
+		2. authc 必须认证(及登录)后才可能访问的页面
+		3. logout 登出
+	-->
+	
+	<property name="filterChainDefinitions">
+		<value>
+			/resource/** = anon
+			/shiro/logout = logout			
+			/** = authc
+		</value>
+	</property>	
+	
+	<!--  <property name="filterChainDefinitionMap" ref="filterChainDefinitionMap"></property> -->
+	</bean>
+
+
+    对于  <property name="successUrl" value="/list.jsp"></property> 来说
+        shiro 会自动帮你记录每一次在登录页面前浏览过的页面，你登录以后就会自动帮你跳转到那个页面，
+
+        你也可重写
+            复写FormAuthenticationFilter中的onLoginSuccess为:
+
+            WebUtils.issueRedirect(request, response, getSuccessUrl());
+
+            return false;
+        
+            getSuccessUrl() 方法在其父类里面
+
+
+
+-----------------------------------------------------------
+
+
+realm 的验证
+    只验证 密码  不验证账号
+   也就是说并不会验证你的账号，只是验证密码，因为账号是根据你的数据库查询出来的，不会错的
+  
+    是在
+            org.apache.shiro.realm.AuthenticatingRealm 类里面验证的
+            
+         protected void assertCredentialsMatch(AuthenticationToken token, AuthenticationInfo info) throws AuthenticationException {
+        CredentialsMatcher cm = getCredentialsMatcher();
+        if (cm != null) {
+            if (!cm.doCredentialsMatch(token, info)) { // 这里面验证的。 true 就是成功，否则失败
+                //not successful - throw an exception to indicate this:
+                String msg = "Submitted credentials for token [" + token + "] did not match the expected credentials.";
+                throw new IncorrectCredentialsException(msg);
+            }
+        } else {
+            throw new AuthenticationException("A CredentialsMatcher must be configured in order to verify " +
+                    "credentials during authentication.  If you do not wish for credentials to be examined, you " +
+                    "can configure an " + AllowAllCredentialsMatcher.class.getName() + " instance.");
+        }
+    }
+
+
+
+    所以你的 账号 传入进去，可以传 Object 类型的，因为只是帮你保存在 Subject 里面。
+
+
+----------------------------------------------------
+
+授权
+    使用 PermissionsAuthorizationFilter
+
+    在 applicationContext-shiro.xml 中配置 url 所对应的权限。
+
+    测试流程
+     1. 在 applicationContext-shiro.xml 中配置 filter 规则
+         /items/queryItems.action = perms(item:query)
+     2. 用户在认证通过后，请求 /items/queryItems.action
+     3. 被 PermissionsAuthorizationFilter 拦截，发现需要 "item:query"权限
+     4. PermissionsAuthorzationFilter 对 item:query 和从 realm 中获取权限进行对比，如果"item:query"
+        在 realm 返回的权限列表中，授权通过
+      
+
+
+问题总结：
+    1. 在 applicationContext-shiro.xml 中配置过滤器链接，需要将全部的 Url 和权限对应起来进行配置，比较麻烦不方便使用
+    
+    2. 每次授权都需要调用 realm 查询数据库，对于系统性能有很大影响，可以通过 shiro Cache  缓存来解决
+
+
+
+    
+        if(exceptionClassName!=null){
+			if (UnknownAccountException.class.getName().equals(exceptionClassName)) {
+				//最终会抛给异常处理器
+				throw new CustomException("账号不存在");
+			} else if (IncorrectCredentialsException.class.getName().equals(
+					exceptionClassName)) {
+				throw new CustomException("用户名/密码错误");
+			} else if("randomCodeError".equals(exceptionClassName)){
+				throw new CustomException("验证码错误 ");
+			}else {
+				throw new Exception();//最终在异常处理器生成未知错误
+			}
+		}
+
+
+    对于错误
+          // 账号不存在还可以 通过 返回 null 来表示账号不存在
+        if("exist".equals(username)) {
+            return null;
+        }
+       会自动抛出   UnknownAccountException 表示账号不存在
+
+    对于密码错误
+        IncorrectCredentialsException 
+       会自动抛出 IncorrectCredentialsException  异常
+
+
+
+
+授权测试
+        对于继承 AuthorizingRealm 的 
+    protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) { }
+
+    每次需要用都授权的地方，你都要调用一次授权 AuthorizationInfo 方法
+
+
+缓存
+    shiro 中提供了对认证信息和授权信息的缓存。shiro 默认是管理认证信息缓存的，对于授权信息的缓存 shiro 默认开启的
+        主要研究授权信息缓存，因为授权的数据量大。
+
+
+    用户认证通过。
+    该用户第一次授权：调用realm查询数据库
+    该用户第二次授权：不调用realm查询数据库，直接从缓存中取出授权信息（权限标识符）。
+
+
+    因为在修改其他人的权限以后要立即生效，所以你需要在修改其他人的权限以后将其 Cache 里面的缓存清除。
+    
+如果修改了用户的权限，而用户不退出系统，修改的权限无法立即生效。
+需要手动进行编程实现：
+	在权限修改后调用realm的clearCache方法清除缓存。
+下边的代码正常开发时要放在service中调用。
+在service中，权限修改后调用realm的方法。
+在realm中定义clearCached方法：
+
+//清除缓存
+	public void clearCached() {
+		PrincipalCollection principals = SecurityUtils.getSubject().getPrincipals();
+		super.clearCache(principals);
+	}
+
+
+
+使用 redis 和 shiro 具体看 浏览器收藏。
+    主要可以用来 分布式同步权限
+
+  还可以使用 SessionDao 使用 redis 将 session 存在 redis 里面实现单点登录。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

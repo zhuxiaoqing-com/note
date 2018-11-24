@@ -1,0 +1,380 @@
+﻿游戏类型
+	推荐类型 多对多 普通 最新 精选等
+	游戏上传 apk 文件 url 等
+	游戏分类
+	下载次数 管理 下载次数是在 redis 里面的 然后每天半夜同步一次
+	
+	  益智  角色扮演等等
+	还有状态 是否是已上线的游戏
+	quartz 定时下载版本
+	
+	
+	图书管理 就是 修改图书简介等，主要还是查询
+	从第三方平台(创别)获取数据。 使用 定时任务 quartz 在半夜的时候从第三方平台获取数据
+	
+	音影也是直接调用第三方平台 直接调用第三方平台链接  百视通 
+	
+	渠道管理(增删改查)
+		查询不同的渠道的 本 app 的名称 logo 下载地址等，设置 app 的更新的 版本号。
+			因为你的 app 可能会被用户在很多第三方平台下载 不同的渠道的app  可能会有不同的 logo 不同的 下载地址 不同的名字等
+	
+	
+	供销商管理
+		专门为第三方分成的公司提供账号到后台管理系统查看订单情况
+		从数据库查询订单信息，
+	
+
+----------------------------------------------------
+
+	项目总结（*）
+
+	
+	
+	项目中遇到了什么问题（*）
+
+
+
+	
+	全能娱乐软件
+
+
+	分页用的是 pagehelper  是后台分页
+		pagehelper 的具体使用，
+		使用 pageinfo 将其返回json 然后前端解析
+		因为 pageinfo 会帮你封装 分页信息，传到前端直接使用分页就好了
+
+	
+
+	图书  游戏  
+ 		
+
+
+	游戏有 查询 增加 删除 修改
+          推荐分类表 classify
+	    主键  分类名称  分类状态 分类添加时间
+	  
+	  游戏分类
+             益智游戏 角色扮演等
+          
+  	  平台类型
+	     ios android
+
+	 游戏有 主键 名字 下载量等(下载量是存在 redis 里面的，半夜同步到数据库使用 quartz) 状态
+          
+	游戏主要是通过后台上传 apk 然后进行管理  apk 是与我们公司合作的第三方游戏公司	
+		怎么分成 游戏。 不是很清楚
+		主要是通过下载次数来进行分成。
+
+        图书
+	   只有查询
+	   
+           表是 
+		一级分类 
+		二级分类
+		图书
+		图书章节
+
+       图书是与第三方公司合作，直接调用第三方公司的接口，获取图书将其存入本地数据库的
+	是  创别  写了一个 quartz 每天半夜同步 从第三方数据库获取资源  
+		第三方公司 是收到 章节以后，审核 完毕以后将设定章节要发布的时间，然后再对应的时间发布 
+		
+		有 vip 章节。 vip 是需要 购买的 按章节购买 
+		是先购买我们方的 虚拟币。在购买的后会调用第三方公司给的接口 将购买情况发送过去
+
+        图书的数据库
+            图书类型
+            图书表 图书id boot_name auther  attribute(1男频，2女频)  classify(图书分类 都市,玄幻) status(连载还是完结)  is_vip是否收费
+            CREATE TABLE `chuangbie_book` (
+              `book_id` bigint(20) NOT NULL COMMENT '书籍ID',
+              `book_name` varchar(50) NOT NULL COMMENT '书籍名称',
+              `author_name` varchar(50) DEFAULT NULL COMMENT '作者名称',
+              `attribution` tinyint(4) DEFAULT NULL COMMENT '1.男频 2.女频 3.出版',
+              `ftype_id` int(11) DEFAULT NULL COMMENT '一级分类ID',
+              `stype_id` int(11) DEFAULT NULL COMMENT '二级分类ID',
+              `status` int(2) DEFAULT NULL COMMENT '书籍状态：1连载 2完本',
+              `is_vip` tinyint(1) DEFAULT NULL COMMENT '是否收费：0免费 1收费',
+              `description` varchar(1000) DEFAULT NULL COMMENT '图书简介',
+              `cover_url` varchar(100) DEFAULT NULL COMMENT '封面url地址',
+              `keyword` varchar(50) DEFAULT NULL COMMENT '图书关键字',
+              `word_count` varchar(20) DEFAULT NULL COMMENT '图书当前总字数',
+              `last_update_chapter_id` int(10) DEFAULT NULL COMMENT '最新章节ID',
+              `last_update_chapter_name` varchar(50) DEFAULT NULL COMMENT '最新章名',
+              `isRecommand` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否推荐首页：1推荐 0不推荐',
+              PRIMARY KEY (`book_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='创别图书表';
+
+           
+
+        章节
+            CREATE TABLE `chuangbie_book_chapter` (
+              `book_id` bigint(20) NOT NULL COMMENT '小说id',
+              `chapter_id` int(11) NOT NULL COMMENT '章节id',
+              `chapter_name` varchar(50) DEFAULT NULL COMMENT '章节名字',
+              `volume_id` int(11) DEFAULT '0' COMMENT '分卷id 没有分卷则为0',
+              `is_vip` tinyint(1) DEFAULT NULL COMMENT '是否收费: 0免费 1收费',
+              `price` int(11) NOT NULL DEFAULT '0' COMMENT '价格：创别币',
+              `sortid` int(11) DEFAULT NULL COMMENT '章节排序id',
+              `word_count` int(11) DEFAULT NULL COMMENT '章节字数',
+              `update_time` datetime DEFAULT NULL COMMENT '最后更新时间',
+              `chapter_content` mediumtext COMMENT '小说内容',
+              UNIQUE KEY `chuangbie_book_chapter_bookid_chapterid` (`book_id`,`chapter_id`) USING BTREE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+       图书 vip 章节购买情况
+        CREATE TABLE `pn_book_chapter_pay` (
+          `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '序列号',
+          `uid` bigint(20) NOT NULL COMMENT '用户id',
+          `partnerId` bigint(20) NOT NULL COMMENT '合作公司id',
+          `bookId` bigint(20) NOT NULL COMMENT '第三方图书id',
+          `sortid` int(11) NOT NULL COMMENT '第三方图书章节序号',
+          `chapterId` int(11) NOT NULL COMMENT '第三方图书章节id',
+          PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB AUTO_INCREMENT=12560 DEFAULT CHARSET=utf8;
+
+
+
+                
+	
+	
+       管理的话主要就是查询 然后修改简介
+
+	
+	接口是怎么写的
+		有一个 message 类。是一个 base 类。你的所有的信息都往 message 里面存。成功信息，状态码 (200成功 500服务器错误 400用户的信息有错误等等)
+		等
+
+	影音管理
+	        也是调用第三方接口，然后 获取第三方的播放路径 视频简介等
+		也是 两张表 
+		视频分类表 (什么电视剧电影等)
+		视频详细表
+	
+	接口就是将信息查询出来放入  message  里面
+	  		
+
+	版本管理
+	   用来控制 app 的版本升级的，查询不同渠道的 app 的名称 logo 下载地址等
+
+	app 每次启动都会访问 服务器获取版本号，app 拿到版本号以后就会将其 版本与服务器的版本进行对比，如果小于服务器版本
+           就会报错  
+	版本号是存储在 Redis 和 mysql 中的。
+
+	查询 app 的话，就是分 一级渠道 (一级就是 ios android )，二级渠道， 因为通常 android 会有多个渠道 
+
+		添加渠道等	
+	
+
+
+	供销商管理
+		分不同的供销商，有不同的页面，相应的供销商只能进入直接的页面来查询 订单信息
+		是专门为第三方公司准备的，可以用专门的账号登录 只能查询 属于 第三方公司的 订单
+
+		将订单信息查询出来 传入到 页面使用 echart 显示  
+		echart 是订单信息的同事写的  我负责使用同事指定的 api 规则将订单信息传到页面显示
+		
+
+	
+	
+
+	遇见的问题
+	     1. bootstrap 多次弹窗导致页面左移， Body 上多了样式 "padding-right:17px"
+	
+		你需要在 body 的 padding-right: 0px !important 
+	
+	     2. 一开始是使用了 input(hidden) 来存取数据的
+			后来发现了 js 的 data() 可以用来存储数据，就将 数据存到了 data() 里面
+	
+         3. 加深了对 JSR303 校验 的使用
+      
+         
+
+        总结
+            
+            Nginx MyCat 是服务器架构
+
+  一般认为是根据客户需求分析的结果，准确定位网站目标群体，设定网站整体架构，规划、设计网站栏目及其内容，制定网站开发流程及顺序，
+    以最大限度地进行高效资源分配与管理的设计。
+
+    MyCat
+        是分布式数据库架构
+        是一个数据库代理
+        是一个分布式数据库系统
+        核心功能应该是分库分表
+
+    Nginx 
+        是分布式服务器架构
+
+
+根据属性获取小说列表 分页
+获取小说详情
+获取小说章节列表  分页
+获取小说章节内容
+同类相关推荐小说 分页
+
+	
+
+获取视频一级分类
+根据一级分类获取二级分类
+根据二级分类获取视频(分页)
+单片详情
+剧集详情
+
+
+
+
+
+    游戏更新是调用我们我们的第三方接口,通知我们 app 更新了，然后我们自动调用我们写的方法调用，其第三方的接口，获取其 apk 包，将其上传到 七牛云，
+
+	游戏是 调用 第三方接口然后 获取 apk 最新
+
+
+
+
+图书名字加 id 做 Key  
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
+
+
+
+
+
+
+
+

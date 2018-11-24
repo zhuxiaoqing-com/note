@@ -1,0 +1,644 @@
+一个 BS 项目最终运行的并不是动态 Web 工程本身，而是这个动态 Web 工程"编译的结果"
+
+构建过程中的各个环节
+    1 清理：将以前编译得到的旧的 class 字节码文件删除，为下一次编译做准备
+    2 编译：将 java 源文件编译成 class 文件
+    3 测试：自动测试，自动调用 junit 程序
+    4 报告：测试程序执行的结果
+    5 打包：动态 web 工程大 war 包，java 工程打 jar 包
+    6 安装：Maven 特定的概念 --- 将打包得到的文件复制到 "仓库" 中的指定位置
+    7 部署：将动态 web 工程生成的 war 包复制到 Servlet 容器的指定目录下，使其可以运行
+
+
+Manven 配置环境变量
+    1.解压部署Maven核心程序
+        环境变量最好配置在 用户上，不要配置在系统上
+	①检查JAVA_HOME环境变量
+		C:\Windows\System32>echo %JAVA_HOME%
+		D:\DevInstall\jdk1.7.0_07
+	②解压Maven的核心程序
+		将apache-maven-3.2.2-bin.zip解压到一个非中文无空格的目录下。例如：D:\DevInstall\apache-maven-3.2.2
+	③配置环境变量
+		M2_HOME 或 MAVEN_HOME D:\DevInstall\apache-maven-3.2.2
+		path	D:\DevInstall\apache-maven-3.2.2\bin
+	④查看Maven版本信息验证安装是否正确
+		C:\Windows\System32>mvn -v
+		Apache Maven 3.2.2 (45f7c06d68e745d05611f7fd14efb6594181933e; 2014-06-17T21:51:42+08:00)
+		Maven home: D:\DevInstall\apache-maven-3.2.2\bin\..
+		Java version: 1.7.0_07, vendor: Oracle Corporation
+		Java home: D:\DevInstall\jdk1.7.0_07\jre
+		Default locale: zh_CN, platform encoding: GBK
+		OS name: "windows 7", version: "6.1", arch: "amd64", family: "windows"
+
+ 创建第一个 Maven 
+    第一个Maven工程
+        ①目录结构
+            Hello 根目录：工程名
+            |---src 源码
+            |---|---main  存放主程序
+            |---|---|---java 存放 java 源文件
+            |---|---|---resources  存放框架或其他工具的配置文件
+            |---|---test  存放测试程序
+            |---|---|---java  
+            |---|---|---resources
+            |---pom.xml  Maven 工程的核心配置文件
+
+    为什么要遵守约定的目录结构呢？
+    Maven 要负责我们这个项目的自动化构建，以编译为例，Manven 想要自动编译，那么它必须知道 java 源文件保存在哪里
+
+    约定大于配置大于编码
+    如果我们自定义的东西想要让框架或工具知道，有两种方法
+        以配置的方式明确告诉框架
+        遵守框架已经存在的约定
+
+②POM文件内容
+<?xml version="1.0" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.atguigu.maven</groupId>
+	<artifactId>Hello</artifactId>
+	<version>0.0.1-SNAPSHOT</version>
+
+	<name>Hello</name>
+	  
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.0</version>
+			<scope>test</scope>
+		</dependency>
+	</dependencies>
+</project>
+
+
+1. 常用 Maven 命令
+    1. 注意：执行与构建过程相关的 Maven 命令，必须进入 pom.xml 所在的目录
+      与构建过程相关：编译、测试、打包、...
+    2. 常用命令
+      1. mvn clean 清理
+      2. mvn compile  编译主程序
+      3. mvn test-compile  编译测试程序
+      4. mvn test 执行测试
+      5. mvn package 打包
+      6. mvn install 将其加入本地仓库 安装
+      7. mvn site 生成站点  生成文档
+      8. mvn deploy  将最终的包复制到远程的仓库，以让其他开发人员与项目共享或部署到服务器上运行。 
+2. 关于联网问题
+    1. Maven 的核心程序中仅仅定义了抽象的生命周期，但是具体的工作必须由特定的插件来完成。而插件本省并不包含在 Maven 的核心程序。
+    2. 当我们执行的 Maven 命令需要用到某些插件时，Maven 核心程序会首先到本地仓库中查找。
+    3. 本地仓库的默认位置：[系统中当前用户的家目录]\.m2\repository\
+        C:\Users\[登录当前系统的用户名]\.m2\repository
+    4. Maven 核心程序如果在本地仓库中找不到需要的插件，那么它会自动连接外网，到中央仓库下载。
+    5. 如果此时无法连接外网，则构建失败。
+    6. 修改默认本地仓库的位置可以让 Maven 核心程序到我们事先准备好的目录下查找插件
+        1. 找到 Maven 解压目录 \conf\settings.xml
+        2. 在 settings.xml 里面找到  <localRepository>...</localRepository> 从注释中取出
+        3. 将标签体内容修改为已经准备好的 Maven 仓库目录
+
+    你需要到 你创建的项目名的下面来进行 mvn 命令的运行
+    
+3.POM 
+    含义： Project Object Model 项目对象模型
+        DOM Document Object Model 文档对象模型
+    pom.xml 对于 Maven 工程是核心配置文件，与构建过程相关的一切都设置在这个文件中进行配置。
+        重要程度相当于 web.xml 对于动态 Web 工程
+
+4.坐标
+    1. 数学中的坐标
+        1. 在平面上，使用 X、Y 两个向量可以唯一的定为平面中的任何一个点
+        2. 在空间中，使用 X、Y、Z 三个向量可以唯一的定为空间中的任何一个点
+    2. Maven 的坐标
+        使用下面三个向量在仓库中唯一定为一个 Maven 工程
+           1. groupid : 公司或组织域名倒序 + 项目名
+                <groupId>cn.zhu.maven</groupId>
+           2. artifactId : 模块名
+                <artifactid>Hello</artifactId>
+           3. version: 版本
+                <version>1.0.0</version>
+            GAV 就是 Maven 坐标
+     3. Maven 工程的坐标与仓库中路径的对应关系
+           <groupId>cn.zhu.maven</groupId>  会把 点 换成 斜杠
+           <artifactId>spring-core</artifactId>
+           <version>1.0.0.RELEASE</version>  不会把 点 换成 斜杠
+          那么就会去 cn/zhu/maven/spring-core/1.0.0.RELEASE/spring-core-1.0.0.RELEASE.jar  这样找
+        管理 jar 统一的规范
+
+
+
+5. 仓库
+    1.仓库的分类
+        1.本地仓库：当前电脑上部署的仓库目录，为当前电脑上所有 Maven 工程服务
+        2.远程仓库
+            > 私服 Nexus：搭建在局域网环境中，为局域网范围内的所有 Maven 工程服务,解决了机器不能上网的问题，只要有一台机器可以上网就可以了
+            > 中央仓库 Maven Central：架设在 Internet 上，为全世界所有 Maven 工程服务
+            > 中央仓库镜像 Apache：为了分担中央仓库的流量，提升用户访问速度。
+    
+    2. 仓库中保存的内容
+         1. Maven 自身所需要的插件
+         2. 第三方框架或工具的 jar 包
+         3. 我们自己开发的 Maven 工程
+
+   第一方 是 jdk 第二方是开发人员 第三方就是插件等
+    关于 jar 的版本 SNAPSHOT 是快照的意思，意思是还不完整，还在开发阶段
+                    RELEASE  发布的意思 表示发布的版本 正式版
+
+6. 依赖
+    1. Maven 解析依赖信息时会到本地仓库中查找被依赖的 jar 包
+         对于我们自己开发的 Maven 工程，使用 install 命令安装后就可以进入仓库。
+    2. 依赖的范围
+        1. compile 范围依赖
+            对主程序是否有效  有效   就是主程序要用它运行，也就是说 使用 compile 会自动使用 compile
+            对测试程序是否有效 有效  就是测试程序要用它运行，也就是说 使用 test-compile 会自动使用 compile
+            是否参与打包  参与       就是打包要使用到它，也就是说 使用 package 会自动使用 compile
+        2. test 范围依赖
+            对主程序是否有效  无效
+            对测试程序是否有效 有效
+            是否参与打包  不参与
+        3. provided 范围依赖  一般是为 web 工程添加的
+            对主程序是否有效  有效
+            对测试程序是否有效 有效
+            是否参与打包  不参与
+            是否参与部署  不参与
+            典型例子 servlet-api.jar
+        
+
+7. 生命周期
+    1. 各个构建环节执行的顺序 ： 不能打乱顺序，必须按照既定的正确顺序来执行。
+    2. Maven 的核心程序中定义了抽象的生命周期，生命周期中各个阶段的具体任务是由插件来完成的
+    3. Maven 核心程序为了更好的实现自动化构建，按照这一的特点执行生命周期中的各个阶段：不论现在
+        要执行生命周期的哪一个阶段，都是从这个生命周期最初的位置开始执行。
+    4. 插件和目标
+        1. 生命周期的各个阶段仅仅定义了要执行的任务是什么
+        2. 各个阶段和插件的目标是对应的
+        3. 相似的目标由特定的插件来完成
+        4. 可以将目标看作 "调用插件功能的命令"
+
+8. 在 Eclipse 中使用 Maven
+    1. Maven 插件：Eclipse 内置
+    2. Maven 插件的设置：
+        1. installations: 指定 Maven 核心程序的位置。不建议使用插件自带的 Macen 程序而应该使用我们自己解压的那个。
+        2. user settings: 指定 conf/settings,xml 的位置，进而获取本地仓库的位置。
+    3. 基本操作
+        1 创建 Maven 版的 java 工程
+
+        
+①设置通过Maven创建的工程的JDK版本——一劳永逸
+		[1]打开settings.xml文件
+		[2]找到profiles标签
+		[3]加入如下配置
+			<profile>
+				<id>jdk-1.7</id>
+				<activation>
+					<activeByDefault>true</activeByDefault>
+					<jdk>1.7</jdk>
+				</activation>
+				<properties>
+					<maven.compiler.source>1.7</maven.compiler.source>
+					<maven.compiler.target>1.7</maven.compiler.target>
+					<maven.compiler.compilerVersion>1.7</maven.compiler.compilerVersion>
+				</properties>
+			</profile>
+
+
+    我们创建 web 项目
+    选择 Maven project
+        请务必勾选 Create s simple project(skip archetype selection)
+        点击下一步 请将 Packaging 选择打包为 war 就代表 web 项目 jar 代表 javase 项目
+        然后创建成功以后，会报错 pom.xml 因为缺少 web.xml 文件
+        你需要 点击项目的 properties --> Project Facets 点击将 Dynamic Web Module 去掉，然后点击Apply ，然后再勾上
+            在屏幕下方会出现黄色的 a 标签一样的 连接 点击 Further configuration available...
+                Context root 为你发布到 tomcat 的项目名称
+                Content directory 将其改为 src/main/webapp 点击 OK 然后再将  Dynamic Web Module 勾打上，点击 OK。
+                
+        你还需要添加  provided 
+            ①ServletAPI依赖  servlet 基本 jar 
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<scope>provided</scope>
+		</dependency>
+	②JSPAPI依赖       如果你希望使用 jsp 的 类 那么就导入 JSPAPI
+		<dependency>
+			<groupId>javax.servlet.jsp</groupId>
+			<artifactId>jsp-api</artifactId>
+			<version>2.1.3-b06</version>
+			<scope>provided</scope>
+		</dependency>
+        
+
+-------------------------
+
+    <dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<scope>provided</scope> 
+		</dependency>
+
+<scope>provided</scope>  代表了其应用的范围  默认为 compile
+     1. compile 范围依赖
+            对主程序是否有效  有效   就是主程序要用它运行，也就是说 使用 compile 会自动使用 compile
+            对测试程序是否有效 有效  就是测试程序要用它运行，也就是说 使用 test-compile 会自动使用 compile
+            是否参与打包  参与       就是打包要使用到它，也就是说 使用 package 会自动使用 compile
+            是否参与部署  参与
+            典型例子 spring-core
+        2. test 范围依赖
+            对主程序是否有效  无效
+            对测试程序是否有效 有效
+            是否参与打包  不参与
+            是否参与部署  不参与
+            典型例子 junit
+        3. provided 范围依赖  一般是为 web 工程添加的  一般用在 Tomcat 上面的 jar 的 scope
+            对主程序是否有效  有效
+            对测试程序是否有效 有效
+            是否参与打包  不参与
+            是否参与部署  不参与
+            典型例子 servlet-api.jar
+
+    Maven 会为我们自动导入 其jar 相关依赖 jar 
+
+
+ -----------------
+
+ eclipse  的 pom.xml 快捷键
+
+    Overview:显示maven项目的一些基本信息. 
+    Dependencies:添加jar包的页面,很重要! 
+    Plugins:添加maven插件的页面.比如tomcat-maven-plugin等. 
+    Reporting:从没用过,无视~ 
+    Dependency Hierarchy:用于显示jar包的依赖关系.没事的时候可以看看jar包的依赖关系. 
+    Effective POM:显示maven的编译路径,plugin之类的.也可以无视. 
+    pom.xml:导入jar包的信息,可以在其中进行修改.重要 
+
+
+
+
+
+
+
+ <modelVersion>4.0.0</modelVersion>  <!-- 指定当前POM模型的版本 -->
+    <groupId>com.gcs</groupId>  <!-- 定义项目属于哪个组,与所属组织或公司关联 -->
+    <artifactId>AllUtil</artifactId>  <!-- 标识当前项目ID -->
+    <version>0.0.1-SNAPSHOT</version> <!-- 指定当前的版本  SNAPSHOT 为快照，标志处于开发中 -->
+    <packaging>jar</packaging> <!-- 定义生成格式,若要运行web，需改为war -->
+
+    <name>AllUtil</name> <!-- 声明更友好的项目名称（非必须） -->
+    <url>http://maven.apache.org</url>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <junitversion>4.12</junitversion> <!-- 全局变量定义版本,以方便统一管理 -->
+    </properties>
+
+
+9. 依赖
+    1.依赖的传递性
+        好处：可以传递的依赖不必在每个模块工程中都重复声明，在"最下面"的工程中依赖一次即可。
+        注意：非 compile 范围的依赖不能传递。所以在各个工程模块中，如果有需要就得重复声明依赖
+
+    2.依赖的排除
+        <dependency>
+            <modelVersion>4.0.0</modelVersion>  <!-- 指定当前POM模型的版本 -->
+	    	<groupId>com.atguigu.maven</groupId>  <!-- 定义项目属于哪个组,与所属组织或公司关联 -->
+	    	<artifactId>HelloFriend</artifactId>  <!-- 标识当前项目ID -->
+	    	<version>0.0.1-SNAPSHOT</version>     <!-- 指定当前的版本  SNAPSHOT为快照，标志处于开发中  默认为 compile-->
+	    	<type>jar</type>            
+	    	<scope>compile</scope>              
+	    	<exclusions>  要排除的jar 的标签组
+	    		<exclusion>   要排除的标签
+	    		<groupId>commons-logging</groupId>   groupId  定义项目属于哪个组，与所属组织或公司关联
+				<artifactId>commons-logging</artifactId>  artifactId 当前项目 ID
+	    		</exclusion>
+	    	</exclusions>
+		</dependency>
+        如果你的一个 Maven 项目将其排除了，其后面的项目也不能获取被排除的 jar
+
+    3.依赖的原则
+        如果有想用的 groupId 和 artifactId 都一样
+        如果有因爱的
+        作用：解决模块之间的 jar 包冲突问题
+            有两个原则
+              * 路径最短者优先原则
+              * 路径相同时先声明者优先
+                    先声明的顺序指的是 dependency 标签的声明顺序
+    
+    4.统一管理依赖的版本
+         这里对 Spring 各个 jar 包的依赖版本都是 4.0.0
+         如果需要统一升级为 4.1.1 怎么办
+         手动逐一修改不可靠
+
+         建议配置方式
+            1. 使用 properties 标签内使用自定义标签统一声明版本号
+                     <properties>
+                        <cn.zhu.maven>4.0.0.RELEASE</cn.zhu.maven>
+                      </properties>
+            2. 在需要统一版本的位置，使用${自定义的标签名}引用声明的版本号
+                        <dependency>
+                            <groupId>org.springframework</groupId>
+                            <artifactId>spring-core</artifactId>
+                            <version>${cn.zhu.maven}</version>
+                            <scope>compile</scope>
+                        </dependency>
+
+            3. 其实 properties 标签配合自定义标签声明数据的配置并不是只能用于声明依赖的版本号。
+                你可以用 properties 自定义的标签 替换任何东西
+                凡是可以统一声明后再引用的场合都可以使用。
+
+
+10.继承
+    1.现状
+        Hello 依赖的 junit 4.0
+        HelloFriend 依赖的 junit 4.0
+
+        由于 test 范围的依赖不能传递，所以必然会分散在各个模块中，很容易造成版本不一致
+
+    2.统一管理各个模块工程中对 junit 依赖的版本
+     
+    3. 解决思路：将 junit 依赖的版本统一提取到 "父" 工程中，在子工程中声明 Junit 依赖时不指定版本，以父工程中统一设定的为准。
+        同时也便于修改。
+    4. 操作的步骤：
+        1.创建一个 Maven 工程作为父工程。注意:打包的方式 pom
+        2.在子工程中声明对父工程的引用
+                在子工程里面声明
+           <!-- 子工程声明父工程 -->
+            <parent>
+                <groupId>cn.zhu.maven</groupId>
+                <artifactId>Parent</artifactId>
+                <version>0.0.1-SNAPSHOT</version>
+                <!-- 以当前文件为基准的父工程 pom.xml文件的相对路径 -->
+                <relativePath>../../../../cn/zhu/maven/Parent/pom.xml</relativePath>
+            </parent>
+
+
+    
+        3.将子工程中的坐标中与父工程坐标中重复的内容删除 （我觉得还是不要删除的好 因为这个是你项目的 veision）
+                <modelVersion>4.0.0</modelVersion>
+                <groupId>com.atguigu.maven</groupId>
+                <artifactId>HelloFriend</artifactId>
+                <!-- <version>0.0.1-SNAPSHOT</version> -->
+                <name>HelloFriend</name>
+
+        4.在父工程中统一 junit 的依赖
+                     在父工程里面声明
+                 <!-- 配置统一依赖的管理 -->
+                  <dependencyManagement>
+                  <dependencies>
+                       <dependency>
+                            <groupId>junit</groupId>
+                            <artifactId>junit</artifactId>
+                            <version>4.0</version>
+                            <scope>test</scope>
+                        </dependency>	
+                  </dependencies>
+                   </dependencyManagement>
+    
+        5.在子工程中删除 junit 依赖的版本号部分
+                这样子的话就不用写在父工程管理 jar 的版本了。但是 Jar 还是的声明
+                <!-- 子标签里面的 jar -->
+                <dependency>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                    <!-- <version>4.0</version> -->
+                    <scope>test</scope>
+                </dependency>		
+        
+     
+        
+        relativePath ： 其实这个写不写都是一样的 都会帮你自动找的
+        默认值为../pom.xml
+
+        查找顺序：relativePath元素中的地址–本地仓库–远程仓库
+
+        设定一个空值将始终从仓库中获取，不从本地路径获取，如<relativePath />
+        
+        其路径是按照你 编译器里面的路径的。。。所以默认 ../pom.xml 就是可以找到的
+        !-- 父项目的pom.xml文件的相对路径。相对路径允许你选择一个不同的路径。默认值是../pom.xml。
+        Maven首先在构建当前项目的地方寻找父项目的pom，
+        其次在文件系统的这个位置（relativePath位置），然后在本地仓库，最后在远程仓库寻找父项目的pom。 -->
+        
+        dependencyManagement：
+            继承自该项目的所有子项目的默认依赖信息。这部分依赖信息不会被立刻解析，而是当子项目声明一个依赖(必须描述 group ID 和 artifactID 信息)
+            如果 groupID 和 artifactId 以外的一些信息没有描述，则通过 groupId 和 artifactId 匹配到这里的依赖，并使用这里的依赖信息
+       
+        groupID 项目的全球唯一标识符，通常使用全限定的包名分该项目和其他项目。并且构建时生成的路径也是由此生成，如 com.mycompany.app 生成的相对路径
+        为： /com/mycompany/app -->   
+
+        artifactID 构件的标识符，它和 group ID 一起唯一标识一个构件。换句话说，你不能有两个不同的项目拥有相同的 artifactID 和 groupID; 在某个特定
+        的 groupID 下，artifactID 也必须是唯一的。构件是项目产生的或使用的一个东西，Maven为项目产生的构件包括：JARs，源码，二进制发布和WARs等。
+
+
+11.聚合
+      
+     The build could not read 1 project
+       无法解析父级的POM文件，应该是是POM文件中使用了继承。
+        Non-resolvable parent POM: Could not find artifact
+        可以尝试加入 relativePath 或者干脆不写，应该是你的 parent 标签里面的 relativePath的地址 写错了
+         <relativePath>../artifactID的名称/pom.xml</relativePath> 全部写这种的就好了
+
+        <!-- 配置聚合 -->
+       <modules>
+        <module>../JavaDayOne</module>
+        <module>../MakeFriends</module>
+        <module>../WebJavaOne</module>
+        <module>../Hello</module>
+        <module>../HelloFriend</module>
+        
+       </modules>
+
+    并不是一定要放在 父 Maven 里面做。你想放哪里就能放哪里做。和继承没有关系
+    使用方式:  在聚合工程的 pom.xml 上点右键 run as --> maven install
+
+
+12. 自动化部署
+        如果你的 maven 显示找不到 web.xml 那你就手动添加  
+              <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>2.4</version>  <!-- 版本号 如果太高可能识别不了  按你的 maven 版本来就好了  -->
+                    <configuration>
+                        <webResources>
+                            <resource>
+                                <directory>main/src/webapp</directory>  <!-- 你的 web.xml 存在的地方，以 WEB-INF 为准 -->
+                            </resource>
+                        </webResources>
+                    </configuration>
+                </plugin>
+            </plugins>
+        
+        打包完以后会自动将 maven  把 pom.xml 引用了其他项目  全部打包成 jar 然后放到 war 里面去
+
+
+    阿里云 的镜像配置
+         你需要找到 <mirrors> 标签  然后将下面的 写入
+  	<mirror>    
+     <id>alimaven</id>    
+     <name>aliyun maven</name>    
+     <url>http://maven.aliyun.com/nexus/content/groups/public/</url>    
+     <mirrorOf>central</mirrorOf>            
+	</mirror>    
+
+
+    maven 的 jstl  如果引入报错的话 就引入这个
+       是 <dependency>
+            <groupId>jstl</groupId>
+            <artifactId>jstl</artifactId>
+            <version>1.2</version>
+        </dependency>
+
+    不是 
+        <!-- https://mvnrepository.com/artifact/javax.servlet.jsp.jstl/jstl -->
+        <dependency>
+            <groupId>javax.servlet.jsp.jstl</groupId>
+            <artifactId>jstl</artifactId>
+            <version>1.2</version>
+        </dependency>
+
+            
+
+<!-- 数据 JSR 303 数据校验支持 -->
+		<!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-validator -->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-validator</artifactId>
+			<version>5.4.1.Final</version>
+		</dependency>
+tomcat7 及以上的服务器不用管，
+tomcat7 以下的服务器：el 表达式，支持不行。需要额外给服务器的 lib 包中替换新的标准的 el-jar
+
+
+
+Maven jar 包查找网址 
+    http://mvnrepository.com/
+    http://www.sonatype.org/nexus/
+    http://repo1.maven.org/maven2`
+
+
+
+
+配置 maven 仓库的地方
+
+<localRepository>D:\repository</localRepository>
+
+
+
+Test 错误会导致 resources 里面的 xml、properties等配置文件 无法编译
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

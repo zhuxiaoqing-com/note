@@ -1,0 +1,307 @@
+
+springmvc 的执行原理
+
+进入 DispatcherServlet 的 doDispatcher 
+然后匹配合适的 handlermapping ，获取 handlerExecutionChain
+然后在匹配合适的 handlerAdapter 
+运行 interceptor 的 preHandle
+
+然后 handlerAdapter 运行其 handler 调用  controller 然后
+handlerMethodReturnValueHandler 处理返回值。 返回一个 modelAndView
+然后运行 interceptor 的 posthandle
+然后进行视图渲染，先判断  modelAndView 是否为 null。为 null 就结束。
+不为 null 就进行匹配 viewResolver 通过 viewResolver 返回一个 view 对象，
+
+ 
+view 进行  render  最终根据不同的 view 的处理方式 给页面不同的响应
+ 
+
+
+springboot 的静态文件映射 
+    jar 包里面的是 META-INF/resources/webjars/
+    静态的文件是 
+        "/" "/resources" "static" "public" "/META-INF/resources/"
+    欢迎页面也是
+
+
+
+springboot-整合 activemq 和 rabbitmq
+
+activemq 
+
+properties
+    
+        spring.activemq.broker-url=tcp://192.168.0.102:61616
+        spring.activemq.user=admin
+        spring.activemq.password=admin
+        
+
+  主要如果你要使用 activemq.pool 的话，请先引入
+        org.apache.activemq:activemq-pool  maven  
+  
+
+  发送消息
+    @Autowired
+	JmsTemplate jmsTemplate;
+	@Test
+	public void producerActive() {
+		ActiveMQQueue activeMQQueue = new ActiveMQQueue("my-queue");
+		// 发送 object 失败了。只能发送 String
+		jmsTemplate.convertAndSend(activeMQQueue, "ddd");
+	}
+
+@JmsListener(destination="my-queue")
+public void receiveActiveMq(String content) {
+		System.out.println("收到消息：" + content);
+	}
+
+
+
+rabbitmq 的话
+你需要先配置好  exchange 和 queue binding  routingKey
+
+properties
+    spring.rabbitmq.host=192.168.0.102
+    spring.rabbitmq.username=guest
+    spring.rabbitmq.password=guest
+    spring.rabbitmq.virtual-host=/ #默认就是
+    spring.rabbitmq.port=5672  #默认就是
+            
+ 
+ 发送消息
+    @Test
+	public void contextLoads() {
+		// message 需要自己创键一个，定义消息体和消息头
+		//rabbitTemplate.send(exchange, routingKey, message);
+
+		// object 默认当成消息体 只需要传入要发送的对象，自动序列化发送给 rabbitmq;
+		//rabbitTemplate.convertAndSend(exchange, routeKey,object );
+
+		Map<String, Object> map = new HashMap<>();
+		map.put("msg","这是第一个消息");
+		map.put("data", Arrays.asList("helloworld",123,true));
+		Book book = new Book("西游记", "吴承恩");
+
+		// 对象被默认序列化以后发送出去
+		//rabbitTemplate.convertAndSend("exchange.direct", "zhu.news", map);
+		rabbitTemplate.convertAndSend("exchange.direct", "zhu.news", book);
+	}
+
+
+接收信息
+
+    @RabbitListener(queues={"zhu.news"})
+	public void receive(Book book) {
+		System.out.println("收到消息：" + book);
+	}
+
+默认发送的 object 经过 jdk 序列化过的。
+我们可以配置 发送的时候将对象以 json 的形式发送出去
+
+    @Bean
+	public MessageConverter messageConverter() {
+		Jackson2JsonMessageConverter converter = new Jackson2JsonMessageConverter();
+		return converter;
+	}
+
+
+
+
+activemq 和 rabbitmq 的面试题
+
+
+
+事务的主要目的是为了保证数据的一致性和完整性
+
+
+
+aop 的原理
+    
+    其在一个后置处理器的 beanPostProcessor 的 postPrcessorAfterInitialization 里面创建 proxy
+    创建之前首先你需要获取一个 advisor advisor 是和 aspect 一样作用的一个类。
+    advisor 的获取是 首先从 beanFactroy 里面获取所有的 Bean。然后遍历查找标注了 aspect 的 bean.
+    获取除了 pointCut 标注了的 所有 Method。然后进行匹配获取所有标注了 advice 的所有的 method.
+    将其 method 解析获取其标注的注解的解析类。然后将其解析以后的 pointcut 包装成一个 pointcut 类。
+    将其 method 和 pointCut 传入组装成一个  advisor 将其缓存起来。
+    然后将 advisor 遍历循环 匹配符合规则的 bean 为其创建 proxy 。
+    
+    调用的时候是通过先获取所有的 advisor 的 advice 将其包装成 methodInterceptor，然后递归执行。
+    一般首先是 before 目标方法，after afterReturn  出现异常就会调用 afterThread
+    然后将结果返回调用完成
+
+
+
+springMVC 再一次原理
+    首先进入 DispatcherServlet 的 doDispatch();首先 遍历匹配合适的 handlerMapping.然后通过 request 返回一个合适的
+    HandlerExecutionChain.
+    然后通过 HandlerExecutionChain 匹配合适的 HandlerAdapter 将 handlerAdapter 返回;
+    
+    通过 HandlerAdapter 遍历运行 interceptor 的第一个方法 prehandle.
+    然后调用通过 handlerAdapter handle 方法，调用其 controller 方法。
+    其 handle 方法分为两部分 
+            1、调用目标方法，匹配合适的 handlerMethodReturnValueHandler 调用其 handlerReturnValue() 方法。处理返回值、
+            2、创建 ModelAndView  从 ModelAndViewContainer 里面获取相关的参数，创建 ModelAndView 
+    
+    然后调用完成 调用 interceptor 的 postHandle
+    
+
+    调用完以后运行 processDispatchResult(); 
+        分为三个步骤。
+        首先 如果有传入了异常的话，就匹配 HandlerExceptionResolver.ResolverException(); 如果没有 HandlerExceptionResolver 
+          进行处理的话，就将其 抛出去。后面的 rander(); 等就不会进行了
+        进入 rander() 如果返回的 view 是一个 String 的话，进行匹配 ViewResolver.ResolverViewName();返回 View
+            然后 view 调用其 view.reander() 对浏览器进行响应；
+        调用其 interceptor 的 afterCompletion() 传入 null
+        
+    调用processDispatchResult(); 完成以后，如果有异常就在 catch 里面调用其 intceptor 的 afterCompletion();
+    
+
+
+Spring Bean 大致的生命周期
+    首先 初始化 beanFactoryaPostProcess，BeanFatoryPostProcess 分为 BeanDefinitionRegisterPostProcess 和 BeanFactoryPostProcess
+        1、初始化 BeanDefinitionRegisterPostProcess 按照 priorityOrder Order 和没有继承相应的接口进行按顺序初始化
+            初始化完成执行其 PostProcessBeanDefinitionRegistry()方法
+            然后统一执行 其  PostProcessBeanFatory() 方法
+        
+        2、初始化 BeanFatoryRegisterPostProcess 
+            然后执行器 PostProcessBeanFactory
+    
+    初始化 BeanPostProcess 
+    初始化 MessageSource
+    初始化 ApplicationEventMulticaster 
+    
+    初始化剩下的 bean 首先运行 InstantitationBeanPostProcesss 的 PostPorcessBeforeInstantitaion()
+        有返回值的话就将其返回值当做 bean 返回。并且立即运行其所有的 BeanPostProcess 的 PostProcessAfteraInitialization();
+
+    没有返回值就继续初始化 bean 
+        
+    创建 bean 的实例
+    然后运行所有的 MergeBeanDefinitionPostProcess.PostProcessMergeBeanDefinition() 方法
+
+    然后运行所有的 InstantitationAwareBeanPostProcess.postProcessPropertyValues();
+   
+    然后进行给实例赋值
+
+    进入初始化阶段
+    首先运行所有 该bean 继承的 XXXAware 为其注入相关的组件
+    然后运行所有的 BeanPostProcess.PostProcessBeforeIntialization()方法
+    然后运行 其 Bean 的 init-method 方法对 Bean 进行初始化
+    然后运行所有的 BeanPostProcess.PostProcessAfterIntialization() 方法
+
+    实例化完成以后将其实例化好的对象方法 singletonObejcts 里面
+
+    然后最后是发送一个 Event 给所有的 ApplicationListener 告诉其已经初始化 bean 完成了
+
+
+
+mq 的好处 系统的异步通信，解耦 流量削峰
+
+
+
+<!-- 使用dubbo发布服务 -->
+	<!-- 提供方应用信息，用于计算依赖关系 -->
+	<dubbo:application name="e3-manager" />  <!-- dubbo 的名称 就是一个唯一标识符 -->
+	<dubbo:registry protocol="zookeeper"    <!--  注册信息 -->
+		address="192.168.25.154:2181,192.168.25.154:2182,192.168.25.154:2183" />    <!-- 集群 ip 是你 zookeeper 服务器所在的电脑的 ip  -->
+	<!-- 用dubbo协议在20880端口暴露服务 -->
+	<dubbo:protocol name="dubbo" port="20880" />
+	<!-- 声明需要暴露的服务接口 -->
+	<dubbo:service interface="cn.e3mall.service.ItemService" ref="itemServiceImpl" />
+
+
+
+
+
+<!-- 引用dubbo服务 -->
+	<dubbo:application name="e3-manager-web"/>  <!-- 名称和 发布的不能一样，是唯一标识 -->
+	<dubbo:registry protocol="zookeeper" address="192.168.25.154:2181,192.168.25.154:2182,192.168.25.154:2183"/>	
+	<dubbo:reference interface="cn.e3mall.service.ItemService" id="itemService" />
+
+
+面试官你好  我叫祝小庆，我于2018年毕业于江西应用工程技术学院。因为本人在大学里面对编程这方面比较感兴趣，所有就自学 java 这方面的知识，
+    目前已经熟悉了目前常用的框架，以及了解了目前十分火爆的 springBoot，还有常用的消息服务中间件等，本人于 2017 年十月在 江西君和软件技术有限公司
+    任职软件工程师，在任职期间参与了掌握娱乐App 的开发，以及备货通商城的维护。于2018年 6 月离职。
+    本人热爱技术，有良好的职业道德和工作态度，工作认真、做事勤勉，服从领导安排；
+
+
+
+如何搭建项目原型的步骤
+    1、进行技术选型
+        决定要使用何种语言，使用何种 架构 SOA 架构还是 微服务架构，使用何种 orm 框架，
+        使用何种 mvc 框架，使用的视图技术(jsp 还是 freemarker thmeleaf),测试技术，
+        项目构建工具，管理工具。服务器以及数据库
+
+    2、进行架构分层，根据模块或功能对项目划分文件包
+    
+    3、选择字符编码  代码的字符编码，数据库的编码，页面的编码。文件的编码
+
+    4、命名规则  类名 方法名 数据库表名 字段名 表单字段名 配置文件等
+
+    5、日志记录 选用合适的日志框架以及合适的日志抽象层
+    
+    6、测试处理 采用何种方式进行代码测试
+
+    7、异常处理 封装exception和处理exception 
+
+    8、数据库连接 通过配置文件配置几套不同环境下的数据源
+
+    9、事务处理 配置  Spring tx 事务处理机制
+
+    10、工具类 处理 json 字符串 日期 文件上传下载 类装载器 处理 props 等等
+
+    11、国际化 通过 mvc 框架提供的功能 或者 自己封装
+
+    12、session 的处理，cookie 的处理 listerer filter quartz 等
+
+
+
+
+掌握娱乐app 是一款综合娱乐类 app。它聚合 视频 图书 生活 购物等功能为一体。、
+
+
+商品 
+    商品的添加使用了 富文本编译器 添加图片以及 添加带样式的 html 的简介
+
+    商品的详情页面的查询使用了 freemaker 页面静态化，修改以后使用 activemq 进行异步进行使用 freemaeker 重新生成页面。
+
+    购物车的话
+        在未登录的情况下购物车会将其存在 cookie 下。
+        在登录以后第一次查询 购物车的时候会将其存入 redis 和 数据库
+        在每次增删改查购物车的时候，会先判断 user 是否存在，然后查询 redis 
+        User 的话 是先从 cookie 里面获取 token 然后 通过 token 调用相应的 User  对象，通过 userid 来获取 cart
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
