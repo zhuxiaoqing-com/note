@@ -1,0 +1,73 @@
+getMetaData()
+    元数据(MetaData)，即定义数据的数据。打个比方，就好像我们要想搜索一首歌(歌本身是数据)，而我们可以通过歌名，
+    作者，专辑等信息来搜索，那么这些歌名，作者，专辑等等就是这首歌的元数据。因此数据库的元数据就是一些注明数据库信息的数据。
+
+    ① 由Connection对象的getMetaData()方法获取的是DatabaseMetaData对象。
+　　② 由PreparedStatement对象的getParameterMetaData ()方法获取的是ParameterMetaData对象。
+　　③由ResultSet对象的getMetaData()方法获取的是ResultSetMetaData对象。
+
+    主要用的是ResultSet
+
+    ·getColumnCount：获取结果集中列项目的个数
+　　·getColumnType：获取指定列的SQL类型对应于Java中Types类的字段
+　　·getColumnTypeName：获取指定列的SQL类型
+　　·getClassName：获取指定列SQL类型对应于Java中的类型(包名加类名)
+    ·getClassLabel：获取column对应的as别名
+
+内省的加载顺序：
+    BeanInfo beanInfo = Introspector.getBeanInfo(type);
+    PropertyDescriptor[] = beanInfo.getPropertyDescriptors();
+
+
+ Interger.TYPE = = int.class  是int的Class
+	Interger.class 是integer的Class
+
+
+
+Class类
+    Class<?>[] params = setter.getParameterTypes(); 获取形参的类型
+    
+    type.isInstance(value)) isInstance(Object obj) 
+          判定指定的 Object 是否与此 Class 所表示的对象赋值兼容。
+	如果指定的 Object 参数非空，且能够在不引发 ClassCastException 的情况下
+	被强制转换成该 Class 对象所表示的引用类型，则该方法返回 true；否则返回 false。 
+	如果此 Class 对象表示一个基本类型，则此方法返回 false。
+
+ResultSet
+    调用getObject(),数据库没有值会返回null：
+    调用getInt(),数据库没有值不会将null返回，会自动做转换，将其null转换成int类型的0.也就是java默认初始化的值
+
+把ResultSet变成bean对象
+    1.获取指定javabean的属性描述符数组
+    2.获取数据库对应的列属性名称和列属性下标将其存储在一个int[]数组里面
+        为了对应将其column的列下标和Int[]数组的下标对应。然后获取bean属性描述符的名称
+        如果bean属性描述符的名称与column的名称相同，则将其bean属性所属的描述符的下标存入Int[]数组
+    3.根据bean属性的类型以及对应该属性的Column返回用户期望的值，判断bean属性的类型以使用不同的getObject,getInt,grt...等
+        来获取sql的值value；
+    4.获取其bean属性的setmethod的形参类型，判断value是否和set的形参匹配不匹配抛异常；
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

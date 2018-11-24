@@ -1,0 +1,117 @@
+primitive（原始）Defaults保存Java基本数据类型的Class与其默认值的对应关系
+
+column（列）ToPropertyOverrides <String，String>该变量的作用是存放数据库字段名与Bean的属性名之间的对应关系
+				当数据库字段名与JavaBean的属性名相同的时候才给相应属性赋值，否则忽略该属性
+
+toBean(ResultSet rs, Class<T> type)将ResultSet中的一条记录转化成type类型的Bean对象
+
+
+PropertyDescriptor[] props = this.propertyDescriptors(type); 给予一个CLass返回一个PropertyDescriptor集合
+							有这两个方法	Method	 getReadMethod() 
+         								Method   getWriteMethod()  
+
+ResultSetMetaData rsmd = rs.getMetaData();获取元数据(MetaData)可以获取	获取结果集中列项目的个数等
+
+int cols = rsmd.getColumnCount();获取结果集中项目的个数（列的个数）
+
+int[] columnToProperty = new int[cols + 1];为了能让列的位置能和Int数组的下标对应+1
+
+Arrays.fill(columnToProperty, PROPERTY_NOT_FOUND);  PROPERTY_NOT_FOUND= -1 是类的常量 将columnToProperty充填上-1
+
+String columnName = rsmd.getColumnLabel(col);
+
+getColumnName和getColumnLabel的区别  getColumnName查询的是原本表中的字段名
+				     getColumnLabel查询的是我们使用的别名  因为查询可能用的是别名
+
+获取结果集中项目的个数	创建数组使其个数等于数组的下标，就是说6个项目个数那么对应的int[]就是1-6下标
+
+然后获取当前项目的个数的名称  
+
+  if (null == columnName || 0 == columnName.length()) {
+              columnName = rsmd.getColumnName(col);
+            }
+	如果没有值就说明没用别名，使用columnName 再获取一个原本表中的字段名
+
+	将从表中获得的字段名和PropertyDescriptor[] props  bean属性数组的里面的属性比较名称;如果找到了就将其存入
+	columnToProperty 和表中的列的下标对应起来
+
+	return columnToProperty;              //返回数组
+	
+createBean(ResultSet rs, Class<T> type,
+            PropertyDescriptor[] props bean属性集合, int[] columnToProperty bean集合和表的列的下标的映射 表的下标等于数组的下标。
+
+
+if (columnToProperty[i] == PROPERTY_NOT_FOUND（-1）) {
+                continue;
+            }
+ 
+	因为先前用-1充填过数组了 所以只要元素是-1，就代表 Column没有和bean对应的属性名称
+	
+PropertyDescriptor prop = props[columnToProperty[i]];获取与column对应的bean属性的描述对象
+
+
+ Class<?> propType = prop.getPropertyType();属性的 Java 类型信息而这里的类型是由 ReadMethod 返回的类型。
+				就是说获得了bean的属性的类型对象
+
+processColumn方法
+		
+	propType.isPrimitive()判断Class对象是否表示一个基本类型
+	
+
+  if ( !propType.isPrimitive() && rs.getObject(index) == null ) {      
+            return null;
+        }
+ 	//如果属性字段的类型不是基本数据类型，并且数据库里这个column返回的也是null的话就 return null;
+ 
+	Interger.TYPE == int.class  是int的Class
+	Interger.class 是integer的Class
+
+Object value = this.processColumn(rs, i, propType); 获取了value也就是bean的值
+	
+
+callSetter(Object target, PropertyDescriptor prop, Object value)
+            throws SQLException
+
+Class<?>[] params = setter.getParameterTypes(); 获取形参的类型 
+		按照声明顺序返回 Class 对象的数组，这些对象描述了此 Method 对象所表示的方法的形参类型。
+
+type.isInstance(value)) isInstance(Object obj) 
+          判定指定的 Object 是否与此 Class 所表示的对象赋值兼容。
+	如果指定的 Object 参数非空，且能够在不引发 ClassCastException 的情况下
+	被强制转换成该 Class 对象所表示的引用类型，则该方法返回 true；否则返回 false。 
+	如果此 Class 对象表示一个基本类型，则此方法返回 false。
+
+	如果type也就是bean的set的方法的形参是基本类型的话就返回false
+
+
+传入 .Class对象 ResultSet 对象
+
+1.使用Result对象的
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

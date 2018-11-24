@@ -1,0 +1,108 @@
+
+
+传入 .Class对象 ResultSet 对象
+
+1.使用Result对象的getMetaData();获取元数据（里面有对column的各种描述）获取ResultSetMetaData rsmd 
+2.使用rsmd 的getColumnCount()来获取ResultSet里面的column的个数
+3.创建一个int[]数组将其下标和column的下标对应
+	int[] columnToProperty = new int[cols + 1];
+	使用-1将columnToProperty充填起来。Arrays.fill(columnToProperty, -1);
+5.循环从1开始 s:for(int i = 1; i <columnToProperty.length, i++) { i代表的是column的下标
+	columnName = rsmd.getColumnLabel（标记）(i); // 获取column对应的as别名  因为在表最终形成时有
+							的列可能用的别名这样你只能用别名来获取，原本名没法获取
+
+	}
+6.如果没有别名columnName 就为null,那就再次使用rsmd.getColumnName来获取column对应的原本的表名
+7.BeanInfo  beanInfo = Introspector.getBeanInfo(c);使用Introspector来加载Class类 内省用来加载Class
+						获取BeanInfo这个类提供了关其 bean 的方法、属性、事件等显式信息。 
+
+	beanInfo.getPropertyDescriptors();使用BeanInfo获取PropertyDescriptor[] 这个一个描述属性的对象的数组
+
+8.循环查找PropertyDescriptor[?].getName();也就是属性的名称 有没有和column的名字相等的下标。有的话就将其下标存到columnToProperty下
+	使其与column下标对应。
+9.当s：for循环结束后所有的bean的属性的名称和column的名称已经对应了全部存在了columnToProperty下
+
+10.获取PropertyDescriptor[]bean的属性的类型
+	
+	PropertyDescriptor prop = props[columnToProperty[i]];
+            Class<?> propType = prop.getPropertyType();
+11.获取column的值需要  processColumn （ResultSet rs, int index, Class<?> propType）columnToProperty的下标，和bean的属性的类型
+	方法返回column的值
+	判断1. !propType.isPrimitive() && rs.getObject(index) == null )
+		propType不是基本类型并且，rs的这个column的值为null。直接返回null
+	2.propType.equals(Integer.TYPE) || propType.equals(Integer.class))
+		判断是否是int类型 integer类型
+		是的话返回 Integer.valueOf(rs.getInt(index)); 获取当前column列的下标的值，并转换成包装类返回；
+				为了通用使用Object返回值；所以如果是基本类型的话将其包装成Integer返回
+	3...不断判断是否是基本类型和基本类型的包装类，但是不判断char因为和String冲突了，而String更常用
+
+	4.如果不是基本类型，column又有值的话就直接返回
+
+	processColumn（） 方法结束
+
+13.	if(propType != null && value == null && propType.isPrimitive()) {        
+		//如果返回的值为null，并且属性类型为基本数据类型，就从primitiveDefaults中获取该类型对应的默认值
+                value = primitiveDefaults.get(propType);
+            }
+
+14.value获取来了。上面的两步很有必要没有上面一步过滤的话可能会造成各种转换错误
+		
+	processColumn方法：该方法的主要作用就是根据bean属性的类型以及对应该属性的Column返回用户期望的值
+
+
+15.开始使用获得的 value对象，Bean对象的实例，bean的属性的描述对象PropertyDescriptor 来为javabean赋值
+		 
+	private void callSetter(Object target, PropertyDescriptor prop, Object value)
+            throws SQLException {
+
+16.Method setter = prop.getWriteMethod(); 获取set功能
+	if (setter == null) {              
+            return;
+        }
+	如果setter == null 说明 没有对应的写方法则不执行任何操作
+	Class<?>[] params = setter.getParameterTypes();            
+	//获取set方法的参数类型	
+	
+	处理特殊值Date.因为sqlDate和util的Date不一样
+
+ 	final String targetType = params[0].getName();         //获取参数类型对应的名字
+
+		if (value instanceof java.util.Date) 
+                if ("java.sql.Date".equals(targetType)) {
+                    value = new java.sql.Date(((java.util.Date) value).getTime());
+                }
+		将其value转换成java.util.Date然后获取其毫秒值，然后使用毫秒值new一个java.sql.Date
+
+	
+	然后再继续判断targetType属于的类型。
+	判断完了就调用
+	 setter.invoke(target, new Object[]{value});方法对对象进行赋值
+	
+	最后返回T对象。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,36 @@
+﻿paging 的说明文档
+你需要调用 externalParams() 方法来传入一个参数
+方法有一个参数 external对象 {
+	//异步前函数名称：fun_before     主要用来处理 禁用按钮等
+	//** 回调函数： fun_callback        主要用来处理回调以后的数据  必须
+	//** 异步地址： pageUrl 			必须
+	//异步格外参数：pageParams
+	//页码显示数量：pageButSize
+}
+
+异步的默认是post类型的，参数默认是  pageCode 页数  pageSize一页显示的数据
+
+异步的 data参数 你需要创建一个 model 类，然后异步的时候将这个model 来传递回来
+
+/*
+	 * 需要当页数据 path_detailList<Path_detail>
+	 * 需要总记录数 Integer totalRecored
+	 * 需要 总页码 Integer totalPage
+	 * 需要 当前页面 没有servlet 就算默认1; pageCode
+	 * 需要 每页的记录长度 pageSize
+	 */
+	private Integer totalRecored;  
+	//private Integer totalPage; 总页码通过计算获得  总记录数/每页记录数
+	private Integer pageCode; 
+	private Integer pageSize; // 默认为 6
+	private List<T> path_detailList; // 这个是你要操作的一页的数据  
+	
+	请务必有这些参数 除了你要操作的一页的数据的变量名可以自定义，其他参数务必变量名一致
+
+
+
+在 id 为 div_bottom_limit_page 的div 里面输入其 分页全家桶
+
+	所以你还需要一个div 为 分页全家桶提供输出的容器
+
+
