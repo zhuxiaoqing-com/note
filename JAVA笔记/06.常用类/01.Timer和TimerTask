@@ -1,0 +1,230 @@
+Timer是一种定时器工具，用来在一个后台线程计划执行指定任务。它可以计划执行一个任务一次或反复多次。
+TimerTask一个抽象类，它的子类代表一个可以被Timer计划的任务。
+
+
+Timer 一种工具，线程用其安排以后在后台线程中执行的任务。可安排任务执行一次，或者定期重复执行。 
+    每个 Timer 对象相对应的是单个后台线程(同一个线程)，用于顺序地执行所有计时器。计时器任务应该迅速完成。
+    如果完成某个计时器任务的时间太长，那么它会“独占”计时器的任务执行线程。因此，这就可能延迟后续任务的执行，
+    而这些任务就可能“堆在一起”，并且在上述不友好的任务最终完成时才能够被快速连续地执行。
+    
+    对 Timer 对象最后的引用完成后，并且 所有未处理的任务都已执行完成后，计时器的任务执行线程会正常终止
+    （并且成为垃圾回收的对象）。但是这可能要很长时间后才发生。默认情况下，任务执行线程并不作为守护线程 来运行，
+    所以它能够阻止应用程序终止。如果调用者想要快速终止计时器的任务执行线程，那么调用者应该调用计时器的 cancel 方法。 
+
+    此类是线程安全的：多个线程可以共享单个 Timer 对象而无需进行外部同步。
+    此类不 提供实时保证：它使用 Object.wait(long) 方法来安排任务。
+    
+    实现注意事项：此类可扩展到大量同时安排的任务（存在数千个都没有问题）。在内部，它使用二进制堆来表示其任务队列，
+    所以安排任务的开销是 O(log n)，其中 n 是同时安排的任务数。 
+
+
+
+ 示例
+    public class TimerDemo {
+    public static void main(String[] args) {
+        Timer timer = new Timer();
+        timer.schedule(new MyTimer1(), 0, 5000);
+    }
+}
+    class MyTimer1 extends TimerTask {
+
+        @Override
+        public void run() {
+          System.out.println(new Date());
+        }
+    }
+
+    schedule(new MyTimer1(), 0, 5000);
+    三个参数 第一个是 要执行的任务，是一个继承了 TimerTask 抽象类的类
+    第二个是 第一次开始执行时的延迟时间
+    第三个是 之后每次间隔要执行的时间
+    
+    上面的意思是 第一次是延迟 0 毫秒，执行第一次，之后是延迟 5000 毫秒执行一次
+
+
+
+2.终止Timer线程
+
+默认情况下，只要一个程序的timer线程在运行，那么这个程序就会保持运行。当然，你可以通过以下四种方法终止一个timer线程：
+
+1. 调用timer的cancle方法。你可以从程序的任何地方调用此方法，甚至在一个timer task的run方法里。
+2. 让timer线程成为一个 daemon（守护线程） 线程（可以在创建timer时使用new Timer(true)达到这个目地），这样当程序只有daemon线程的时候，它就会自动终止运行。
+3. 当timer相关的所有task执行完毕以后，删除所有此timer对象的引用（置成null），这样timer线程也会终止。
+4. 调用System.exit方法，使整个程序（所有线程）终止。
+
+
+
+    Timer()
+        默认构造函数
+    Timer(booleam)
+        指定关联线程是否中作为 daemon 线程
+    Timer(String ,boolean)
+        同时指定关联线程的名称和是否作为daemon。 就是指定 线程的名称 
+
+    schedule(TimerTask task, long delay);
+        以当前时间为基准，延迟指定的毫秒后执行一次 TimerTask 任务。
+    
+    schedule(TimerTask task, Date time)
+        在指定的日期执行一次 TimerTask 任务。
+        如果日期 time 早于当前时间，则立即执行。
+
+    schedule(TimerTask task, long delay, long period)
+        以当前时间为基准，延迟指定的毫秒后，再按指定的时间间隔无限次数的执行 TimerTask 任务。
+
+    schedule(TimerTask task, Date firstTime, long period)
+        在指定的日期之后，按指定的时间间隔得无限次数的执行 TimeTask 任务。
+        如果日期 firstTime 早于当前时间，则立刻执行，且不执行在时间差内的任务。
+
+    scheduleAtFixedRate
+        和 schedule 一样
+
+    schedulaAtFixedRate 和 schedule 区别
+
+    执行任务不延时
+
+      schedule：下一次任务的执行时间参考的是上一次任务的开始时间来计算。    
+    
+      schedule   这个方法更注重保持间隔时间的稳定。
+      scheduleAtFixedRate  这个方法更注重保持执行频率的稳定。
+
+    schedule 当任务因为另外一个任务被堵塞而没能在规定时间开始任务。那么之后的所有任务都会延迟。因为 
+        schedule 严格遵守规定时间间隔。 每次执行结束后拿取间隔时间等待。
+        schedule在计算下一次执行的时间的时候，是通过当前时间（在任务执行前得到） + 时间片
+
+
+    scheduleAtFixedRate 当任务因为另外一个任务被堵塞而没能在规定时间开始任务。那么后面一个任务会提前执行。
+        用来补偿 上一个任务的堵塞的时间，在开始时就规定了每个任务执行的时间。
+            第一次执行开始后就规定了每一个任务的执行的时间段。
+        scheduleAtFixedRate方法是通过当前需要执行的时间（也就是计算出现在应该执行的时间）+ 时间片，
+        
+        
+        前者是运行的实际时间，而后者是理论时间点
+
+
+每一个Timer仅对应唯一一个线程。
+Timer不保证任务执行的十分精确。
+Timer类的线程安全的。
+
+
+　Timer和TimerTask的简单组合是多线程的嘛？不是，一个Timer内部包装了“一个Thread”和“一个Task”队列，这个队列按照一定的方式将任务排队处理，包含的线程在Timer的构造方法调用时被启动，这个Thread的run方法无限循环这个Task队列，若队列为空且没发生cancel操作，此时会一直等待，如果等待完成后，队列还是为空，则认为发生了cancel从而跳出死循环，结束任务；循环中如果发现任务需要执行的时间小于系统时间，则需要执行，那么根据任务的时间片从新计算下次执行时间，若时间片为0代表只执行一次，则直接移除队列即可。
+
+　　但是是否能实现多线程呢？可以，任何东西是否是多线程完全看个人意愿，多个Timer自然就是多线程的，每个Timer都有自己的线程处理逻辑，当然Timer从这里来看并不是很适合很多任务在短时间内的快速调度，至少不是很适合同一个timer上挂很多任务，在多线程的领域中我们更多是使用多线程中的：
+
+1
+Executors.newScheduledThreadPool
+ 来完成对调度队列中的线程池的处理，内部通过new ScheduledThreadPoolExecutor来创建线程池的Executor的创建，当然也可以调用：
+
+1
+Executors.unconfigurableScheduledExecutorService
+ 　　方法来创建一个DelegatedScheduledExecutorService其实这个类就是包装了下下scheduleExecutor，也就是这只是一个壳，英文理解就是被委派的意思，被托管的意思。
+
+
+
+
+ timer.cancel();
+
+
+
+ Timer timer = new Timer();
+        MyTimer1 timer1 = new MyTimer1();
+        MyTimer2 timer2 = new MyTimer2();
+        timer.schedule(timer1, 0, 5000);
+        timer.schedule(timer2, 0, 5000);
+        timer1.cancel();
+        //timer.cancel();
+
+        你想要进行设置多个任务。
+        想要结束哪个任务时，你只要 任务.cancel(); 就好了
+
+
+        timer.cancel() 方法是用来终止此计时器,丢弃所有当前已安排的任务
+        如果某个任务调用了 cancel() 那么结束此任务
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

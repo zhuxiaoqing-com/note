@@ -1,0 +1,534 @@
+
+首先是 AutoProxyRegistrar 继承了 ImportBeanDefinitionRegistrar(是 import 的注册器)
+
+    public class AutoProxyRegistrar implements ImportBeanDefinitionRegistrar { 
+         // AnnotationMetadata ： 当前类的注解信息
+         // BeanDefinitionRegistry ： bean 定义的注册类
+        public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+		boolean candidateFound = false;
+		Set<String> annoTypes = importingClassMetadata.getAnnotationTypes();// 获取 所有注解
+		for (String annoType : annoTypes) { // 循环获取注解
+            // 应该是通过 工具获取  annoType 名称的 注解属性
+            // AnnotationAttributes 继承了 LinkedHashMap<String, Object>
+			AnnotationAttributes candidate = AnnotationConfigUtils.attributesFor(importingClassMetadata, annoType);
+			if (candidate == null) {
+				continue;
+			}
+            // 获取事务模式 默认是 PROXY 即代理模式
+			Object mode = candidate.get("mode");
+            // 获取是否开启 CGLIB 代理 默认是 false
+			Object proxyTargetClass = candidate.get("proxyTargetClass");
+			if (mode != null && proxyTargetClass != null && AdviceMode.class == mode.getClass() &&
+					Boolean.class == proxyTargetClass.getClass()) {
+				candidateFound = true;
+				if (mode == AdviceMode.PROXY) { // 应该是 进入这个 
+					AopConfigUtils.registerAutoProxyCreatorIfNecessary(registry);
+					if ((Boolean) proxyTargetClass) { // if proxyTargetClass为 true 进入下面那个，但是默认是 false
+						AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
+						return;
+					}
+				}
+			}
+		}
+		if (!candidateFound) {
+			String name = getClass().getSimpleName();
+			logger.warn(String.format("%s was imported but no annotations were found " +
+					"having both 'mode' and 'proxyTargetClass' attributes of type " +
+					"AdviceMode and boolean respectively. This means that auto proxy " +
+					"creator registration and configuration may not have occurred as " +
+					"intended, and components may not be proxied as expected. Check to " +
+					"ensure that %s has been @Import'ed on the same class where these " +
+					"annotations are declared; otherwise remove the import of %s " +
+					"altogether.", name, name, name));
+		}
+	}
+  }
+
+进入 AopConfigUtils 类
+    public static BeanDefinition registerAutoProxyCreatorIfNecessary(BeanDefinitionRegistry registry) {
+            return registerAutoProxyCreatorIfNecessary(registry, null);
+	}
+
+    public static BeanDefinition registerAutoProxyCreatorIfNecessary(BeanDefinitionRegistry registry, Object source) {
+		return registerOrEscalateApcAsRequired(InfrastructureAdvisorAutoProxyCreator.class, registry, source);
+	}
+
+    private static BeanDefinition registerOrEscalateApcAsRequired(Class<?> cls, BeanDefinitionRegistry registry, Object source) {
+		Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
+		if (registry.containsBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME)) {
+			BeanDefinition apcDefinition = registry.getBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME);
+			if (!cls.getName().equals(apcDefinition.getBeanClassName())) {
+				int currentPriority = findPriorityForClass(apcDefinition.getBeanClassName());
+				int requiredPriority = findPriorityForClass(cls);
+				if (currentPriority < requiredPriority) {
+					apcDefinition.setBeanClassName(cls.getName());
+				}
+			}
+			return null;
+		}
+		RootBeanDefinition beanDefinition = new RootBeanDefinition(cls);
+		beanDefinition.setSource(source);
+		beanDefinition.getPropertyValues().add("order", Ordered.HIGHEST_PRECEDENCE);
+		beanDefinition.setRole(BeanDefinition.ROLE_INFRASTRUCTURE);
+        // AUTO_PROXY_CREATOR_BEAN_NAME = "org.springframework.aop.config.internalAutoProxyCreator";
+        // 注册 InfrastructureAdvisorAutoProxyCreator 类
+		registry.registerBeanDefinition(AUTO_PROXY_CREATOR_BEAN_NAME, beanDefinition);
+		return beanDefinition;
+	}
+
+
+注册  AutoProxyRegistrar  完毕
+----------------------------------------
+
+InfrastructureAdvisorAutoProxyCreator
+    --> AbstractAdvisorAutoProxyCreator
+       --> AbstractAutoProxyCreator
+          --> AbstractAutoProxyCreator
+                implements SmartInstantiationAwareBeanPostProcessor, BeanFactoryAware
+
+
+我们发现和 AOP 的注册的 Bena 继承的类是一样的
+
+     AnnotationAwareAspectJAutoProxyCreator 
+            --> c: AspectJAwareAdvisorAutoProxyCreator
+               --> c: AbstractAdvisorAutoProxyCreator
+                  --> c: AbstractAutoProxyCreator
+                     implements SmartInstantiationAwareBeanPostProcessor, BeanFactoryAware
+                       主要关注后置处理器(在 bean 初始化完成前后做事情) 、自动装配 BeanFactory
+            【 BeanPostProcessor 是在Bean对象创建完成初始化前后调用的】
+            【 InstantiationAwareBeanPostProcessor 是在创建Bean实例之前先尝试用后置处理器返回对象的】
+
+
+    那么其逻辑也是一样的
+          4. BeanFactoηAware
+          实现 BeanFactoηAware 接口的 bean 可以直接访问 Spring 容器，被容器创建以后，
+          它会拥有一个指向 Spring 容器的引用，可以利用该bean根据传入参数动态获取被spring工厂加载的bean
+           
+           是在 初始化对象的时候调用的 initializeBean() -->  invokeAwareMethods(beanName, bean);
+
+
+    就是    
+        AbstractAdvisorAutoProxyCreator 是不一样的 重写了 setBeanFactory() 方法 initBeanFactory() 方法
+        public void setBeanFactory(BeanFactory beanFactory) {
+                super.setBeanFactory(beanFactory);
+                if (!(beanFactory instanceof ConfigurableListableBeanFactory)) {
+                    throw new IllegalArgumentException(
+                            "AdvisorAutoProxyCreator requires a ConfigurableListableBeanFactory: " + beanFactory);
+                }
+                initBeanFactory((ConfigurableListableBeanFactory) beanFactory);
+            }
+
+            protected void initBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+                this.advisorRetrievalHelper = new BeanFactoryAdvisorRetrievalHelperAdapter(beanFactory);
+            }
+
+
+那么
+    AutoProxyRegistrar 就看完了
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

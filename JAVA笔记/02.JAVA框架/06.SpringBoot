@@ -1,0 +1,72 @@
+Spring Boot 简介
+    Spring Boot 是为了简化 Spring 应用的创建、运行、调试、部署等而出现的。
+    spring 官方构建项目网址
+    http://start.spring.io/
+ 
+   2.0 新特性
+    Spring Boot2.0.1
+    JDK 基于 Java8(JDK1.7无法运行)
+    理论支持 Java9
+        jdk 不兼容报错 Unsupported major.minor version
+    Tomcat 8.x 起步 (8.x 以后支持 Http/2)
+    Manven 3 以上
+    Application 类只能扫描到 其类所在包，和子包下面的类
+
+
+
+	<!-- 用于编译 jsp -->
+    <dependency>
+    	<groupId>org.apache.tomcat.embed</groupId>
+    	<artifactId>tomcat-embed-jasper</artifactId>
+    	<scope>provided</scope>
+    </dependency>
+    <!-- 避免外部的 Tomcat 和 内嵌的 Tomcat 冲突 -->
+    <dependency>
+    	<groupId>org.springframework.boot</groupId>
+    	<artifactId>spring-boot-starter-tomcat</artifactId>
+    	<scope>provided</scope>
+    </dependency>
+    <!-- jsp 页面使用 jstl 标签 高版本 Tomcat/Myeclipse 以下可以省略 
+    	eclipse 要使用
+    -->
+   <!--  <dependency>
+    	<groupId>javax.servlet</groupId>
+    	<artifactId>jstl</artifactId>
+    </dependency> -->
+
+https://projects.spring.io/spring-boot/
+
+
+ <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+
+Spring Boot 将所有的功能场景都抽取出来，做成一个个的 starters(启动器)，只需要在项目里面引入
+    这些 starter 相关场景的所有依赖都会导入进来，要用什么功能就导入什么场景启动器。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,339 @@
+[源码]-Spring容器创建-初始化MessageSource
+
+
+public void refresh() throws BeansException, IllegalStateException {
+		synchronized (this.startupShutdownMonitor) {
+			// Prepare this context for refreshing.
+            // 进行 容器刷新前预处理。处理一些我们自定义的一个属性，还有 new earlyApplicationEvents 来存储早期的事件，
+            // 以便等派发器的时候派发出去
+			prepareRefresh();
+
+			// Tell the subclass to refresh the internal bean factory.
+            // 获取 beanFactory 主要是 给 容器 GenericApplicationContext Constructor 的时候就创建的 ConfigurableListableBeanFactory
+            // 设置一个 serializable id 然后将其 beanFactory 获取过来
+			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+
+			// Prepare the bean factory for use in this context.
+            // 对 beanFactory 的一些预处理，主要注册一些属性，然后忽略一些属性使其不能通过其忽略的类型注入
+			prepareBeanFactory(beanFactory);
+
+			try {
+				// Allows post-processing of the bean factory in context subclasses.
+                // beanFactory 后置处理器
+				postProcessBeanFactory(beanFactory);
+
+				// Invoke factory processors registered as beans in the context.
+                // 运行 实现了 BeanFactoryPostProcessors 和 BeanDefinitionRegistryPostProcessor 的后置处理器
+				invokeBeanFactoryPostProcessors(beanFactory);
+
+				// Register bean processors that intercept bean creation.
+                注册 implements BeanPostProcessors 的类 它在 bean init-method 的前后运行 我们现在主要来看这里
+				registerBeanPostProcessors(beanFactory);
+
+				// Initialize message source for this context.
+                // 进入这里 初始化 MessageSource 组件，(做国际化功能；消息绑定,消息解析)
+				initMessageSource();
+
+				// Initialize event multicaster for this context.
+				initApplicationEventMulticaster();
+
+				// Initialize other special beans in specific context subclasses.
+				onRefresh();
+
+				// Check for listener beans and register them.
+				registerListeners();
+
+				// Instantiate all remaining (non-lazy-init) singletons.
+				finishBeanFactoryInitialization(beanFactory);
+
+				// Last step: publish corresponding event.
+				finishRefresh();
+			}
+
+			catch (BeansException ex) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("Exception encountered during context initialization - " +
+							"cancelling refresh attempt: " + ex);
+				}
+
+				// Destroy already created singletons to avoid dangling resources.
+				destroyBeans();
+
+				// Reset 'active' flag.
+				cancelRefresh(ex);
+
+				// Propagate exception to caller.
+				throw ex;
+			}
+
+			finally {
+				// Reset common introspection caches in Spring's core, since we
+				// might not ever need metadata for singleton beans anymore...
+				resetCommonCaches();
+			}
+		}
+	}
+
+
+
+
+
+    protected void initMessageSource() {
+		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+        // MESSAGE_SOURCE_BEAN_NAME = "messageSource"
+		if (beanFactory.containsLocalBean(MESSAGE_SOURCE_BEAN_NAME)) {
+            // 从容器中获取 messageSource
+			this.messageSource = beanFactory.getBean(MESSAGE_SOURCE_BEAN_NAME, MessageSource.class);
+			// Make MessageSource aware of parent MessageSource.
+            // 为 false
+			if (this.parent != null && this.messageSource instanceof HierarchicalMessageSource) {
+				HierarchicalMessageSource hms = (HierarchicalMessageSource) this.messageSource;
+				if (hms.getParentMessageSource() == null) {
+					// Only set parent context as parent MessageSource if no parent MessageSource
+					// registered already.
+					hms.setParentMessageSource(getInternalParentMessageSource());
+				}
+			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("Using MessageSource [" + this.messageSource + "]");
+			}
+		}
+		else {
+			// Use empty MessageSource to be able to accept getMessage calls.
+            // 我们创建一个普通的 DelegatingMessageSource
+			DelegatingMessageSource dms = new DelegatingMessageSource();
+			dms.setParentMessageSource(getInternalParentMessageSource());
+			this.messageSource = dms;
+            // 然后将其注册到 容器中
+			beanFactory.registerSingleton(MESSAGE_SOURCE_BEAN_NAME, this.messageSource);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Unable to locate MessageSource with name '" + MESSAGE_SOURCE_BEAN_NAME +
+						"': using default [" + this.messageSource + "]");
+			}
+		}
+	}
+
+
+
+7、initMessageSource();初始化MessageSource组件（做国际化功能；消息绑定，消息解析）；
+		1）、获取BeanFactory
+		2）、看容器中是否有id为messageSource的，类型是MessageSource的组件
+			如果有赋值给messageSource，如果没有自己创建一个DelegatingMessageSource；
+				MessageSource：取出国际化配置文件中的某个key的值；能按照区域信息获取；
+		3）、把创建好的MessageSource注册在容器中，以后获取国际化配置文件的值的时候，可以自动注入MessageSource；
+			beanFactory.registerSingleton(MESSAGE_SOURCE_BEAN_NAME, this.messageSource);	
+			MessageSource.getMessage(String code, Object[] args, String defaultMessage, Locale locale);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,287 @@
+Spring AspectJ 的 Execution 表达式
+
+    在使用 spring 框架配置 AOP 的时候，不管通过 XML 配置文件还是注解的方式都需要定义 pointcut "切入点"
+    例如 定义切入点表达式 execution(* cn.zhu..*.*(..)) 是一样的 execution(* cn.zhu..*.*.*(..))
+        只是  ..* 和 ..*.*  都代表 所有cn.zhu包名下的所有类
+        cn.zhu..*   ：代表 cn.zhu包名下的所有类  * 将其 类也覆盖了
+        cn.zhu..*.* ：  .. 代表 cn.zhu 的后代包。 第一个 *  代表 后代包的 任意包。 第二个 * 代表 任意类
+
+    execution()是最常用的切点函数，其语法如下所示：
+
+     整个表达式可以分为五个部分：
+
+     1. execution(): 表达式主体。
+     2. 第一个 * 号：表示返回值类型， * 号表示所有返回值类型
+     3. 包名：表示需要拦截的包名，后面的两个点表示当前包和当前包的所有后代包、
+     4. 第二个 * 号：表示类名，或 是和 ..* 搭配表示所有包。 * 号表示所有的类  
+
+
+** .. 可以结尾但是不能开头  不能以 .. 开头，因为 .. 引用的是前面的 *或字符，使其无限增加 如果前面没有引用的话就是没有效果  
+    .. 表示其后代    
+    * 表示 当前位置随机  
+    aa* 表示 以 aa 为前缀   
+    *aa 表示以 aa 后后缀
+    + 表示 继承或 实现了 其 + 前面的类型 不能单独存在
+
+    其表达式会在 匹配 最终的情况下进行解析 
+        execution(* spring..one..*.*(..)
+    
+    返回值  方法名 参数是必须的 其他后可以省略
+    分析： 第一个 * 为返回值
+            spring.. 表示 spring 是的所有后代包
+            ..one.. 表示 spring 的任意一层有 one 的包就符合
+            然后看 * 的数量 保证 方法名一个 * 类名一个 * 
+            应该是从后面开始解析的 先保证 (..) 
+            然后保证 一个 * 为方法名
+            一个 * 为 类名
+            其他的都是包 直到遇见了 空格为止
+            排除了类和方法名以后 就剩下了 spring..one..
+            然后开始往 前面解析   
+            不能以 .. 开头，因为 .. 引用的是前面的 *或字符，使其无限增加 如果前面如果没有引用的话就是没有效果  
+            spring 表示 必须是以 spring 开头的
+            .. 表示引用 spring 的包 使其无限拉长 one 表示 必须在其 无限拉长中找到 one
+            并以one结束。结束以后又碰见了 .. 又将其 one 无限拉长 因为已经解析完了。所以后面就是类了
+            只要是无限拉长碰见的类 全部符合标准
+
+
+execution(<修饰符模式>?<返回类型模式><方法名模式>(<参数模式>)<异常模式>?)
+execution(modifiers-pattern? ret-type-pattern declaring-type-pattern? name-pattern(param-pattern) throws-pattern?)
+    ?号代表0或1，可以不写
+    “*”号代表任意类型，0或多
+    方法参数为..表示为可变参数
+
+modifiers-pattern?【修饰的类型，可以不写】  public
+ret-type-pattern【方法返回值类型，必写】
+declaring-type-pattern?【方法声明的类型，可以不写】   static
+name-pattern(param-pattern)【要匹配的名称，括号里面是方法的参数】
+throws-pattern?【方法抛出的异常类型，可以不写】
+
+
+ <!-- 【多个表达式】 -->
+        <!--<aop:pointcut expression="execution(* cn.itcast.g_pointcut.UserDao.save()) || execution(* cn.itcast.g_pointcut.OrderDao.save())" id="pt"/>-->
+        <!--<aop:pointcut expression="execution(* cn.itcast.g_pointcut.UserDao.save()) or execution(* cn.itcast.g_pointcut.OrderDao.save())" id="pt"/>-->
+        <!-- 下面2个且关系的，没有意义 -->
+        <!--<aop:pointcut expression="execution(* cn.itcast.g_pointcut.UserDao.save()) &amp;&amp; execution(* cn.itcast.g_pointcut.OrderDao.save())" id="pt"/>-->
+        <!--<aop:pointcut expression="execution(* cn.itcast.g_pointcut.UserDao.save()) and execution(* cn.itcast.g_pointcut.OrderDao.save())" id="pt"/>-->
+
+        <!-- 【取非值】 -->
+        <!--<aop:pointcut expression="!execution(* cn.itcast.g_pointcut.OrderDao.save())" id="pt"/>-->
+
+
+
+
+
+    
+组合切入点
+
+　　　　支持 &&、 || 、！
+
+　　　　与其他语言所代表的意思相同
+
+　　　　例：args(aop_part.service)  &&execution(**(aop_part.service))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

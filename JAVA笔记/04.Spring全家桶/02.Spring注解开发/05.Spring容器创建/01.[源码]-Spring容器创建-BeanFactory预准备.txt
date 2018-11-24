@@ -1,0 +1,780 @@
+[源码]-Spring容器创建-BeanFactory预准备
+
+public void refresh() throws BeansException, IllegalStateException {
+		synchronized (this.startupShutdownMonitor) {
+			// Prepare this context for refreshing.
+			prepareRefresh();
+
+			// Tell the subclass to refresh the internal bean factory.
+			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+
+			// Prepare the bean factory for use in this context.
+			prepareBeanFactory(beanFactory);
+
+			try {
+				// Allows post-processing of the bean factory in context subclasses.
+				postProcessBeanFactory(beanFactory);
+
+				// Invoke factory processors registered as beans in the context.
+				invokeBeanFactoryPostProcessors(beanFactory);
+
+				// Register bean processors that intercept bean creation.
+				registerBeanPostProcessors(beanFactory);
+
+				// Initialize message source for this context.
+				initMessageSource();
+
+				// Initialize event multicaster for this context.
+				initApplicationEventMulticaster();
+
+				// Initialize other special beans in specific context subclasses.
+				onRefresh();
+
+				// Check for listener beans and register them.
+				registerListeners();
+
+				// Instantiate all remaining (non-lazy-init) singletons.
+				finishBeanFactoryInitialization(beanFactory);
+
+				// Last step: publish corresponding event.
+				finishRefresh();
+			}
+
+
+
+让我们先来从第一个方法开始吧
+    AbstractApplicationContext
+        // Prepare this context for refreshing.
+           进行 刷新前预处理
+prepareRefresh();
+
+
+
+        看下这个方法干了些什么
+AnnotationConfigApplicationContext
+        protected void prepareRefresh() {
+        // 进行缓存清空 清除底层元数据缓存，删除所有缓存的类元数据。
+		this.scanner.clearCache();
+		super.prepareRefresh();
+	}
+进入AbstractApplicationContext
+    protected void prepareRefresh() {
+        // 开始计时
+		this.startupDate = System.currentTimeMillis();
+        // 设置状态。容器是否关闭 false 
+		this.closed.set(false);
+        // 容器是否在活动状态
+		this.active.set(true);
+        // 打印日志
+		if (logger.isInfoEnabled()) {
+			logger.info("Refreshing " + this);
+		}
+
+		// Initialize any placeholder property sources in the context environment
+        // 初始化一些属性 是一个接口你可以来重写 子类自定义个性化的属性设置方法；
+		initPropertySources();
+
+		// Validate that all properties marked as required are resolvable
+		// see ConfigurablePropertyResolver#setRequiredProperties
+        // 检验一些必须的属性。因为我们没有自定义的属性，所以没有校验工作
+		getEnvironment().validateRequiredProperties();
+
+		// Allow for the collection of early ApplicationEvents,
+		// to be published once the multicaster is available...
+        // 创建一个来保存早期的事件，在合适的时间来发布，如果有事件发生全部放进这里面
+		this.earlyApplicationEvents = new LinkedHashSet<ApplicationEvent>();
+	}
+
+prepareRefresh(); 刷新前预处理就干了这么些东西
+
+
+-----------------------------------------------------------------------
+
+
+接下来我们看看这个方法干了什么
+    // Tell the subclass to refresh the internal bean factory.
+    // 获取 beanFactory
+ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+    
+    首先进入了
+        protected ConfigurableListableBeanFactory obtainFreshBeanFactory() {
+        // 刷新 BeanFactory 进入 >>1
+		refreshBeanFactory();
+        // 进入获取 getBeanFactory(); >>2
+		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+		if (logger.isDebugEnabled()) {
+			logger.debug("Bean factory for " + getDisplayName() + ": " + beanFactory);
+		}
+		return beanFactory;
+	}
+    
+进入了 GenericApplicationContext 类   >>1  
+    protected final void refreshBeanFactory() throws IllegalStateException {
+		if (!this.refreshed.compareAndSet(false, true)) {
+			throw new IllegalStateException(
+					"GenericApplicationContext does not support multiple refresh attempts: just call 'refresh' once");
+		}
+        // 为其设置 id 
+        // 为序列化目的指定一个id，如果需要的话，允许这个BeanFactory从这个id反序列化到BeanFactory对象中。
+		this.beanFactory.setSerializationId(getId());
+	}
+
+    >>2
+        public final ConfigurableListableBeanFactory getBeanFactory() {
+        // 直接将成员变量的 beanFactory 返回了
+		return this.beanFactory;
+	}
+        而成员变量的 beanFactory 是创建容器的时候 new 出来的
+        public GenericApplicationContext() {
+		this.beanFactory = new DefaultListableBeanFactory();
+	}
+
+
+
+    // Tell the subclass to refresh the internal bean factory.
+    // 获取 beanFactory
+    ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+       这个方法看完了
+
+
+
+ ----------------------------------------------------------
+
+    // Prepare the bean factory for use in this context.
+        // BeanFactory 预处理 准备工作
+prepareBeanFactory(beanFactory);
+    
+
+    我们进入
+           
+       protected void prepareBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+		// Tell the internal bean factory to use the context's class loader etc.
+        // 设置类加载器 而类加载器是
+        // 1. ClassUtils.getDefaultClassLoader());
+        // 2. Thread.currentThread().getContextClassLoader();
+		beanFactory.setBeanClassLoader(getClassLoader());
+        // 加载 bean 表达式解析器 使用给定的bean类装入器创建一个新的标准beanexpression解析器，并将其用作表达式编译的基础。
+		beanFactory.setBeanExpressionResolver(new StandardBeanExpressionResolver(beanFactory.getBeanClassLoader()));
+        // Add a PropertyEditorRegistrar to be applied to all bean creation processes. 
+        // 添加一个 PropertyEditorRegistrar ,应用于所有 bean 的创建过程
+		beanFactory.addPropertyEditorRegistrar(new ResourceEditorRegistrar(this, getEnvironment()));
+
+		// Configure the bean factory with context callbacks.
+        // 添加 ApplicationContextAwareProcessor 处理器 能在 bean 初始化以后给于 ApplicationContext 类
+		beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
+        // 设置一些忽略的自动装配接口 使其不能使用其忽略的接口进行自动注入
+		beanFactory.ignoreDependencyInterface(EnvironmentAware.class);
+		beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);
+		beanFactory.ignoreDependencyInterface(ResourceLoaderAware.class);
+		beanFactory.ignoreDependencyInterface(ApplicationEventPublisherAware.class);
+		beanFactory.ignoreDependencyInterface(MessageSourceAware.class);
+		beanFactory.ignoreDependencyInterface(ApplicationContextAware.class);
+
+		// BeanFactory interface not registered as resolvable type in a plain factory.
+		// MessageSource registered (and found for autowiring) as a bean.
+        // 注册可以解析的自动装配，也就是说将这些 类型装配到 beanFactory 里面
+        // 我们就可以使用 @Autowired 来进行装配了 比如： 通过 BeanFactory.class, 可以获取 beanFactory
+        // 是用 类型注入的
+		beanFactory.registerResolvableDependency(BeanFactory.class, beanFactory);
+		beanFactory.registerResolvableDependency(ResourceLoader.class, this);
+		beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, this);
+		beanFactory.registerResolvableDependency(ApplicationContext.class, this);
+
+		// Register early post-processor for detecting inner beans as ApplicationListeners.
+        //  注册早期后处理程序，以检测内部bean作为应用程序监听器。又添加一个后置处理器
+		beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(this));
+
+		// Detect a LoadTimeWeaver and prepare for weaving, if found.
+        // 这些是对 AspectJ 支持有作用的 添加编译时的 AspectJ
+		if (beanFactory.containsBean(LOAD_TIME_WEAVER_BEAN_NAME)) {
+			beanFactory.addBeanPostProcessor(new LoadTimeWeaverAwareProcessor(beanFactory));
+			// Set a temporary ClassLoader for type matching.
+			beanFactory.setTempClassLoader(new ContextTypeMatchClassLoader(beanFactory.getBeanClassLoader()));
+		}
+        // 注册一些组件 environment[类型是 ConfigurableEnvironment]  systemProperties systemEnvironment
+        // 是用 id 注入的
+		// Register default environment beans.
+        // ENVIRONMENT_BEAN_NAME =  environment
+		if (!beanFactory.containsLocalBean(ENVIRONMENT_BEAN_NAME)) {
+            // 注册 Environment id 就是 environment
+			beanFactory.registerSingleton(ENVIRONMENT_BEAN_NAME, getEnvironment());
+		}
+        // 	String SYSTEM_PROPERTIES_BEAN_NAME = "systemProperties"; 系统的属性 是一个 Map
+		if (!beanFactory.containsLocalBean(SYSTEM_PROPERTIES_BEAN_NAME)) {
+			beanFactory.registerSingleton(SYSTEM_PROPERTIES_BEAN_NAME, getEnvironment().getSystemProperties());
+		}
+        // String SYSTEM_ENVIRONMENT_BEAN_NAME = "systemEnvironment"; 系统的环境变量 是一个 Map 
+		if (!beanFactory.containsLocalBean(SYSTEM_ENVIRONMENT_BEAN_NAME)) {
+			beanFactory.registerSingleton(SYSTEM_ENVIRONMENT_BEAN_NAME, getEnvironment().getSystemEnvironment());
+		}
+	}
+
+
+
+
+
+    // Prepare the bean factory for use in this context.
+        // BeanFactory 预处理 准备工作
+		prepareBeanFactory(beanFactory);
+    
+    就做完了
+
+
+
+
+ -------------------------------------------------------------
+
+
+接下来我们看
+    
+    // Allows post-processing of the bean factory in context subclasses.
+	postProcessBeanFactory(beanFactory);
+
+    这个是一个接口
+    org.springframework.context.support.AbstractApplicationContext.postProcessBeanFactory(ConfigurableListableBeanFactory);
+        你可以重写这个方法来进行后处理 在 beanFactory 创建并预准备完成做进一步的设置
+
+
+
+-------------------------------------------------------------------------------------
+
+
+
+
+以上是beanFactory 的创建即预准备工作
+
+
+
+
+    Spring容器的refresh()【创建刷新】;
+1、prepareRefresh()刷新前的预处理;
+	1）、initPropertySources()初始化一些属性设置;子类自定义个性化的属性设置方法；
+	2）、getEnvironment().validateRequiredProperties();检验属性的合法等
+	3）、earlyApplicationEvents= new LinkedHashSet<ApplicationEvent>();保存容器中的一些早期的事件；
+2、obtainFreshBeanFactory();获取BeanFactory；
+	1）、refreshBeanFactory();刷新【创建】BeanFactory；
+			创建了一个this.beanFactory = new DefaultListableBeanFactory();// 这个是在容器创建的时候在 Constructor 的时候创建的不是这个方法创建的
+			设置id；
+	2）、getBeanFactory();返回刚才GenericApplicationContext创建的BeanFactory对象；
+	3）、将创建的BeanFactory【DefaultListableBeanFactory】返回；
+3、prepareBeanFactory(beanFactory);BeanFactory的预准备工作（BeanFactory进行一些设置）；
+	1）、设置BeanFactory的类加载器、支持表达式解析器...
+	2）、添加部分BeanPostProcessor【ApplicationContextAwareProcessor】
+	3）、设置忽略的自动装配的接口EnvironmentAware、EmbeddedValueResolverAware、xxx；
+	4）、注册可以解析的自动装配；我们能直接在任何组件中自动注入：// 就是将一些类注入，使其注册了这个 .class 就给与固定的对象
+        // 是用 类型注入的
+			BeanFactory、ResourceLoader、ApplicationEventPublisher、ApplicationContext
+	5）、添加BeanPostProcessor【ApplicationListenerDetector】
+	6）、添加编译时的AspectJ；
+	7）、给BeanFactory中注册一些能用的组件； 这个是用 id 注入的
+		environment【ConfigurableEnvironment】、
+		systemProperties【Map<String, Object>】、
+		systemEnvironment【Map<String, Object>】
+4、postProcessBeanFactory(beanFactory);BeanFactory准备工作完成后进行的后置处理工作；
+	1）、子类通过重写这个方法来在BeanFactory创建并预准备完成以后做进一步的设置
+======================以上是BeanFactory的创建及预准备工作==================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

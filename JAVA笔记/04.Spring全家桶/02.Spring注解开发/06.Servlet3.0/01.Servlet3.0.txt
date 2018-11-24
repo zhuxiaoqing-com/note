@@ -1,0 +1,299 @@
+hared libraries（共享库） / runtimes pluggability（运行时插件能力）
+
+1.Sevrlet 容器启动会扫描，当前应用里面每一个 jar 包
+    ServletContainerInitializer 的实现
+2.提供 ServletContainerInitializer 的实现类
+    记得要在 src 下创建。。。快死了。
+
+    必须绑定在 META-INF/services/javax.servlet.ServletContainerInitializer
+         文件的内容就是 ServletContainerInitializer 实现类的全类名
+
+
+总结：容器在启动应用的时候，会扫描当前应用每一个 jar 包里面 
+META-INF/services/javax.servlet.ServletContainerInitializer
+指定的实现类，启动并运行这个实现类的方法，传入感兴趣的类型
+
+
+
+ServletContainerInitializer；
+@HandlesTypes；
+
+
+
+
+
+// @HandlesTypes 容器启动的时候会将 @HandlerTypes 指定的这个类型下面的子类(实现类，子接口等）传递过来；
+// 但是指定的类型的本身不会传递过来
+@HandlesTypes(value= {HttpServlet.class, ServletContextListener.class, Filter.class})
+public class MyServletContainerInitializer implements ServletContainerInitializer {
+
+    @Override
+    public void onStartup(Set<Class<?>> classes, ServletContext servletContext) throws ServletException {
+        // 注册 Servlet
+        ServletRegistration.Dynamic servlet = servletContext.addServlet("userServlet", UserServlet.class);
+        servlet.addMapping("/user");
+        
+        // 注册 filter
+        FilterRegistration.Dynamic filter = servletContext.addFilter("myFilter", MyFilter.class);
+        // 参数 DispatcherType 
+        filter.addMappingForUrlPatterns(EnumSet.of(DispatcherType.REQUEST), true, "/*");
+        
+        // 注册 Listener
+        servletContext.addListener(MyServletContextListener.class);
+    }
+
+}
+
+
+遇见一个坑
+    tomcat9.0 的 jar 可以 interface 的有些方法，不实现也可以。。
+    tomcat7.0 的 jar 就不可以了
+
+
+
+
+忽略 web.xml 配置文件,使其没有 web.xml 不会报错
+<build>
+  	<plugins>
+  		<plugin>
+  			<groupId>org.apache.maven.plugins</groupId>
+  			<artifactId>maven-war-plugin</artifactId>
+  			<version>2.4</version>
+  			<configuration>
+  				<failOnMissingWebXml>false</failOnMissingWebXml>
+  			</configuration>
+  		</plugin>
+  	</plugins>
+  </build>
+
+
+
+我们来看下
+
+Spring-web 下的 META-INF/services/javax.servlet.ServletContainerIntializer 下的 ServletContainerIntializer 的实现类吧
+
+    
+
+    @HandlesTypes(WebApplicationInitializer.class) // 加载这个类型的 class
+    public class SpringServletContainerInitializer implements ServletContainerInitializer {
+        @Override
+        public void onStartup(Set<Class<?>> webAppInitializerClasses, ServletContext servletContext)
+                throws ServletException {
+
+            List<WebApplicationInitializer> initializers = new LinkedList<WebApplicationInitializer>();
+
+            if (webAppInitializerClasses != null) {
+                for (Class<?> waiClass : webAppInitializerClasses) {
+                    // Be defensive: Some servlet containers provide us with invalid classes,
+                    // no matter what @HandlesTypes says...
+                    // 判断isAssignableFrom  class 是否是 WebApplicationInitializer.class 的子类
+                    if (!waiClass.isInterface() && !Modifier.isAbstract(waiClass.getModifiers()) &&
+                            WebApplicationInitializer.class.isAssignableFrom(waiClass)) {
+                        try {
+                            // 将其保存到 initializers 中
+                            initializers.add((WebApplicationInitializer) waiClass.newInstance());
+                        }
+                        catch (Throwable ex) {
+                            throw new ServletException("Failed to instantiate WebApplicationInitializer class", ex);
+                        }
+                    }
+                }
+            }
+
+            if (initializers.isEmpty()) {
+                servletContext.log("No Spring WebApplicationInitializer types detected on classpath");
+                return;
+            }
+
+            servletContext.log(initializers.size() + " Spring WebApplicationInitializers detected on classpath");
+            AnnotationAwareOrderComparator.sort(initializers);
+            for (WebApplicationInitializer initializer : initializers) {
+                // 调用这些类的 onStartup 方法
+                initializer.onStartup(servletContext);
+            }
+        }
+
+    }
+
+让我们再来看下
+    WebApplicationInitializer.class 都有什么实现类
+        WebApplicationInitializer
+          --> C: AbstractContextLoaderInitializer
+            --> C: AbstractDispatcherServletInitializer
+               --> C: AbstractAnnotationConfigDispatcherServletInitializer
+
+
+
+我们来看下 
+    AbstractContextLoaderInitializer
+
+        public void onStartup(ServletContext servletContext) throws ServletException {
+		registerContextLoaderListener(servletContext);
+	}
+
+进入  registerContextLoaderListener
+
+    protected void registerContextLoaderListener(ServletContext servletContext) {
+        // 创建一个 WebApplicationContext 容器
+		WebApplicationContext rootAppContext = createRootApplicationContext();
+		if (rootAppContext != null) {
+            // 创建一个 ContextLoaderListener
+			ContextLoaderListener listener = new ContextLoaderListener(rootAppContext);
+            // return null
+			listener.setContextInitializers(getRootApplicationContextInitializers());
+			servletContext.addListener(listener);
+		}
+		else {
+			logger.debug("No ContextLoaderListener registered, as " +
+					"createRootApplicationContext() did not return an application context");
+		}
+	}
+
+
+
+
+我们来看下 
+     AbstractDispatcherServletInitializer
+
+    public void onStartup(ServletContext servletContext) throws ServletException {
+        // 注册父类的 listener
+		super.onStartup(servletContext);
+        // 注册 servlet
+		registerDispatcherServlet(servletContext);
+	}
+        
+
+    protected void registerDispatcherServlet(ServletContext servletContext) {
+        // return dispatcher
+		String servletName = getServletName();
+		Assert.hasLength(servletName, "getServletName() must not return empty or null");
+        // createServletApplicationContext() 要重写
+		WebApplicationContext servletAppContext = createServletApplicationContext();
+		Assert.notNull(servletAppContext,
+				"createServletApplicationContext() did not return an application " +
+				"context for servlet [" + servletName + "]");
+        // return new DispatcherServlet(servletAppContext);
+		FrameworkServlet dispatcherServlet = createDispatcherServlet(servletAppContext);
+        // return null
+		dispatcherServlet.setContextInitializers(getServletApplicationContextInitializers());
+        // 将 dispatcherServlet 注册
+		ServletRegistration.Dynamic registration = servletContext.addServlet(servletName, dispatcherServlet);
+		Assert.notNull(registration,
+				"Failed to register servlet with name '" + servletName + "'." +
+				"Check if there is another servlet registered under the same name.");
+        // 设置各种值
+		registration.setLoadOnStartup(1);
+        // 要重写
+		registration.addMapping(getServletMappings());
+        // 要重写
+		registration.setAsyncSupported(isAsyncSupported());
+        // return null
+		Filter[] filters = getServletFilters();
+		if (!ObjectUtils.isEmpty(filters)) {
+			for (Filter filter : filters) {
+				registerServletFilter(servletContext, filter);
+			}
+		}
+
+		customizeRegistration(registration);
+	}
+
+
+
+
+我们来看下
+     --> C: AbstractAnnotationConfigDispatcherServletInitializer
+
+    @Override
+	protected WebApplicationContext createRootApplicationContext() {
+        // 使用配置类，配置类要我们自己写
+		Class<?>[] configClasses = getRootConfigClasses();
+		if (!ObjectUtils.isEmpty(configClasses)) {
+			AnnotationConfigWebApplicationContext rootAppContext = new AnnotationConfigWebApplicationContext();
+			rootAppContext.register(configClasses);
+			return rootAppContext;
+		}
+		else {
+			return null;
+		}
+	}
+   
+	@Override
+	protected WebApplicationContext createServletApplicationContext() {
+		AnnotationConfigWebApplicationContext servletAppContext = new AnnotationConfigWebApplicationContext();
+		// 使用配置类，配置类要我们自己写
+        Class<?>[] configClasses = getServletConfigClasses();
+		if (!ObjectUtils.isEmpty(configClasses)) {
+			servletAppContext.register(configClasses);
+		}
+		return servletAppContext;
+	}
+
+
+所以最终我们只要重写两个方法 getServletConfigClasses();  getRootConfigClasses();
+
+
+1、web容器在启动的时候，会扫描每个jar包下的META-INF/services/javax.servlet.ServletContainerInitializer
+2、加载这个文件指定的类SpringServletContainerInitializer
+3、spring的应用一启动会加载感兴趣的WebApplicationInitializer接口的下的所有组件；
+4、并且为WebApplicationInitializer组件创建对象（组件不是接口，不是抽象类）
+	1）、AbstractContextLoaderInitializer：创建根容器；createRootApplicationContext()；
+	2）、AbstractDispatcherServletInitializer：
+			创建一个web的ioc容器；createServletApplicationContext();
+			创建了DispatcherServlet；createDispatcherServlet()；
+			将创建的DispatcherServlet添加到ServletContext中；
+				getServletMappings();
+	3）、AbstractAnnotationConfigDispatcherServletInitializer：注解方式配置的DispatcherServlet初始化器
+			创建根容器：createRootApplicationContext()
+					getRootConfigClasses();传入一个配置类
+			创建web的ioc容器： createServletApplicationContext();
+					获取配置类；getServletConfigClasses();
+	
+总结：
+	以注解方式来启动SpringMVC；继承AbstractAnnotationConfigDispatcherServletInitializer；
+实现抽象方法指定DispatcherServlet的配置信息；
+
+===========================
+定制SpringMVC；
+1）、 @EnableWebMvc:开启SpringMVC定制配置功能；
+	<mvc:annotation-driven/>；
+
+2）、配置组件（视图解析器、视图映射、静态资源映射、拦截器。。。）
+	extends WebMvcConfigurerAdapter
+
+
+
+			
+发现 @Configuration 没什么用，写不写里面东西都会正常生效。可能是有多个配置类就必须标注了。
+因为我没写的也有效的那个配置类是我直接传入  AnnotationConfigApplicationContext的；
+
+
+
+// 子容器
+@Configuration
+@ComponentScan(value="cn.zhu",useDefaultFilters=false,includeFilters= 
+{@Filter(type=FilterType.ANNOTATION,classes=Controller.class)})
+@EnableWebMvc
+public class AppConfig implements  WebMvcConfigurer{}
+
+ @EnableWebMvc:开启SpringMVC定制配置功能；
+   <mvc:annotation-driven/>；
+
+
+
+
+因为 implements  WebMvcConfigurer 需要实现太多方法 所以。我们可以
+extends WebMvcConfigurerAdapter
+    帮我们把所有的要实现的方法全部进行空实现了
+
+
+
+
+
+
+
+
+
+
+
+

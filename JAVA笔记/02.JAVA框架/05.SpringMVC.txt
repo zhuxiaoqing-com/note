@@ -1,0 +1,705 @@
+3.Springmvc架构
+
+    三大组件
+        处理器映射器  handlerMapping   
+        处理器适配器  handlerAdapter
+        视图解析器    ViewResolver
+
+架构流程：
+    01. 用户发送请求到前端控制器 DispatcherServlet 
+    02. DispatcherServlet 收到请求调用 HandlerMapping 处理器映射器
+    03. 处理器映射器根据 url 找到具体的处理器，生成处理器对象及处理器拦截器（如果有则生成）
+        一并返回给 DsipactherServlet
+    04. DispatcherServlet 通过 HandlerAdapter 处理器适配器调用处理器
+    05. 执行处理器(Controller, 也叫 后端处理器)
+    06. Controller 执行完成返回 ModelAndView
+    07. HandlerAdapter 将 Controller 执行结果 ModelAndView 返回给 DispatcherServlet
+    08. DispatcherServlet 将 ModelAndview 传给 ViewResolver 视图解析器
+    09. ViewResolver 解析后返回具体 View
+    10. DispatcherServlet 对 view 进行渲染视图（即将模型数据填充至视图中）。
+    11. DispatcherServlet响应用户
+
+
+        
+          <!-- 	前端控制器 -->
+           <servlet>
+   	<servlet-name>springMvc</servlet-name>
+   	<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+   <!-- 默认找的是 /WEB-INF/[servlet的名称]-servlet.xml -->
+  	<init-param>
+  		<param-name>contextConfigLocation</param-name>
+  		<param-value>classpath:springmvc.xml</param-value>
+  	</init-param>
+  	<load-on-startup>1</load-on-startup>
+   </servlet>
+          <servlet-mapping>
+            <servlet-name>springmvc</servlet-name>
+            <!-- 
+                1. /* 拦截所有 jsp js png 是真的全拦截  建议不使用
+                2. *.action 拦截以 action 结尾的请求  肯定能使用   ERP 
+                3. /  拦截所有(不包含 jsp) （包含 .js .png .css） 强烈建议使用  前台面向消费者
+             -->
+            <url-pattern>/</url-pattern>
+          </servlet-mapping>
+
+使用springmvc 
+    在配置文件注册 springmvc 
+  
+   首先创建 controller 
+    在类上加
+    @Controller 注解
+    在方法上加 
+        @RequestMapping(value="/item/itemlist.action")
+
+    方法是固定的返回值
+        public ModelAndView itemList() {
+        User user = new User(1, "祝", "123", "男");
+
+        ModelAndView mav = new ModelAndView();
+        
+     // 数据  其实就是 request
+        mav.addObject("user", user);
+        // 设置要跳转的页面 是转发
+        mav.setViewName("index");
+        return mav;
+    }
+
+说明：在springmvc的各个组件中，处理器映射器、处理器适配器、视图解析器称为springmvc的三大组件。
+需要用户开发的组件有handler、view   
+
+默认加载的组件
+    我们没有做任何配置，就可以使用这些组件
+    因为框架已经默认加载这些组件了
+
+三大组件的配置 xml
+   从spring3.1版本开始，废除了 DefaultAnnotationHandlerMapping的使用，推荐使用RequestMappingHandlerMapping
+   从spring3.1版本开始，废除了 AnnotationMethodHandlerAdapter的使用，推荐使用RequestMappingHandlerAdapter
+   <!-- 处理映射器 -->
+	<!-- <bean class="org.springframework.web.servlet.mvc.annotation.RequestHandlerMapping"></bean> -->
+	
+	<!-- 处理适配器 -->
+	<!-- <bean class="org.springframework.web.servlet.mvc.annotation.RequestHandlerAdapter"></bean> -->
+    
+    直接配置处理器映射器和处理器适配器比较麻烦，可以使用注解驱动来加载。
+    SpringMVC使用<mvc:annotation-driven>自动加载RequestMappingHandlerMapping和RequestMappingHandlerAdapter
+    可以在springmvc.xml配置文件中使用<mvc:annotation-driven>替代注解处理器和适配器的配置。
+    <!-- 注解驱动 -->
+    <mvc:annotation-driven />
+
+视图解析器  默认可以不配置的  但也可以显式的配置 来使用里面的属性
+        <!-- 视图解析器 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<property name="prefix" value="/WEB-INF/jsp/"/>
+		<property name="suffix" value=".jsp"/>
+	</bean>
+    前缀+逻辑视图名+后缀
+
+
+
+
+参数绑定：
+    spring MVC 可以在方法的上，绑定形参 
+  默认支持的参数类型
+    HttpServletRequest
+    HttpServletResponse
+    HttpServletSession
+    Model
+    如果使用Model则可以不使用ModelAndView对象，Model对象可以向页面传递数据，View对象则可以使用String返回值替代。
+    ModelMap是Model接口的实现类，也可以通过ModelMap向页面传递数据
+
+    使用Model和ModelMap的效果一样，如果直接使用Model，springmvc会实例化ModelMap。
+
+
+绑定简单类型
+    当请求的参数名称和处理器形参名称一致时会将请求参数与形参进行绑定
+    参数类型推荐使用包装数据类型，因为基础数据类型不可以为null
+    整形：Integer、int
+    字符串：String
+    单精度：Float、float
+    双精度：Double、double
+    布尔型：Boolean、boolean
+    说明：对于布尔类型的参数，请求的参数值为true或false。或者1或0
+
+
+    @RequestParam
+    使用 @RequestParam 常用于处理简单类型的绑定 和 mybatis 的 @Param 一样使用 
+    是使用在 形参上的 注解
+    在 @RequestParam(value="页面传递过来的参数名称")  传递给 该注解的形参
+        value 参数名字，即入参的请求参数名字
+    @RequestParam(value="id") String uid
+       将页面的 id 获取过来。然后将 id 的值 传递给 uid 
+    * 使用此注解 id 不能为空 为空的话会报错，
+        HTTP Status 400 - Required Integer parameter 'XXXX' is not present
+    可以使用注解上的一个属性
+        required=false 来使 required 不必须要有值
+        defaultValue="1" 默认值 如果为空 值就为 "1"
+        
+        如果你使用了 @RequestParam 这个注解，那么全部以注解里面标注的 value 或 name 为准，不以 形参为准。
+        如果你使用了 defaultValue  那么久不需要标注 required=false，因为 defaultValue 的值也算值，就不为空了
+        
+
+绑定 pojo 
+    pojo对象中的属性名和表单中input的name属性一致
+
+
+springMVC 乱码问题
+    
+    <!-- 处理 POST 提交乱码问题 -->
+  <filter>
+    <filter-name>encoding</filter-name>
+    <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+    <init-param>
+        <param-name>encoding</param-name>
+        <param-value>UTF-8</param-value>
+    </init-param>
+  </filter>
+ <filter-mapping>
+  	<filter-name>encoding</filter-name>
+  	<url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+
+包装 POJO(pojoVO)
+    也可以使用 包装POJO(pojoVO) 作为参数
+    会自动获取里面的属性，但是属性里面的 pojo 就不会帮你自动充填了。
+    需要你在 jsp 写 <input name="user.name" value="..."> 的形式
+
+自定义参数绑定
+    <!-- 注解驱动 -->
+	<mvc:annotation-driven conversion-service="conversionServiceFactoryBean"/>
+	<!-- 配置 Conveter 转换器 转换工厂 -->
+	<bean id="conversionServiceFactoryBean" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+		<!-- 配置多个转换器 -->
+		<property name="converters">
+			<array>
+				<!-- 自定义转换器的类(由我写转换过程) -->
+				<bean class="cn.zhu.ssm.conversion.DateConveter"></bean>
+			</array>
+		</property>
+	</bean>
+
+需要单独写一个转换器类
+    需要实现  org.springframework.core.convert.converter.Converter 接口
+        有两个泛型
+            *  S: 页面传递过来的类型
+            *  T： 转换后的类型
+
+        public class DateConveter implements Converter<String, Date> {
+
+    @Override
+    public Date convert(String source) {
+        // TODO Auto-generated method stub
+        try {
+            if(null != source) {
+                SimpleDateFormat format = new SimpleDateFormat("yyyy:MM-dd HH+mm-ss");
+                return format.parse(source);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    
+ }
+    会自动识别传递过来的参数和 pojo 的参数的类型，都符合的话就进行 转换
+    
+
+
+springMVC 和 Struts2 的区别
+
+    1. springmvc 的入口是一个 servlet 即前端控制器，而 struts2 入口是一个 filter 过滤器
+    2. springmvc 是基于方法开发(一个 url 对应一个方法)，请求参数传递到方法的形参，可以设计为单例或多例(建议单例)，
+        struts2 是基于类开发，传递参数是通过类的属性，只能设计为多例
+
+    3. Struts2 采用值栈存储请求和响应的数据，通过 OGNL 存取数据， springmvc 通过参数解析器是将 request 请求内容解析，并给方法
+        形参赋值，将数据和视图封装成 ModelAndView 对象，最后又将 ModelAndView 中的模型数据通过 request 域传输到页面。
+        jsp 视图解析器默认使用 jstl
+
+
+高级参数绑定
+    VO 类绑定
+    要 类的 变量名.类的属性
+    数组绑定
+    Map 绑定
+    和 list 一样 map名称['mapkey'] 
+    userName:<input type="text" name="map['kak'].username"/> 
+        
+        在页面使用 name 一样的 input 元素，会将所有元素都赋值给 name 并不会覆盖
+        然后可以在页面使用 name 接受 
+        Integer[] id  等 会将 name 为 id 的元素的值赋值给 Integer[] id  
+        <input name='id' />  <input name='id' />   就会自动往 id 数组里面注入数据
+
+ * 如果 形参是对象，springmvc 会自动为其属性赋值，查找其对象的属性有没有与其 name 相同的 属性
+
+List<User>
+    绑定 List 里面 User
+            userName:<input type="text" name="userList[0].username"/> 
+            password:<input type="text" name="userList[0].password"/> 
+            address:<input type="text" name="userList[0].address"/> 
+
+    绑定只能绑定  基本类型数组
+        不能直接绑定 list map 等放在形参上
+        因为一旦判定为对象的话，就会使用 getter. setter
+        如果为基本类型的话，会有额外的判断
+
+
+
+SpringMVC 控制访问方式 get 和 post
+
+    @RequestMapping(value="/addUser", method=RequestMethod.POST)
+        限制 访问的方式 method 有 
+            RequestMethod.POST
+            RequestMethod.GET
+    @RequestMapping(value="/addUser", method={RequestMethod.POST, RequestMethod.GET})
+
+
+提取路径
+@RequestMapping 将 @RequestMapping 注解放在类上面就是共用的了
+    所有方法上面的 @RequestMapping 的路径都必须都必须先拼接上类路径
+    比如  类上面的 @RequestMapping("/user")
+          方法上面的  @RequestMapping("/add")
+          如果你想访问这个方法的话必须 /user/add 才能访问
+
+          多个类都有的话，应该是先搜索符合条件多 的类的
+
+
+
+多个 URL 路径映射
+    value = { "/user", "/user1" }
+    两种 url 都可以访问这个 URL
+
+
+SpringMVC 返回值
+    1. ModelAndView  带着数据 返回视图路径
+    2. String  返回视图路径  可以使用 形参带 Model(是一个接口) 或 ModelMap (Model 的实现类) 来设置参数数据
+        model.setAttribute(Stirng key, Object value);
+    推荐使用第二种方式 解耦 数据 视图 分离  MVC
+
+    3. void   ajax 使用 void
+        使用 response 原生  来输出 JSON
+
+String 重定向 
+    return "redirect:....?name=" +... 就重定向了
+    return "forward:...." 或不写 是转发
+
+
+
+异常处理器
+    局部异常处理器 只在当前的 类里面有效
+      @ExceptionHandler(Exception.class)
+    public ModelAndView testExceptionHandler(Exception e) {
+        e.printStackTrace();
+        ModelAndView model = new ModelAndView();
+        model.addObject("error", e.getMessage());
+        model.setViewName(SUCCESS);
+        return model;
+    }
+    
+    全局异常处理器
+   系统中异常包括两类：预期异常好运行时异常 RuntimeException, 前者通过捕获异常从而获取异常信息(是可预料异常)，
+        后者主要通过规范代码开发、测试通过手段减少运行时异常的发生(是不可预料异常)。
+
+    系统的dao、service、controller出现都通过throws Exception向上抛出，最后由springmvc前端控制器  交由异常处理器进行异常处理
+
+    异常处理器 是一个接口需要你去实现它 HandlerExceptionResolver
+
+        public class UserException implements HandlerExceptionResolver {
+    /*
+     *  Object obj 是发生异常的  包名+类名+方法名(形参) 是一个字符串
+     *  可以用来打印 日志  服务器是  linux 需要打印日志
+     */
+    @Override
+    public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object obj,
+            Exception e) {
+        ModelAndView mav = new ModelAndView();
+        mav.addObject("error", "页面走丢了");
+        mav.setViewName("error");
+        return mav;
+    }
+
+ }
+    你需要在 springmvc xml 里面配置其 bean 信息
+
+
+上传
+     public ModelAndView addUser(UserVO userVO, MultipartFile pictureFile) {
+    MultipartFile pictureFile 变量名不能变 想变请使用  @RequestParam
+
+    因为  MultipartFile 是一个接口所以你必须要给予一个实现类，springMVC 内置了一个实现类，不过要你给其放到 dispatcher-servlet 的容器里面，只能放到 dispatcher-serlvet 容器里面。
+        不能放到 applicationContext 里面。
+
+    <!-- 上传图片配置实现类 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" ></bean>
+    必须放到 dispatcher-servlet 配置文件里面
+    名称是固定的好像
+
+    <!-- 文件上传 -->
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" >
+	<!-- 设置允许上传的文件大小 -->
+	<property name="maxUploadSize">
+		<value>1024*1024</value>
+	</property>
+	<!-- 缓存区的大小 10240 -->
+	<property name="maxInMemorySize">
+		<value>1024</value>
+	</property>
+	<!-- 编码集 -->
+	<property name="defaultEncoding">
+		<value>UTF-8</value>
+	</property>
+	</bean>
+
+//通过CommonsMultipartFile的方法直接写文件（注意这个时候）
+       
+        getName : 获取表单中文件组件的名字
+        getOriginalFilename : 获取上传文件的原名
+        file.transferTo(newFile); // 将文件保存
+        myFile.isEmpty(); 判断上传的文件是否为空  空为 true
+        myFile.getName(); 获取表单文件的名称
+        myFile.getSize(); 获取文件的大小 0 就是没有上传文件
+
+
+
+  //不使用 spring 默认的 MultipartFile 上传文件
+        //1怎么把 MultipartFile 转换成 File
+        System.out.println(myFile);
+        CommonsMultipartFile cmf = (CommonsMultipartFile)myFile; 
+        DiskFileItem dfi = (DiskFileItem)cmf.getFileItem();
+        File file2 = dfi.getStoreLocation();
+
+单文件上传
+     @RequestMapping("/fileUpload")
+    public String testUploadFile(MultipartFile myFile,HttpServletRequest request) throws Exception, IOException {
+        //file.getOriginalFilename();
+      //不使用spring默认的MultipartFile上传文件
+        //1怎么把MultipartFile转换成File
+        System.out.println(myFile);
+      /*  CommonsMultipartFile cmf = (CommonsMultipartFile)myFile; 
+        DiskFileItem dfi = (DiskFileItem)cmf.getFileItem();
+        File file2 = dfi.getStoreLocation();*/
+        String s = request.getServletContext().getRealPath("/");
+        System.out.println(s);
+        File file = new File("D:/temp/");
+        System.out.println(file);
+        myFile.transferTo(new File(file,myFile.getOriginalFilename()));
+        return "success";
+    }
+
+多文件上传
+     @RequestMapping("/fileUploads")
+    // 你可以用 MultipartFile[]  也可以用 list<MultipartFile>
+    public String testUploadFiles(@RequestParam("myFiles")MultipartFile[] myFiles,HttpServletRequest request) throws Exception, IOException {
+        File file = new File("D:/temp/");
+        for (MultipartFile myFile : myFiles) {
+           System.out.println(myFile.getOriginalFilename());
+           myFile.transferTo(new File(file,myFile.getOriginalFilename()));
+    }
+       
+        return "success";
+    }
+
+    第二种方式
+        @RequestMapping("/fileUploads")
+    // 你可以用 MultipartFile[] 也可以用 list<MultipartFile>
+    public String testUploadFiles(HttpServletRequest request) throws Exception, IOException {
+        MultipartHttpServletRequest mhsr = (MultipartHttpServletRequest) request;
+        Iterator<String> names = mhsr.getFileNames();
+        File file2 = new File("D:/temp/");
+        while (names.hasNext()) {
+            String name = names.next();
+            MultipartFile file = mhsr.getFile(name);
+            if (!file.isEmpty()) {
+                System.out.println(file.getOriginalFilename());
+                file.transferTo(new File(file2, file.getOriginalFilename()));
+            }
+            
+        }
+        return "success";
+    }
+
+
+springMVC JSON (其实两种都不需要配置文件就可以使用，因为 <mvc:annotation-driven/>帮你注入了相应的 bean
+        经过测试  
+        jackson-annotations-2.8.8.jar 
+        jackson-core-2.8.8.jar  
+        jackson-databind-2.8.8.jar
+        这三个包必须导入，而且有没有  fastjson.jar 都可以成功，也就是说有没有  fastjson.jar 都一样
+        )
+    第一种方法使用 springweb 里面的 类 你需要(jackson系列 jar 包)
+    <!-- 开启 mvc 注解  -->
+	<mvc:annotation-driven>
+		<!-- 声明消息转换器 负责对请求以及响应的消息进行转换 -->
+		<mvc:message-converters>
+			<!-- spring 对 json 的支持文件 -->
+			<bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				<property name="objectMapper">
+					<!-- jackson 包里的对象 -->
+					<bean class="com.fasterxml.jackson.databind.ObjectMapper"></bean>
+				</property>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+
+// 代码两种写法都是一样用的，只是在配置文件里面不一样
+    @ResponseBody 将返回值转换成 json 响应给页面
+     @ResponseBody
+    @RequestMapping("/queryUser")
+    public Map<String, User> queryUser() {
+        Map<String, User> map = new HashMap();
+        User user = new User(1, "祝小庆", "123456", "hah", 23);
+        user.setAge(null);
+        map.put("id", null);
+        map.put("user", user);
+        return map;
+    }
+
+第二种方式(推荐)(你只需要 fastjson.jar )
+    <!-- 配置 FastJson 支持的 json 转换 -->
+	<bean class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+		<property name="supportedMediaTypes">
+			<list>
+				<value>text/html;charset=UTF-8</value>
+				<value>application/json</value>
+			</list>
+		</property>
+		<!-- 有些版本不能显示 属性的值为 Null的属性，你就需要加上这个 -->
+		<property name="features">
+			<list>
+				<value>WriteMapNullValue</value>
+			</list>
+		</property>
+	</bean>
+    
+
+
+自定义拦截器
+    创建自定义拦截器类，继承 HandlerInterceptorAdapter 拦截器，分别实现 afterCompletion、postHandle、preHandle 方法
+    最好还是 实现 implements HandlerInterceptor 接口 
+    preHandler 在 action 执行之前调用  方法前
+    postHandle 在 ModelAndView 返回之前调用  方法后
+    afterCompletion 在 action 执行完成之后调用 (报错也执行)  页面渲染后
+    
+    <!-- 注入 interceptor -->
+	<mvc:interceptors>
+		<bean class="cn.zhu.springmvc.interceptor.LogInterceptor"></bean>
+	</mvc:interceptors>
+
+    多拦截器配置
+    	<!-- 注入 interceptor -->
+<mvc:interceptors>
+    <!-- 第一个拦截器 -->
+	<mvc:interceptor>
+	<!-- 拦截所有 -->
+		<mvc:mapping path="/**"/>
+		<bean class="cn.zhu.springmvc.interceptor.LogInterceptor"></bean>
+	</mvc:interceptor>
+
+    <!-- 第二个拦截器 -->
+    <mvc:interceptor>
+	<!-- 拦截所有 -->
+		<mvc:mapping path="/**"/>
+		<bean class="cn.zhu.springmvc.interceptor.LogInterceptor"></bean>
+	</mvc:interceptor>	
+</mvc:interceptors>        
+
+
+
+public class LogInterceptor extends HandlerInterceptorAdapter {...}
+public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
+handler ： 指的是访问的是哪个方法
+ boolean 返回 true 表示放行，返回 false 表示拦截
+
+总结 ：
+    preHandle 按拦截器定义顺序调用
+    postHandler 按拦截器定义逆序调用
+    afterCompletion 按拦截器定义逆序调用
+
+    postHanler 在拦截器链内所有拦截器返回成功调用
+    afterCompletion 只要当前拦截器 preHandler 返回 true 就调用
+
+
+<!-- 注解驱动 -->
+	<mvc:annotation-driven/>
+
+
+<!-- springMVC 不能访问 css 等静态文件，因为 springMVC 拦截了，你需要在 xml 里面配置不拦截 css
+
+使用 静态资源文件配置  location 本地文件路径  mapping: 表示访问映射路径
+    在 location 指定的资源最后面不要忘了加 "/"
+    <mvc:resources location="/myjs/" mapping="/js/**"/>
+    静态文件也可以放在 web-inf 下，因为是内部指定的。
+    和直接到 tomcat 里面指定差不多
+    应该是经过  DispatcherServlet 的时候，发现最前面的地址是 /js/** 那么就会将其映射成 /myjs/**
+    location 里面必须放文件夹 必须以 "/" 结尾。 mapping 后面要加 ** 表示一层或多层目录。访问的时候会将其 /js/ 变成 myjs
+
+
+{"id":null,"user":{"id":1,"username":"祝小庆","password":"123456","email":"hah","age":null}}
+
+
+
+ViewResolver 将把逻辑视图名解析为具体的 View， 这样通过这种策略模式，很容易的更换其他视图技术。
+View 会根据传进来的 Model 模型数据进行渲染，此处的 Model 实际上是一个 Map 数据结构，因此很容易支持
+其他视图技术。
+
+当我们对 SpringMVC 控制的资源发起请求时，这些请求都会被 SpringMVC 的 org.springframework.web.servlet.DispatcherServlet 处理，
+接着，SpringMVC 会分析看哪一个 HandlerMapping 定义的请求映射中存在对该请求的最合理的映射，然后通过该 HandlerMapping 取得
+其对应的 Handler, 接着再通过相应的 HandlerAdapter 处理该 Handler. HandlerAdapter 在对 Handler 进行处理之后(就是执行相应的我们写的代码，)
+之后会返回一个 ModelAndView 对象. 在获得了 ModelAndView 对象之后，Spring 就需要把该 View 渲染给用户，即返回给浏览器。
+View渲染给用户，即返回给浏览器。 
+在这个渲染的过程中，发挥作用的就是ViewResolver和View。当Handler返回的 ModelAndView 中不包含真正的视图，只返回一 
+个逻辑视图名称，ViewResolver 会把该逻辑视图名称解析为真正的视图View对象。View真正进行视图渲染，把结果返回 DispatcherServlet ，然后 DispatcherServlet 返回给浏览器。
+SpringMVC 用于处理视图最重要的两个接口是 ViewResolver 和 View. ViewResolver 的主要作用是把一个逻辑上的视图名称
+解析为一个真正的视图，SpringMVC 中用于把 View 对象呈现给客户端的是 View 对象本身，而ViewResolver只是把逻辑视图名称解析为对象的View对象。
+View接口的主要作用是用于处理视图，然后返回给客户端。
+
+UrlBaseViewResolver ：它是对 ViewResolver 的一种简单的时间，而且继承了 AbstractCachingViewResolver ，主要就是提供的一种拼接 URL 的方式来解析视图，它可以让我们通过
+prefix 属性指定一个指定的前缀，通过 suffix 属性指定一个指定的后缀，然后把返回的逻辑视图名称加上指定的前缀和后缀就是指定的视图 URL 了。如 prefix=如prefix=/WEB-INF/jsps/，
+suffix=.jsp，返回的视图名称viewName=test/indx，则UrlBasedViewResolver解析出来的视图URL就是/WEB-INF/jsps/test/index.jsp。默认的prefix和suffix都是空串。
+URLBasedViewResolver 支持返回的视图名称中包含 redirect: 前缀，这样就可以支持 URL 在客户端的跳转，如返回的视图是 "redierect:test.do"URLBasedViewResolver发现返回的视图名称包含”redirect:”
+前缀，于是把返回的视图名称前缀”redirect:”去掉，取后面的test.do组成一个RedirectView，RedirectView 中将把请求返回的模型属性组合成
+查询参数的形式组合到 redirect 的 URL 后面，然后调用 HttpServletResponse 对象的 sendRedirect 方法进行重定向。同样的同样URLBasedViewResolver还支持
+forword:前缀，对于视图名称中包含forword:前缀的视图名称将会被封装成一个InternalResourceView对象，然后在服务器端利用RequestDispatcher的forword方式
+跳转到指定的地址。使用UrlBasedViewResolver的时候必须指定属性viewClass，表示解析成哪种视图，一般使用较多的就是InternalResourceView，利用它来展现jsp，
+但是当我们使用JSTL的时候我们必须使用JstlView。下面是一段UrlBasedViewResolver的定义，根据该定义，当返回的逻辑视图名称是test的时候，UrlBasedViewResolver
+将把逻辑视图名称加上定义好的前缀和后缀，即“/WEB-INF/test.jsp”，然后新建一个viewClass属性指定的视图类型予以返回，即返回一个url为“/WEB-INF/test.jsp”
+的InternalResourceView对象。
+
+
+请求到 dispatcherServlet  ，
+然后 dispatcherServlet 将请求交给 HandlerMapping,  中间有很多拦截器
+HandlerMapping 将解析后的 URL 找到相应的 Handler 其实就是 类名.方法名 返回给 DispatcherServlet
+DispatcherServlet 将 Handler 交给 HandlerAdapter 执行，HandlerAdapter 执行方法完成后，将用户返回的数据封装成一个 ModelAndview 返回给 DispatcherServlet
+DispatcherServlet 将 ModelAndView 交给 ViewResolver  ViewResolver 将 ModelAndView 进行解析，(拼接上前缀后缀，查看是否是 redirect 等 将其从逻辑上的 URL 变成 完整的 URL)
+然后变成 一个 View 对象返回给 DispatcherServlet ，DispatcherServlet 将其交个 jsp 进行渲染视图。最终响应给 客户端
+
+
+
+如果你的 DispatcherServlet 拦截 /  还想访问静态文件的话。
+
+  方案一：激活 Tomcat 的 defaultServlet 来处理静态文件
+          <servlet-name>default</servlet-name>  
+            <url-pattern>*.jpg</url-pattern>  
+         </servlet-mapping>  
+         <servlet-mapping>  
+            <servlet-name>default</servlet-name>  
+            <url-pattern>*.js</url-pattern>  
+         </servlet-mapping>  
+         <servlet-mapping>  
+            <servlet-name>default</servlet-name>  
+            <url-pattern>*.css</url-pattern>  
+
+    要写在DispatcherServlet的前面， 让 defaultServlet先拦截，这个就不会进入Spring了。
+
+方案二： 在spring3.0.4以后版本提供了mvc:resources 的使用方法：
+     <mvc:resources mapping="/myimages/**" location="/images/" /></span>  
+        
+    /images/**映射到ResourceHttpRequestHandler进行处理，location指定静态资源的位置.可以是web application根目录下、jar包里面，这样可以把静态资源压缩到jar包中。
+    cache-period 可以使得静态资源进行web cache 如果出现下面的错误，可能是没有配置<mvc:annotation-driven />的原因。 
+    报错WARNING: No mapping found for HTTP request with URI [/mvc/user/findUser/lisi/770] in DispatcherServlet with name 'springMVC'
+
+    使用 <mvc:resources/> 元素，吧 Mappring 的 URI 注册带 SimpleUrlHandlerMapping 的 urlMap 中，key为mapping的URI pattern值，而value为ResourceHttpRequestHandler,
+    这样就巧妙的把对静态资源的访问由HandlerMapping转到 ResourceHttpRequestHandler 处理并返回,所以就支持classpath目录，jar包内静态资源的访问.另外需要注意的一点是，
+    不要对SimpleUrlHandlerMapping设置defaultHandler。因为对static uri的defaultHandler就是ResourceHttpRequestHandler，否则无法处理static resources request。
+
+
+方案三 ，使用<mvc:default-servlet-handler/>
+    会把"/**" url,注册到SimpleUrlHandlerMapping的urlMap中,把对静态资源的访问由HandlerMapping转到org.springframework.web.servlet.resource.DefaultServletHttpRequestHandler处理
+    并返回DefaultServletHttpRequestHandler使用，就是各个Servlet容器自己的默认Servlet。
+    补充说明：多个HandlerMapping的执行顺序问题：
+
+    DefaultAnnotationHandlerMapping的order属性值是：0
+
+    <mvc:resources/ >自动注册的SimpleUrlHandlerMapping的order属性值是：2147483646
+
+    <mvc:default-servlet-handler/>自动注册的SimpleUrlHandlerMapping的order属性值是：2147483647
+
+    spring会先执行order值比较小的。当访问一个a.jpg图片文件时，先通过DefaultAnnotationHandlerMapping来找处理器，一定是找不到的，我们没有叫a.jpg的Action。再按order值升序找，由于最后一个SimpleUrlHandlerMapping是匹配"/**"的，所以一定会匹配上，再响应图片。
+
+    注：如果DispatcherServlet拦截 *.do这样的URL，就不存上述问题了。
+
+
+对于 <mvc:view-controller path="/success" view-name="redirect:success"/> 
+    里面可以写 redirect 或 forward 就是和写 controller 的返回值一样写就好了
+
+path 表示地址栏访问的地址   view-name 表示 逻辑视图，
+    这样配置的话就会 不经过 controller ，直接到 ViewResolver 进行视图渲染，拼接上语句直接进行转发。
+    就相当于一个默认的 controller 直接返回 success 。而其 @RequestMapping("/success") 的默认 controller
+    当然本质上是没有 默认的 controller 的，应该是在 dispatcher 里面直接获取 xml 里面的参数，然后直接传给了 ViewResolver ViewResolver
+
+    使用了 <mvc:view-controller  的话 必须配置 <mvc:annotation-driven/> 不然配置了这个就不能访问 其他 controller 了
+
+ 
+<mvc:view-controller 和 <mvc:Resource
+    <mvc:view-controller 指的是一个默认的  controller 直接进行视图渲染  已经经过了 默认的 controller
+    <mvc:Resource 指的是通过 ResourceHttpRequestHandler 进行处理返回。不经过视图渲染  没有进过 dispatcher 的 mapping 等。
+        而是经过 dispatcherServlet 直接定位到了 静态文件，不经过 视图渲染等，
+        应该是在 dispatcherServlet 里面先去 ResourceHttpRequestHandler 查找到了相应的视图，然后就直接定位到相应的视图。
+        没有就报异常应该
+
+
+配置了 <mvc:view-controller 和 <mvc:Resource
+就必须配置 <mvc:annotation-driven></mvc:annotation-driven> 不然你自定义的 controller 就不能访问
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,82 @@
+org.springframework.aop.AopInvocationException: Null return value from advice does not match primitive return type for: public abstract boolean org.springframework.beans.factory.FactoryBean.isSingleton()
+        在调用around的时候，原方法的返回值(也就是你要织入的方法)与通知的返回值不一致。
+        从代码中看出：我是void 没有返回值，而我的login的方法是由返回值的！
+        所以修改方法是：aop代码中leave方法的返回值类型改为与织入方法返回值一样的类型。
+        我上面的代码修改方法是：把void 改为 Object。
+
+
+表单无法跳转可能是 boostrap 的 eamil 验证
+    input name='user.ULoginname' type="eamil" class="form-control" id="inputEmail3"
+								placeholder="ULoginname">
+        改成 type="text"
+
+
+Cannot call sendError() after the response has been committed
+    可能是 hibernate 多对多 懒加载造成的 多对多会自动懒加载，建议不要多对多！！！
+
+hibrenate 必须要在 service 里面使用。要有事务。注意不要在 filter 里面直接使用 dao 要使用 service 调用 dao. 因为 service 带了事务
+
+filter 在  filter 里面转发找不到页面。
+    因为 struts2 使用的是 filter ，而 filter 默认只拦截 REQUEST 不拦截 forward , 所以 转发的地址并不会被 struts2 的 filter 拦截到。
+    你必须 手动给 是trust2 的 filter 配置拦截 forward
+
+        web.xml 2.4版本里，默认的filter只拦截request。 
+        如果使用request.getRequestDispatcher("xx").forward(request,response)，属于服务器内部forward，不会被拦截器拦截，所以你需要为filter配置拦截forward才行。 
+
+            <filter>
+                <filter-name>struts2</filter-name>
+                <filter-class>org.apache.struts2.dispatcher.FilterDispatcher</filter-class>
+            </filter>
+            <filter-mapping>
+                <filter-name>struts2</filter-name>
+                <url-pattern>/*</url-pattern>
+                <dispatcher>REQUEST</dispatcher>
+                <dispatcher>FORWARD</dispatcher>
+           </filter-mapping>
+
+
+
+
+
+
+
+如果你遇到  cvc-complex-type.2.4.c: 通配符的匹配很全面, 但无法找到元素 'context:component-scan' 的声明。
+
+
+xsi:schemaLocation 加上：
+
+http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+
+可能是少了 tx xsd 
+
+
+
+Request method 'POST' not supported
+    你发的请求是 post 请求，没错的，但是你在 controller 里面的返回值里面写的是 return "forward:xxx"
+     而 xxx 是另一个 Controller 的映射，规定了必须要 get 请求，所以就出现了 Request method 'POST' not supported;
+     因为你转发过去的还是一个 post 请求。而 xxx 一定要是 get 请求，所以就报错了
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

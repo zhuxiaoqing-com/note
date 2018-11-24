@@ -1,0 +1,217 @@
+Quartz 定时任务
+Quartz 是一个完全由 Java 编写的开源作业调度框架，为在 java 应用程序中进行作业调度提供了简单却强大的机制。
+Quartz 实现了作业和触发器的多对多的关系，还能把多个作业与不同的触发器关联。
+
+Job 表示一个工作，要执行的具体内容
+JobDetail 表示一个具体的可执行的调度程序，Job 是这个可执行调度程序要执行的内容，另外 JobDetail 还包含了这个任务调度的方案和策略
+Trigger(触发器) 代表一个调度参数的配置，什么时候去调
+Scheduler(调度器) 代表一个调度容器，一个调度容器中可以注册多个 JobDtail 和 Trigger。当 Trigger 与 JobDetail 组合，
+    就可以被 Scheduler 容器调度了
+
+Quartz 环境
+结合 Spring 使用时，需要格外引入的 Jar
+quartz jar
+quartz-jobs
+
+
+<!-- 配置 quartz -->
+	<!-- 配置自定义的 job -->
+	<bean id="testJob" class="cn.zhu.rest.quartz.MyJob"></bean>
+	<!--
+		 配置jobDetail
+		使用 MethodInvokingJobDetailFactortBean 来声明调用对象以及调用方法
+	 -->
+	<bean id="testJobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+		<property name="targetObject" ref="testJob"></property>
+		<property name="targetMethod" value="test1"></property>
+		<!-- 设置作业不并发调用 -->
+		<property name="concurrent" value="false"></property>
+	</bean>
+	<!-- 配置作业带调度的触发方式(触发器) -->
+	<bean id="testTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+		<property name="jobDetail" ref="testJobDetail"></property>
+		<!-- 设置触发时间 -->
+		<property name="cronExpression" value="0/2 * * * * ?"></property>
+	</bean>
+	<!-- 配置 Quartz 调度工厂 -->
+	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+		<property name="triggers">
+			<list>
+				<ref bean="testTrigger"/>
+			</list>
+		</property>
+	</bean>
+
+    请记得引入 spring-tx jar 不然会报错
+    
+cronExpression
+    秒 分 小时 月内日期 月 周内日期 年(可选字段)
+月内日期 指的是 1-31 号 
+周内日期 指的是 1-7 或 周内日期
+月  指的是  1-12 或者 JAN-DEC	 
+
+字段   允许值                允许的特殊字符
+秒	 	0-59	 	            , - * /
+分	 	0-59	 	            , - * /
+小时	 	0-23	 	            , - * /
+日期	 	1-31	 	            , - *   / L W C
+月份	 	1-12 或者 JAN-DEC	 	, - * /
+星期	 	1-7 或者 SUN-SAT	 	    , - *   / L C #   1-7 的 1 是星期天  7 是星期六
+年（可选）	 	留空, 1970-2099	 , - * /
+
+* 字符被用来指定所有的值。如 "*" 在分钟的字段域里面表示每分钟。
+“-”字符被用来指定一个范围。如：“10-12”在小时域意味着“10点、11点、12点”。
+“,”字符被用来指定另外的值。如：“MON,WED,FRI”在星期域里表示”星期一、星期三、星期五”. 
+“?”字符只在日期域和星期域中使用。它被用来指定“非明确的值”。当你需要通过在这两个域中的一个来指定一些东西的时候，它是有用的。
+“L”字符指定在月或者星期中的某天（最后一天）。即“Last ”的缩写。但是在星期和月中“Ｌ”表示不同的意思，
+    如：在月子段中“L”指月份的最后一天-1月31日，2月28日，
+    如果在星期字段中则简单的表示为“7”或者“SAT”。如果在星期字段中在某个value值得后面，
+    则表示“某月的最后一个星期value”,如“6L”表示某月的最后一个星期五。
+
+“W”字符只能用在月份字段中，该字段指定了离指定日期最近的那个星期日。
+
+“#”字符只能用在星期字段，该字段指定了第几个星期value在某月中
+
+
+     0  0 12 * * ? 每天 中午 12 点触发
+     0 15 10 * * * 每天 上午 10 点 15 分触发
+     0 15 10 * * ? 每天 上午 10 点 15 分触发
+     0 15 10 * * ? * 每天 上午 10 点 15 分触发
+     0 15 10 * * ? 2005  2005 年每天上午10点触发
+     0 * 14 * * ?  每天 14点 到 14:59 期间的每一分钟触发一次
+     0 0/5 14 * * ?  每天 14点 到 14:59 之间 5分钟触发一次  0/5 表示 从 0 开始，每5分钟触发一次
+     0 0/5 14,18 * * ? 每天 14点 时间段和 18点时间段，从0分开始 5分钟触发一次
+     0 0-5 14 * * ?  每天 14 点 0-5分钟 每一分钟触发一次
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

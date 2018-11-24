@@ -1,0 +1,580 @@
+
+Spring Boot 入门
+
+    
+
+
+  2.0 新特性
+    Spring Boot2.0.1
+    JDK 基于 Java8(JDK1.7无法运行)
+    理论支持 Java9
+        jdk 不兼容报错 Unsupported major.minor version
+    Tomcat 8.x 起步 (8.x 以后支持 Http/2)
+    Manven 3 以上
+    Application 类只能扫描到 其类所在包，和子包下面的类
+
+
+
+
+   1. Spring 简介
+     简化 Spring 应用开发的一个框架;
+     整个 Spring 技术栈的一个大整合
+     J2EE 开发的一站式解决方案
+   
+
+   优点：
+     快速创建独立运行的 Spring 项目以及与主流框架集成
+     使用嵌入式的 Servlet 容器，应用无需打成 War 包
+     starters 自动依赖与版本控制
+     大量的自动配置，简化开发，也可修改默认值
+     无需配置 XML ，无代码生成，开箱即用
+     准生产环境的运行时应用监控
+     与云计算的天然集成
+
+
+
+
+微服务
+    微服务 架构风格(服务微化)
+    一个应用应该是一组小型服务，可以通过 HTTP 的方式互通
+
+    每一个功能最终都是一个可独立替换和独立升级的软件单
+
+
+
+
+ <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+
+Spring Boot 将所有的功能场景都抽取出来，做成一个个的 starters(启动器)，只需要在项目里面引入
+    这些 starter 相关场景的所有依赖都会导入进来，要用什么功能就导入什么场景启动器。
+
+
+@SpringBootApplication Spring Boot 应用标注在某个类是 SpringBoot 的主配置类，SpringBoot 就应该
+    运行这个类的 main 方法来启动 SpringBoot 应用
+
+
+@SpringBootApplication
+    内部其实是组合注解
+   
+    @Target({ElementType.TYPE})
+    @Retention(RetentionPolicy.RUNTIME)
+    @Documented
+    @Inherited
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
+    @ComponentScan(
+
+
+@SpringBootConfiguration  springBoot 配置类
+    标注在某个类上，表示这个是一个 Spring Boot 的配置类
+    里面的注解：
+      @Configuration ：配置类上来标注这个注解
+
+@EnableAutoConfiguration  开启自动配置功能
+    以前我们需要配置的东西，Spring Boot 帮我们自动配置，这个注解开启自动配置。
+        这样自动配置才能生效
+    里面的注解
+    @AutoConfigurationPackage : 自动配置包
+        @Import({Registrar.class})  Spring 底层注解，给容器中导入一个组件，导入的组件
+    将主配置类(@SpringBootApplication 标注的类)的所在包及下面所有子包里面的所有组件扫描到
+            Spring 容器中
+
+        
+    @Import({EnableAutoConfigurationImportSelector.class}) ：导入哪些组件的选择器
+        将所有需要导入的组件以全类名的方式返回，这些组件就会被添加到容器中
+        EnableAutoConfigurationImportSelector 导入哪些组件的选择器
+        将所有需要导入的组件以全类名的方式返回，这些组件就被添加到容器中
+        会给容器中导入非常多的自动配置类(xxxAutoConfiguration): 就是给容器中导入这个场景
+        需要的所有组件，并配置好这些组件(如 MQ功能，AOP功能)
+        有了自动配置类，免去了我们手动编写配置注入功能组件等工作
+        
+        SpringFactoriesLoader.loadFactoryNames（Class<?> factoryClass, ClassLoader classLoader)
+        从类路径下的 META-INF/spring.factories 中获取 EnableAutoConfiguration 指定的值
+        将这些值作为自动配置类导入到容器中，自动配置类就生效，帮我们进行自动配置工作
+        以前我们需要自己配置的东西，自动配置类帮我们配置了。
+        
+        所有的自动配置类都在 springboot.autoconfiguration 包下
+        
+        J2EE 的整体解决方案和自动配置都在 \org\springframework\boot\autoconfigure.jar 下
+
+
+
+
+
+
+    对于 SpringBoot 的主注解
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@SpringBootConfiguration
+@EnableAutoConfiguration
+@ComponentScan(excludeFilters = {
+		@Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
+		@Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
+public @interface SpringBootApplication {
+
+
+@SpringBootConfiguration
+其实就是一个 @Configuration
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Documented
+    @Configuration
+    public @interface SpringBootConfiguration {
+
+
+对于
+@EnableAutoConfiguration
+    
+        
+    @SuppressWarnings("deprecation")
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Documented
+    @Inherited
+    @AutoConfigurationPackage
+    @Import(EnableAutoConfigurationImportSelector.class)
+    public @interface EnableAutoConfiguration {
+        String ENABLED_OVERRIDE_PROPERTY = "spring.boot.enableautoconfiguration";
+        Class<?>[] exclude() default {};
+        String[] excludeName() default {};
+
+    }
+    
+    我们看见了 @Import(EnableAutoConfigurationImportSelector.class) 注入了
+        EnableAutoConfigurationImportSelector.class 类
+    public class EnableAutoConfigurationImportSelector
+		extends AutoConfigurationImportSelector {并没有什么有用的东西}
+
+我们进入 AutoConfigurationImportSelector
+      public class AutoConfigurationImportSelector
+    implements DeferredImportSelector, BeanClassLoaderAware, ResourceLoaderAware,
+    BeanFactoryAware, EnvironmentAware, Ordered {
+    最终继承了了 ImportSelector ；
+
+ImportSelector  Methods String[] selectImports(AnnotationMetadata anno)
+ImportBeanDefinitionRegistrar Methods void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry)
+
+    public String[] selectImports(AnnotationMetadata annotationMetadata) {
+		if (!isEnabled(annotationMetadata)) {
+			return NO_IMPORTS;
+		}
+		try {
+            // 获取 AutoConfiguration 的元数据 进入 >>1
+            // 得到 AutoConfigurationMetadata 里面维护者一个 properties 类  有 400多个
+			AutoConfigurationMetadata autoConfigurationMetadata = AutoConfigurationMetadataLoader
+					.loadMetadata(this.beanClassLoader);
+			AnnotationAttributes attributes = getAttributes(annotationMetadata);
+            // 进入这里 >>2 返回 96 个
+			List<String> configurations = getCandidateConfigurations(annotationMetadata,
+					attributes);
+			configurations = removeDuplicates(configurations);
+			configurations = sort(configurations, autoConfigurationMetadata);
+			Set<String> exclusions = getExclusions(annotationMetadata, attributes);
+			checkExcludedClasses(configurations, exclusions);
+			configurations.removeAll(exclusions);
+			configurations = filter(configurations, autoConfigurationMetadata);
+			fireAutoConfigurationImportEvents(configurations, exclusions);
+            // 最后将配置文件里面 \META-INF\spring.factories 96 个进行 import
+			return configurations.toArray(new String[configurations.size()]);
+		}
+		catch (IOException ex) {
+			throw new IllegalStateException(ex);
+		}
+	}
+    >>1
+    public static AutoConfigurationMetadata loadMetadata(ClassLoader classLoader) {
+        // protected static final String PATH = "META-INF/spring-autoconfigure-metadata.properties";
+        // META-INF/spring-autoconfigure-metadata.properties 里面登记着很多400多个注册器，但是有很多是没有指向 value 只有 key
+		return loadMetadata(classLoader, PATH);
+	}
+
+	static AutoConfigurationMetadata loadMetadata(ClassLoader classLoader, String path) {
+		try {
+            // 通过类加载器将 META-INF/spring-autoconfigure-metadata.properties 里面的数据加载进来
+			Enumeration<URL> urls = (classLoader != null ? classLoader.getResources(path)
+					: ClassLoader.getSystemResources(path));
+			Properties properties = new Properties();
+			while (urls.hasMoreElements()) {
+				properties.putAll(PropertiesLoaderUtils
+						.loadProperties(new UrlResource(urls.nextElement())));
+			}
+            // 变成 properties 返回
+
+			return loadMetadata(properties);
+		}
+		catch (IOException ex) {
+			throw new IllegalArgumentException(
+					"Unable to load @ConditionalOnClass location [" + path + "]", ex);
+		}
+	}
+
+
+
+
+
+EnableAutoConfiguration.class;
+
+\META-INF\spring.factories
+
+>>2
+    进入 AutoConfigurationImportSelector 类
+    // 传入的 metaData 并没有使用到
+    protected List<String> getCandidateConfigurations(AnnotationMetadata metadata,
+			AnnotationAttributes attributes) {
+            // getBeanClassLoader() return EnableAutoConfiguration.class; 进入
+		List<String> configurations = SpringFactoriesLoader.loadFactoryNames(
+				getSpringFactoriesLoaderFactoryClass(), getBeanClassLoader());
+		Assert.notEmpty(configurations,
+				"No auto configuration classes found in META-INF/spring.factories. If you "
+						+ "are using a custom packaging, make sure that file is correct.");
+		return configurations;
+	}
+
+进入
+SpringFactoriesLoader#loadFactoryNames
+    public static List<String> loadFactoryNames(Class<?> factoryClass, ClassLoader classLoader) {
+		String factoryClassName = factoryClass.getName();
+		try {
+            // FACTORIES_RESOURCE_LOCATION = \META-INF\spring.factories  // 指的是当前类加载器在的那个 jar 应该是
+			Enumeration<URL> urls = (classLoader != null ? classLoader.getResources(FACTORIES_RESOURCE_LOCATION) :
+					ClassLoader.getSystemResources(FACTORIES_RESOURCE_LOCATION));
+			List<String> result = new ArrayList<String>();
+			while (urls.hasMoreElements()) {
+				URL url = urls.nextElement();
+				Properties properties = PropertiesLoaderUtils.loadProperties(new UrlResource(url));
+				String factoryClassNames = properties.getProperty(factoryClassName);// 通过 EnableAutoConfiguration 来获取 相应的值
+				result.addAll(Arrays.asList(StringUtils.commaDelimitedListToStringArray(factoryClassNames)));
+			}
+            // 将其加载进来返回
+			return result;
+		}
+		catch (IOException ex) {
+			throw new IllegalArgumentException("Unable to load [" + factoryClass.getName() +
+					"] factories from location [" + FACTORIES_RESOURCE_LOCATION + "]", ex);
+		}
+	}
+    
+
+---------------------------------
+
+对于 @AutoConfigurationPackage
+
+    @Target(ElementType.TYPE)
+    @Retention(RetentionPolicy.RUNTIME)
+    @Documented
+    @Inherited
+    @Import(AutoConfigurationPackages.Registrar.class)
+    public @interface AutoConfigurationPackage {
+
+    }
+
+
+    static class Registrar implements ImportBeanDefinitionRegistrar, DeterminableImports {
+
+		@Override
+        // 继承了 ImportBeanDefinitionRegistrar
+		public void registerBeanDefinitions(AnnotationMetadata metadata,
+				BeanDefinitionRegistry registry) {
+            // 将整个包下面所有的类都注册了？！
+			register(registry, new PackageImport(metadata).getPackageName());
+		}
+
+		@Override
+		public Set<Object> determineImports(AnnotationMetadata metadata) {
+			return Collections.<Object>singleton(new PackageImport(metadata));
+		}
+
+	}
+    进入 Collections
+    public String getPackageName() {
+			return this.packageName;
+		}
+      这是 Constructor
+     PackageImport(AnnotationMetadata metadata) {
+            // metadata.getClassName() 获取的应该是当前注解标注的 全类名
+			this.packageName = ClassUtils.getPackageName(metadata.getClassName());
+		}
+    进入 ClassUtils
+    public static String getPackageName(String fqClassName) {
+		Assert.notNull(fqClassName, "Class name must not be null");
+        // PACKAGE_SEPARATOR = '.'
+		int lastDotIndex = fqClassName.lastIndexOf(PACKAGE_SEPARATOR);
+        // 将其最后类名截取掉。返回配置类的包名
+		return (lastDotIndex != -1 ? fqClassName.substring(0, lastDotIndex) : "");
+	}
+
+
+
+    这是 Spring 的注解
+
+通过阅读spring文档，可以知道 @AliasFor的用法：
+为一个注解中的变量声明别名。互为别名的两个变量必须是相同的类型，且必须有相同的默认值。
+   解： 必须互为别名，只要你为一个属性赋值就是给两个属性都赋值了
+
+为另一个注解中的变量声明别名。互为别名的两个变量必须是相同的类型，但不一定都要有默认值。
+当两个都有默认值但是默认值不一样且使用默认值的时候，使用的是新注解中的变量的默认值。
+解： 只要你为一个属性赋值就是给两个属性都赋值了；
+
+
+就是
+
+
+
+
+必须互为别名，只要你为一个属性赋值就是给两个属性都赋值了
+如果你使用了  @AliasFor 就只能为一个属性赋值了。如果你将互为 @AliasFor 的属性，都赋值
+    附上相同的值，没事。附上不同的值就会报错
+
+    public static void main(String[] args) throws Exception {
+        /*AnnotationAttributes attributes = AnnotatedElementUtils.getMergedAnnotationAttributes(MyPet.class, Pet.class);
+        System.out.println(attributes);*/
+        AnnotationAttributes attributes = AnnotatedElementUtils.getMergedAnnotationAttributes(MyDog.class, Pet.class);
+        System.out.println(attributes);
+        attributes = AnnotatedElementUtils.getMergedAnnotationAttributes(MyDog.class, Dog.class);
+        System.out.println(attributes);
+    }
+}
+
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@interface Pet {
+    @AliasFor("user")
+    String owner() default "";
+    @AliasFor("owner")
+    String user() default "";
+    String name() default "";
+}
+/* @Pet(owner = "ougwen1235")
+class MyPet {}*/
+
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Pet(owner = "ougwen1235")
+@interface Dog {
+    // @AliasFor(annotation = Pet.class, attribute = "name")
+    @AliasFor(annotation = Pet.class, attribute = "user")
+    String name() default "";
+}
+@Dog(name = "Wang")
+class MyDog {}
+
+
+
+
+
+
+======================================
+
+
+yml 文件详解
+    名称是固定的
+    application.properties
+    application.yml
+
+    配置文件的作用，修改 SpringBoot 自动配置的默认值
+    SpringBoot 在底层都给我们自动配置好
+
+    YAML YAML ain't Maekup Language
+    是一个标记语言
+
+
+k:(空格)v  : 表示一对键值对(空格必须有)
+    以空格的缩进来控制层级关系；只要是左对齐的一列数据，都是同一个层级的
+    
+    属性和值也是大小写敏感的
+
+
+
+值的写法
+    字面量：普通的值(数字，字符串，布尔)
+    k: v :字面量字节来写
+        字符串默认不用加上单引号或者双引号
+        "" 双引号。不会转义字符串里面的特殊字符。特殊字符会作为本身想表达的意思
+            name: "zhangsan \n lisi" 输出: zhangsan 换行 lisi
+        '' 单引号: 会转义特殊字符，特殊字符最终只是一个普通的字符串数据
+            name: 'zhangsan \n lisi' 输出: zhangsan \n lisi 
+        
+    对象、Map(属性和值)
+        k: v
+            对象还是 k: v 的方式 在下一行来写对象的属性和值的关系：注意缩进
+            Friedns: 
+                lastName: zhangsan
+                age: 20
+        行内写法
+            friends: {lastName: zhangsan,age: 18}
+
+    数组（List、Set）
+        用 - 值表示数组中的一个元素 -(空格)cat
+        pets:
+            - cat
+            - dog
+            - pig
+        行内写法
+       pets: [cat,dog,pig]     
+       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

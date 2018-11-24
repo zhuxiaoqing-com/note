@@ -1,0 +1,771 @@
+Mybatis 的 bean 对象  和  sql语句的别名也可以对应  
+
+
+mybatis 的全局配置文件
+
+properties
+    <properties resource=""></properties>
+    resource : 引入类路径下的资源
+    url: 引入网络路径或者磁盘路径下的资源
+    引入以后可以使用 ${} 来去除 properties
+
+
+settings
+    <settings></settings>
+    
+    mapUnderscoreToCamelCase     是否开启自动驼峰命名规则(camel case) 映射，即从经典数据库列名 A_COLUMN 到经典 java 属性
+    名 aColumn 的类似映射  默认为 false
+
+
+<typeAliases>
+    <!-- package 为某个包下的所有类批量其别名
+         name: 指定包名 （为当前包以及下面所有的后代包的每一个类都其一个默认别名(类名小写)，）    
+         别名不区分大写小  
+    -->
+    <package name="..."></package>
+</typeAliases>
+    也可以使用注解 直接在类上标注别名
+    @Alias("emp")
+    public class User{}
+
+
+plugins 插件标签
+    * Executor    执行器
+    * ParameterHandler  参数处理器
+    * ResultSetHandler  结果处理器
+    * StatementHandler  sql 语句处理器
+
+
+mappers  主要还是使用 package 标签来批量注册
+    mapper ：注册一个 sql 映射  
+    resource: 引入类路径下的磁盘文件
+    url: 引入网络路径下和磁盘路径下的文件
+        file:///var/mappers/AuthorMapper.xml  file:/// 不知道什么意思
+        File协议主要用于访问本地计算机中的文件，就如同在Windows资源管理器中打开文件一样
+             要使用File协议，基本的格式如下：file:///文件路径，比如要打开F盘flash文件夹中的1.swf文件，
+             那么可以在资源管理器或IE地址栏中键入：file:///f:/flash/1.swf并回车。
+             file表示协议类型
+            ://后面是机器的网络地址（IP地址）
+            /后面是文件夹（目录）和文件名
+             file://机器的IP地址/目录/文件
+                对于本地机器，机器的IP地址变成127.0.0.1或LocalHost或干脆什么也不写。
+                对于本地机器，根目录下的目录是Windows下的盘符，如“C:”、“D:”等。
+                file://127.0.0.1/C:/     本地C盘
+                file://localhost/D:/     本地D盘
+                file:///E:/              本地E盘                  
+    注册接口 
+        class : 引用(注册)接口，
+            1. 有 sql 映射文件，映射文件名必须和接口同名，并且放在与接口同一目录下;
+            2. 没有 sql 映射文件，所有的 sql 都是利用注解写在接口上的
+            <mapper class="..."/>
+        package ：批量注册
+            规则和 class 一样
+   注解的方式 写在接口的方法上
+    
+     @Select("select * from path_two")
+        List<PathTwo> FindAll();
+    如果已经使用 xml 映射过了  再使用注解就会报错
+
+    注解没什么卵用  多表查询 映射出错  而且修改注解要修改源代码，还要重新编译  麻烦
+
+
+你可以建立一个源文件 里面创建一个和 放置 Mapper.java 接口同样路径的 包，然后将 mapper.xml 放置在包里面
+
+    源码文件最后都会被合并在 bin  目录下
+
+
+mapper.java 接口
+    mybatis 允许增删改直接定义以下类型返回值
+        Integer 、 Long、Boolean 
+      因为 增删改 的映射文件 的标签里面没有返回值属性。但是我们可以直接定义在接口上也是会返回的
+
+Integer 、 Long 影响多少行
+Boolean  影响 0行返回 false 其他返回 true
+
+我们需要手动提交事务
+    sqlSessionFactory.openSession(); ===> 手动提交
+    sqlSessionFactory.openSession(true);  ===> 自动提交
+
+Mysql
+获取自增主键
+    <insert id="insertUser" parameterType="cn.zhu.mybatis.pojo.User">
+		<!-- 获取 key mysql 自增id 是先存数据在将自增 id 添加上去的所以order为 AFTER 如果是 orale 或 id 
+			是CHAR 类型的 UUID 那么 是先存 id 然后存数据的 所以是 before 
+			写了这个以后就会自动再 对象里面添加 id
+            keyProperty: 将查出的主键值封装给javabean 的哪个属性
+            如果 order:"before" 那么就会先执行这句 语句，然后将结果封装到 javabean 的 id 里面，
+            这样就可以再下面的语句里面使用 #{} 来使用查询到的数据了
+		-->
+		<selectKey keyProperty="uid" resultType="Integer" order="AFTER">
+			select LAST_INSERT_ID()
+		</selectKey>
+    	insert into t_user (username,password,address)
+		values (#{username},#{password},#{address})
+	</insert>
+
+第二种方法
+        <insert id="insertUser" parameterType="cn.zhu.mybatis.pojo.User" useGeneratedKeys="true" keyProperty="id" databaseId="mysql">
+        直接使用标签上面的属性
+        
+
+Oracle
+    Oracle 不支持自增 不会自动增长 需要你手动获取序列号来模拟自动增长 Oracle
+    Oracle 可以使用序列化来进行自动增长
+      select EMPLOYEES_SEQ.nextval from dual  来获取 Oracle 的当前表的下一个序列号。
+      就和  select LAST_INSERT_ID() 差不多
+
+还有一种方法
+    Before 
+        运行顺序：
+            先运行 selectKey 查询 id 的 sql; 查出 id 值封装给 javaBean 的 id 属性
+            再运行插入的 sql; 就可以取出 id 属性对应的值
+	<insert id="Oracle1">
+		<selectKey keyProperty="id" order="BEFORE">
+			<!-- 查询下一个 序列化 id  -->
+			 select EMPLOYEES_SEQ.nextval from user
+		</selectKey>
+		insert into user(id,name) values(${id},#{name})
+	</insert>
+    After  会有问题 因为 select EMPLOYEES_SEQ.currval from user 获取的是最后一条插入的 序列化
+            如果你同时插入了好几条的话，那么获取的就是最后一条插入语句的 序列化的值。可能并不是你
+            当前 标签的语句的 序列化 
+        运行顺序：
+            先运行插入的 sql (从序列中取出新值作为 id)
+            在运行 selectKey 查询 id 的 sql
+	<insert id="Oracle2">
+		<selectKey keyProperty="id" order="AFTER">
+			<!-- 查询当前的 序列化 id -->
+			 select EMPLOYEES_SEQ.currval from user
+		</selectKey>
+		insert into user(id,name) values(employees_seq.nextval,#{name})
+	</insert>
+
+
+
+mybatis  参数处理
+    * 单个参数： mybatis 不会做特殊处理，
+        #{参数名} 取出参数值
+
+    * 多个参数：mybatis 会做特殊处理。
+        多个参数会被封装成一个 map ,
+            key: param1 ... paramN , 或者是参数的索引arg1, arg0  argn  具体什么参数参考错误提醒  arg 是按照 你参数的 传递的位置 void User(arg0, arg1);
+            value: 传入的参数值
+            #{} 就是从 map 中获取指定的 key 的值;
+    
+    还可以使用注解来指定参数的 key  @Param
+    命名参数：明确指定封装参数时 map 的 key; @Param("id")
+        多个参数会被封装成一个 map 
+            key : 使用 @Param注解指定的值
+            value: 参数值
+            List<User> findAll(@Param("id")Integer id, @Param("name")String name);
+          #{指定的 key } 取出对应的参数值 
+Caused by: org.apache.ibatis.binding.BindingException: Parameter '0' not found. 
+    Available parameters are [arg0, arg1, param1, param2]
+	
+    多个参数带有 对象的比如 
+          List<User> findTwo(User user,@Param("xixi")Integer xixi);
+            也会默认为  [arg0, arg1, param1, param2]
+            不会将 对象属性封装到 map 里面去，
+            而是将 
+            param1 作为 key
+            对象 作为  value
+            封装到 map 里面
+
+
+   POJO：
+     如果多个参数正好是我们业务逻辑的数据模型，我们就可以直接传入 pojo;
+     #{属性名} ：取出传入的 pojo 的属性 
+
+   Map:
+    如果多个参数不是业务模型中的数据，没有对应的 pojo, 为了方便，我们也可以传入 map 
+    map 的键值对不变
+        #{key} 取出 map 中对应的值
+
+     如果传入对象： 对象的属性名作为key，属性值作为value，
+    
+    特别注意：如果是 Collection(List、set)类型或者是数组，
+        Collection (collection)  List(list)   数组(array)
+    如果传入List： "list"作为key，这个List是value （这类参数可以迭代，利用标签实现循环）
+
+    如果传入数组： "array"作为key，数组作为value（同上）如果传入Map： 键值不变。
+
+
+如果多个参数不是业务模型中的数据，但是经常要使用，推荐来编写一个 TO(Transfer Object) 数据传输对象
+
+
+    如果是注解 @Param 标注的话，可以使用 param1..n  来取值 ，也可以使用 注解 @Param("..") 里面的值。
+    如果是 Collection(List、set)类型或者是数组，只能使用 Collection (collection)  List(list)   数组(array)
+        来获取，不能使用 param1...paramN 来取值
+
+
+mybatis 将我们传递进去的参数使用 param1...paramN 作为 key  参数作为 value 封装到了 map 中
+         又使用 如果有 @param注解那么就用注解名，没有就使用 arg0...argN 封装了一次
+         也就是说 map 里面使用不同的 key 的方式 将相同的 value 封装了两次
+
+
+    如果是对象的话不会封装对象，到 map 里面去而是会使用 对象的 getter 和 setter 方法
+
+    #{} 和 ${} 区别
+        #{} 是以预编译的形式，将参数设置到 sql 语句中; PrepareStatement; 防止 sql 注入  a#{}s 就和  a'b's 一样
+        ${} 取出的值直接拼装在 sql 语句中;会有安全隐患 不能防止 sql 注入  是无缝拼装 a${}s  就和 abs 一样 
+            ${} 在单个取值时，必须使用 ${value} 才能获取，如果是别的值会报错，或者使用 @param("...") 来自定义 变量
+            如果是多个变量的时候就可以 使用 param1 ... paramN 来取值了
+    占位符的本质应该就是 将参数使用 '' 修饰起来，让其变成 字符串，不能拼接，不管怎么样都是一个整体 是 '' 不是 ""
+     大多数情况下，我们去参数的值都应该去使用 #{} 
+     原生 jdbc 不支持占位符的地方我们就可以使用 ${} 进行取值
+        比如分表：按照年份分表拆分
+            select * from ${year}_salary where xxx;
+            select * from tb1_employee order by ${f_name} ${order}
+
+     因为 mybatis 将 sql 语句写在了 xml 中，我们无法修改除了 jdbc 占位符不能的地方，使用 #{} 只能修改参数
+          所以 mybatis 就向我们提供了 ${} 让我们可以修改 sql 语句。
+
+
+#{}  更丰富的用法：
+    规定参数的一些规则
+        javaType、jdbcType、mode(存储过程)、numericScale、
+        resultMap、typeHandler、jdbcTypeName、expression(未来准备支持的功能)
+   jdbcType 通常需要在某种特定的条件下呗设置：
+      在我们数据为 null 的时候,有些数据库可能不能识别 mybatis 对 null 的默认处理。
+      比如 Oracle(报错):
+        jdbcType OTHER: 无效的类型；因为 mybatis 对所有的 null 都映射的是原生 jdbc 的 OTHER 类型。而 Oracle 不支持 OTHER 类型
+
+
+
+    #{email, jdbcType=NULL} 指定如果 email 为 null 的情况下 映射的类型。
+    默认字段为 null 的情况下 mybatis 会将 null 映射为 OTHER 
+
+mysql 可以识别 OTHER 而 Oracle 不能识别 OTHER  
+    有两种解决办法 
+        第一种： 手动改变映射情况
+              #{email, jdbcType=NULL} 指定如果 email 为 null 的情况下 映射的类型。
+               默认字段为 null 的情况下 mybatis 会将 null 映射为 OTHER 
+    
+        第二种 在全局配置里面改变 参数为 null 的时候，映射的类型
+                <settings>
+                <!-- 
+                    是否开启自动驼峰命名规则(camel case) 映射，即从经典数据库列名 A_COLUMN 到经典 java 属性
+                    名 aColumn 的类似映射
+                -->
+                    <setting name="mapUnderscoreTocameLcase" value="true"/>
+                    <!-- 在全局配置里面改变 参数为 null 的时候，映射的类型 -->
+                    <setting name="jdbcTypeForNull" value="NULL"/>
+                </settings>
+
+
+resultType:             
+    list
+    <!-- resultType 如果返回的是一个集合，要写集合中元素的类型 -->
+    map
+        // 返回一个 map key 就是列名， 值就是对应的 值
+        resultType="map" 直接写 map 就好了。这样就不会封装到 对象里面去，而是封装到 map 里面去
+        
+        //  多条记录封装一个 map ,Map<Integer,User> 键是这条记录的主键，值是记录封装后的 javabean   
+            resultType="cn.zhu.User"  
+            mybatis 会帮我们把 User 放到 Map 的 value 里面,但是怎么才能让 mybatis 将 id 帮我们放在 key 上呢
+                我们可以使用注解
+                     @MapKey("uid")
+                     Map<Integer, User> findUser();
+                     这样的话 key 里面存放的就是 对象 User 的 uid 的属性 不是数据库的字段
+
+
+
+resultMap:
+    自定义某个 javaBean 的封装规则
+    属性
+        type: 自定义规则的 java 类型
+        id: 唯一 id 方便引用
+    子标签 id：
+         指定主键列的封装规则
+         id 定义主键会底层有优化
+         column: 指定哪一列
+         property: 指定对应的 javaBean 属性
+    子标签 result：
+        定义普通列封装规则和 id 一样，当然也可以封装 id 列
+
+
+
+级联查询  一对一
+  第一种：
+    <!-- 
+		一对一映射  
+		联合查询：级联属性封装结果集
+        使用级联属性
+	-->
+	<resultMap type="cn.zhu.mybatis.onetoone.pojo.PathTwo" id="FindAllResult">
+		<id property="path_two_id" column="path_two_id"/>
+		<result property="path_two_name" column="path_two_name"/>
+		<result property="path_two_time" column="path_two_time"/>
+		<!-- 使用 属性(这个是PathTwo里面的pathOne).属性 -->
+		<result property="pathOne.path_one_name" column="path_one_name"/>
+	</resultMap>
+    
+  第二种：
+    <!--
+		 一对一映射
+		 使用 association 定义单个对象的封装规则 
+		 associtaion 可以指定联合的 javabean 对象
+		 javaType 指定这个属性对象的类型[不能省略]
+	-->
+        <!-- <resultMap type="cn.zhu.mybatis.onetoone.pojo.PathTwo" id="FindAllResult">
+            <id property="path_two_id" column="path_two_id"/>
+            <result property="path_two_name" column="path_two_name"/>
+            <result property="path_two_time" column="path_two_time"/>
+            
+            <association property="pathOne" javaType="cn.zhu.mybatis.onetoone.pojo.PathOne">
+                <result property="path_one_name" column="path_one_name"/>
+            </association>
+        </resultMap> -->
+
+第三种 
+    分布查询
+        <!-- 使用 association 进行分步查询 
+		1.先查询 pathtwo 
+		2.在查询 pathone
+	-->
+	<!--
+		path_two_id	path_two_name	path_two_time	path_one_id
+	  -->
+	<resultMap type="cn.zhu.mybatis.onetoone.pojo.PathTwo" id="findTwoAndOneByTwoIdResultMap">
+		<id column="path_two_id" property="path_two_id"/>
+		<result column="path_two_name" property="path_two_name"/>
+		<result column="path_two_time" property="path_two_time"/>
+		<!-- assiciation 定义关关联对象的封装规则
+			select 表明当前属性是调用 select 指定的方法查出的结果
+			column 指定将哪一列的值传给这个方法
+		 -->
+		<association property="pathOne" select="cn.zhu.mybatis.onetoone.mapper.PathTwoMapper.findOneById"
+		column="path_two_id">
+			<id column="path_one_id" property="path_one_id"/>
+			<result column="path_one_name" property="path_one_name"/>
+			<result column="path_one_time" property="path_one_time"/>
+		</association>
+	</resultMap> <!--path_two_id  -->
+
+
+分步查询的时候可以设置按需加载  延迟加载
+    再需要的时候再发送查询语句
+        <!-- 默认就是true  但是我们还是显示声明 -->
+		<setting name="lazyLoadingEnabled" value="true"/>
+		<!-- 开启按需加载 -->
+		<setting name="aggressiveLazyLoading" value="true"/>
+    
+
+<!-- 	是否开启自动驼峰命名规则(camel case) 映射，即从经典数据库列名 A_COLUMN 到经典 java 属性
+    名 aColumn 的类似映射 -->
+		<!-- <setting name="mapUnderscoreToCamelCase" value="true"/> -->
+		<!-- 在全局配置里面改变 参数为 null 的时候，映射的类型 -->
+		<setting name="jdbcTypeForNull" value="NULL"/>
+
+
+collection :
+    封装集合
+    <resultMap type="PathOne" id="FindAllListResult">
+        <result property="path_one_name" column="path_one_name"/>
+        <!-- 一对多映射 -->
+        <!-- ofType 指每一个 集合里面的 属性 -->
+        <collection property="pathTwoList" ofType="PathTwo">
+            <id property="path_two_id" column="path_two_id"/>
+            <result property="path_two_name" column="path_two_name"/>
+            <result property="path_two_time" column="path_two_time"/>
+        </collection>
+    </resultMap>
+
+   collection 也可以使用 select 
+   column="id"  id 为 列名 就是将查出来的 id 的值，传给 select 指定的配置文件。
+
+    再使用 select 的时候，是使用 column 来传递参数的，那么要传递多个参数呢
+    将多列的值封装 map 传递：
+        column="{key1=column1, key2=column2}"   key1 为其 key
+         column="{name=name, deptId=deptid}"
+        select 的语句 使用 #{key1} 来取相应的值
+
+collection 的 fetchType 属性
+fetchType="lazy": 表示使用延迟加载
+        lazy:  表示使用延迟加载   默认值  需要开启全局变量
+        eager: 表示立即加载  在开启了全局 延迟加载的时候，也可以使用 eager 让其立即加载
+
+
+discriminator : 鉴别器
+<resultMap type="cn.zhu.mybatis.onetoone.pojo.PathOne" id="findOneById1Result">
+		<id column="path_one_id" property="path_one_id"/>
+		<result column="path_one_name" property="path_one_name"/>
+		<result column="path_one_time" property="path_one_time"/>
+		<!-- javaType 不能少 -->
+		<discriminator javaType="integer" column="path_one_id">
+			<!-- 如果为1  就封装 list 如果为2 就不封装 list 将其名称改为废弃 -->
+			<!-- resultType 为 指定封装的结果类型
+				因为是 封装到 pathTwoList 里面，所以是 cn.zhu.mybatis.onetoone.pojo.PathOne
+				pathTwoList 是 PathOne 的属性
+			-->
+			<case value="1" resultType="cn.zhu.mybatis.onetoone.pojo.PathOne">
+				<collection property="pathTwoList" select="cn.zhu.mybatis.onetoone.mapper.PathTwoMapper.findTwoByOneId"
+				column="{oneId=path_one_id}">
+				
+				</collection>
+			</case>
+          
+			<case value="2" resultType="cn.zhu.mybatis.onetoone.pojo.PathOne">
+                <!-- 如果id 为2 就将 column path_one_time 里面的数据封装到 path_one_name 属性里面去 -->
+				<id column="path_one_id" property="path_one_id"/>
+			<result column="path_one_time" property="path_one_name"/>
+			
+			</case>
+		</discriminator>
+	</resultMap>
+    相当于一个  switch 然后 case 不同的选项 之前填充过到 bean 里面的数据 不会消失，当然你可以选择覆盖。
+
+    属性 
+        javaType 为 你要判断的属性的 类型
+        column   为 你要判断的列
+
+    子标签
+        <case value="" resultType></case>
+        value 为你的 column 的值，符合 value 就执行  case 下的代码
+            不符合就不执行  可以写多个
+         
+        resultType  指 你要封装的 case 里面的类型 
+        在 case 里面你可以将 属性从新赋值封装一次 就是覆盖封装
+
+
+
+动态 sql  
+  if foreach  where choose trim  set
+  是 OGNL 表达式
+  遇见特殊字符应该去写转义字符
+  可以在里面调用方法
+  int 和 string 类型的会自动判断
+if
+  <if test="判断的条件"></if>
+where
+    mybatis 会自动帮你 添加 where 并且帮你将第一个 多出来的 and 或者 or 去掉
+
+trim 
+       <trim prefix="" prefixOverrides="" suffix="" suffixOverrides=""></trim>
+    prefix ="where" 前缀  给 trim 里面的元素添加 where 前缀
+    prefixOverrides="and" 前缀重写  如果trim 里面的元素的前缀是 and 将其去除
+    suffix="on" 给 给 trim 里面的元素添加 on 后缀
+    suffixOverrides="and" 后缀重写  如果trim 里面的元素的后缀是 and 将其去除
+
+choose 分支选择
+    子标签 <when test="..."></when>
+    
+           <choose>
+	  	   	<when test=""></when>
+	  	   	<otherwise></otherwise>
+	  	   </choose>
+           和 jstl 标签一样
+
+set 标签
+    可以帮你去除 最后一个 ,  也可以使用 trim 标签来实现
+
+foreach 标签
+    <foreach collection="" item="" index="" separator="" open="uid in(" close=")"> #{}</foreach>
+    collection 要遍历的集合
+    item 将当前遍历出的元素赋值给指定的变量
+    index 遍历 list 的时候 Index 就是索引，item 就是当前值。
+          遍历 map 的时候 Index 表示的就是 map 的 key, item 就是 map 的值
+            
+    separator 遍历出来的元素 用什么符号分割 separator="," 在每个遍历出来的元素后面添加 , 最后一个不添加
+    #{变量名} 取出变量的值也就是当前遍历出的元素
+    open 遍历出所有结果拼接一个开始的字符
+    close 在遍历出所有的结果后面拼接的字符
+
+    foreach 也可以来进行批量保存
+        <!-- 批量保存 -->
+	<insert id="addPathTwos">
+		insert into path_two set(path_two_name, path_two_time, path_one_id) values
+		<foreach collection="list" item="two" separator=",">
+			(#{two.path_two_name},#{two.path_two_time},#{two.path_one_id})
+		</foreach>
+	</insert>
+
+    还有一种方式 需要使用 mysql 的连接器
+        allowMultiQueries  在一条语句中，允许使用 ";" 来分割多条查询  true / false  default : false
+           jdbc:mysql://localhost:3306/mydb1?characterEncoding=utf-8&allowMultiQueries=true
+
+        <foreach collection="list" item="two" separator=";">
+			insert into path_two set(path_two_name, path_two_time, path_one_id) 
+            values(#{two.path_two_name},#{two.path_two_time},#{two.path_one_id})
+		</foreach>
+        这样就可以了
+        第二种方式还可以用于其他的批量操作
+
+Oracle 
+    批量插入
+         <!-- oracle -->
+	<insert id="OracleAdd">
+		<foreach collection="list" item="two" open="begin" close="end">
+			insert into path_two set(path_two_name, path_two_time, path_one_id) values
+			(#{two.path_two_name},#{two.path_two_time},#{two.path_one_id});
+		</foreach>
+	</insert>
+
+    oracle 不能使用 values(),() 
+        但是可以将多个语句放在一起执行，只要在语句的前面 写  start 所有语句后面写 end 就可以了
+    
+
+mybatis 内置参数
+       <!-- 两个内置参数
+		不只是方法传递过来的参数可以被用来判断，取值。。。
+		mybatis 默认还有两个内置参数：
+		_parameter : 代表整个参数
+		单个参数：_parameter 就是这个参数
+		多个参数：参数会被封装成一个map,  _parameter 就是代表整个 map  
+	 -->
+         _databaseId: 如果配置了 databaseIdProvider 标签。
+		_databaseId 就是代表了当前数据库的别名 oracle
+    对 ${} 和 #{} 都有效 
+    一般如果参数是一个对象的话，会先用 _parameter 来判断一下对象是否为空，在使用其 #(属性名) 来获取数据。
+
+
+    <!-- 通过判断数据库来根据数据库执行不同的语句 -->
+         <select id="databaseOR">
+            <if test="_databaseId='oracle'">
+                select _ form t_user1
+            </if>
+            <if test="_databaseId='mysql'">
+                select _ form t_user2
+            </if>
+         </select>
+
+     <!-- 判断条件传入一个对象判断条件 是否存在 
+	 	如果不存在 存入的是 null null 的话是查不到录的
+	 -->
+	 <select id="fun1">
+	 	select * from t_user 
+	 	<if test="_parameter !=null">
+	 		where userName = #{_parameter}
+	 	</if>
+	 </select>
+
+
+bind 标签
+
+    <select id="fun1">
+	 <!-- bind: 可以将 OGNL 表达式的值绑定到一个变量中，方便后来引用这个变量的值  -->
+	 <bind name="_lastname" value="'%' + _parameter + '%'"/>
+	 <!-- 将  _parameter 拼接上 %% 然后赋值给 _lastname 下面的 sql 语句就可以使用 
+	 	_lastname 来使用 拼接好的值-->
+	 	select * from t_user 
+	 	<if test="_parameter !=null">
+	 		where userName = #{_lastname}
+	 	</if>
+	 </select>
+
+ sql 语句抽取标签。。。 
+
+
+mybatis 缓存 是先查二级缓存 再查 一级缓存 再去数据库
+
+
+Mybatis - spring 整合
+    查看不同 mybatis 版本整合 spring 时用的 适配包
+    http://www.mybatis.org/spring/
+
+    下载整个合适配包
+    https://github.com/mybatis/spring/releases
+
+    官方整合示例， jpetstore
+    https://github.com/mybatis/jpetstore-6
+
+ ssm 需要的 jar 包
+    看图
+
+
+mybatis 逆向工程
+      官网文档
+      http://www.mybatis.org/generator/
+
+      官方工程地址
+      https://github.com/mybatis/generator/releases
+
+
+
+
+
+
+myBatis  查询大字符串 text 什么的  myBatis  后面带有 BLOBS
+    因为大字符串查询很浪费资源 所以 你最好分两个方法 一个查询大字符串的  一个不查询大字符串的
+    mybatis 自动生成的代码 后面带 withBLOBs  代表查询大字符串 。 后面没带 代表不查询大字符串
+
+
+MyBatis 是怎么实现给予接口给实现类的
+       直接使用 invocationHandler 里面的 接口的method以及args
+        因为你已经拿到了  method 和 args ，那么你就可以获取 method 的 name .然后通过 mapper.xml 来找到 sql 语句，
+        通过 sql 语句 是什么标签 来调用 session 的哪个方法 比如：selectOne(...); 等方法 其实所有的select... 方法调用的都是 selectList 方法
+        只是 selectOne() 就取 selectList 返回值的一个元素而已。
+        然后执行完毕以后再判断其 method 的返回值，返回其相应的元素就好了
+
+对于怎么通过接口来实现类 使用  proxy  
+    可以获取接口的method和args
+    先获取proxy对象的超类接口  来匹配mapper.xml  匹配完成后，通过method来获取要调用哪个标签   
+    然后就标签的事了  标签看resultType  来映射一个或多个 bean，映射完成后 处理标签的方法将映射结果返回，
+    最后再判断 method的返回值  返回相应的值
+
+
+
+mapper接口方法返回值：
+
+如果是返回的单个对象，返回值类型是pojo类型，生成的代理对象内部通过selectOne获取记录
+如果返回值类型是集合对象，生成的代理对象内部通过selectList获取记录。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,642 @@
+[源码]-Spring容器创建-初始化事件派发器、监听器等.txt
+
+
+
+
+public void refresh() throws BeansException, IllegalStateException {
+		synchronized (this.startupShutdownMonitor) {
+			// Prepare this context for refreshing.
+            // 进行 容器刷新前预处理。处理一些我们自定义的一个属性，还有 new earlyApplicationEvents 来存储早期的事件，
+            // 以便等派发器的时候派发出去
+			prepareRefresh();
+
+			// Tell the subclass to refresh the internal bean factory.
+            // 获取 beanFactory 主要是 给 容器 GenericApplicationContext Constructor 的时候就创建的 ConfigurableListableBeanFactory
+            // 设置一个 serializable id 然后将其 beanFactory 获取过来
+			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+
+			// Prepare the bean factory for use in this context.
+            // 对 beanFactory 的一些预处理，主要注册一些属性，然后忽略一些属性使其不能通过其忽略的类型注入
+			prepareBeanFactory(beanFactory);
+
+			try {
+				// Allows post-processing of the bean factory in context subclasses.
+                // beanFactory 后置处理器
+				postProcessBeanFactory(beanFactory);
+
+				// Invoke factory processors registered as beans in the context.
+                // 运行 实现了 BeanFactoryPostProcessors 和 BeanDefinitionRegistryPostProcessor 的后置处理器
+				invokeBeanFactoryPostProcessors(beanFactory);
+
+				// Register bean processors that intercept bean creation.
+                注册 implements BeanPostProcessors 的类 它在 bean init-method 的前后运行 我们现在主要来看这里
+				registerBeanPostProcessors(beanFactory);
+
+				// Initialize message source for this context.
+                // 进入这里 初始化 MessageSource 组件，(做国际化功能；消息绑定,消息解析)
+				initMessageSource();
+                
+				// Initialize event multicaster for this context.
+                // 初始化 派发器
+				initApplicationEventMulticaster();
+                // 子类容器在这里面初始化 需要子类实现接口
+				// Initialize other special beans in specific context subclasses.
+				onRefresh();
+                // 初始化 Listeners
+				// Check for listener beans and register them.
+				registerListeners();
+
+				// Instantiate all remaining (non-lazy-init) singletons.
+				finishBeanFactoryInitialization(beanFactory);
+
+				// Last step: publish corresponding event.
+				finishRefresh();
+			}
+
+			catch (BeansException ex) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("Exception encountered during context initialization - " +
+							"cancelling refresh attempt: " + ex);
+				}
+
+				// Destroy already created singletons to avoid dangling resources.
+				destroyBeans();
+
+				// Reset 'active' flag.
+				cancelRefresh(ex);
+
+				// Propagate exception to caller.
+				throw ex;
+			}
+
+			finally {
+				// Reset common introspection caches in Spring's core, since we
+				// might not ever need metadata for singleton beans anymore...
+				resetCommonCaches();
+			}
+		}
+	}
+
+
+
+
+
+
+
+
+ // 初始化 派发器
+initApplicationEventMulticaster();
+    
+    protected void initApplicationEventMulticaster() {
+		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+        // 查看容器里面是不是定义了 id 为 applicationEventMulticaster 的类，定义了 就获取 将其实例化
+        // 没有就 false
+        // APPLICATION_EVENT_MULTICASTER_BEAN_NAME = applicationEventMulticaster
+		if (beanFactory.containsLocalBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME)) {
+			this.applicationEventMulticaster =
+					beanFactory.getBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster.class);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Using ApplicationEventMulticaster [" + this.applicationEventMulticaster + "]");
+			}
+		}
+		else {
+            // 没有就 new 一个 SimpleApplicationEventMulticaster
+            // new 完就存储在 AbstractApplicationContext 的成员变量里面
+			this.applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory);
+            // 将其存储到 BeanFactory 里面
+			beanFactory.registerSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, this.applicationEventMulticaster);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Unable to locate ApplicationEventMulticaster with name '" +
+						APPLICATION_EVENT_MULTICASTER_BEAN_NAME +
+						"': using default [" + this.applicationEventMulticaster + "]");
+			}
+		}
+	}
+
+
+
+// 初始化 派发器
+initApplicationEventMulticaster();
+
+结束了
+
+
+--------------------------------------------------------------------------------
+
+
+
+                // 子类容器在这里面初始化 需要子类实现接口
+                // Initialize other special beans in specific context subclasses.
+				onRefresh();
+
+
+                // 初始化 Listeners
+				// Check for listener beans and register them.
+				registerListeners();
+
+
+
+   我们再来看下 registerListeners();
+
+
+    protected void registerListeners() {
+		// Register statically specified listeners first.
+        // 因为是第一次，所以没有。
+        // 首先注册静态指定的监听器 我们没有静态指定。
+		for (ApplicationListener<?> listener : getApplicationListeners()) {
+			getApplicationEventMulticaster().addApplicationListener(listener);
+		}
+
+		// Do not initialize FactoryBeans here: We need to leave all regular beans
+		// uninitialized to let post-processors apply to them!
+        // 获取所有的 ApplicationListener 类型的 Listener
+		String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
+		for (String listenerBeanName : listenerBeanNames) {
+            // 添加到 ApplicationListenerBean 里面 >>1
+			getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
+		}
+
+		// Publish early application events now that we finally have a multicaster...
+        // earlyApplicationEvents 是我们 在 prepareRefresh(); 里面创建的 是 Refresh 的准备处理 
+        // 里面存储着 早期的 Event 
+		Set<ApplicationEvent> earlyEventsToProcess = this.earlyApplicationEvents;
+		this.earlyApplicationEvents = null;
+		if (earlyEventsToProcess != null) {
+			for (ApplicationEvent earlyEvent : earlyEventsToProcess) {
+                // 将其初始化 listener 初始化完成后，将早期的事件先发布出去 
+				getApplicationEventMulticaster().multicastEvent(earlyEvent);
+			}
+		}
+	}
+
+
+
+ 
+进入 AbstractApplicationEventMulticaster 类  >>1
+    public void addApplicationListenerBean(String listenerBeanName) {
+		synchronized (this.retrievalMutex) {
+			this.defaultRetriever.applicationListenerBeans.add(listenerBeanName);
+			this.retrieverCache.clear();
+		}
+	}   
+
+    其 private final ListenerRetriever defaultRetriever = new ListenerRetriever(false);
+        
+    而 ListenerRetriever 又是 内部类
+
+
+    private class ListenerRetriever {
+
+		public final Set<ApplicationListener<?>> applicationListeners;
+
+		public final Set<String> applicationListenerBeans;
+
+		private final boolean preFiltered;
+
+		public ListenerRetriever(boolean preFiltered) {
+			this.applicationListeners = new LinkedHashSet<ApplicationListener<?>>();
+            // 存在了这里面
+			this.applicationListenerBeans = new LinkedHashSet<String>();
+			this.preFiltered = preFiltered;
+		}
+
+
+
+
+
+
+
+
+8、initApplicationEventMulticaster();初始化事件派发器；
+		1）、获取BeanFactory
+		2）、从BeanFactory中获取applicationEventMulticaster的ApplicationEventMulticaster；
+		3）、如果上一步没有配置；创建一个SimpleApplicationEventMulticaster
+		4）、将创建的ApplicationEventMulticaster添加到BeanFactory中，以后其他组件直接自动注入
+9、onRefresh();留给子容器（子类）
+		1、子类重写这个方法，在容器刷新的时候可以自定义逻辑；
+10、registerListeners();给容器中将所有项目里面的ApplicationListener注册进来；
+		1、从容器中拿到所有的ApplicationListener
+		2、将每个监听器添加到事件派发器中；
+			getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
+		3、派发之前步骤产生的事件；
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

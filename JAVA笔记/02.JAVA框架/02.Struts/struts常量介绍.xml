@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.0//EN"  
+ "http://struts.apache.org/dtds/struts-2.0.dtd">  
+<struts>  
+       <!--指定Web应用的默认编码集.该属性对于处理中文请求参数非常有用,对于获取中文请求参数值,应该将该属性值设置为GBK或者GB2312;   
+           提示:当设置该参数为GBK时,相当于调用HttpServletRequest的setCharacterEncoding方法. >  
+ <constant name="struts.i18n.encoding" value="UTF-8" />  
+  -->  
+       <!--指定Struts 2默认的ObjectFactory Bean,该属性默认值是spring. >  
+ <constant name="struts.objectFactory" value="spring" />  
+  -->  
+       <!--指定Spring框架的自动装配模式, 该属性的默认值是name, 即默认根据Bean的name属性自动装配. >  
+ <constant name="struts.objectFactory.spring.autoWire" value="name" />  
+  -->  
+       <!--该属性指定整合Spring框架时,是否缓存Bean实例,该属性只允许使用true和false两个属性值,它的默认值是true.通常不建议修改该属性值. >  
+ <constant name="struts.objectFactory.spring.useClassCache" value="true" />  
+  -->  
+       <!--该属性指定处理multipart/form-data的MIME类型(文件上传)请求的框架,该属性支持cos,pell和jakarta等属性值, 即分别对应使用cos的文件上传框架,pell上传及common-fileupload文件上传框架.该属性的默认值为jakarta.   
+           注意:如果需要使用cos或者pell的文件上传方式,则应该将对应的JAR文件复制到Web应用中.例如,使用cos上传方式,则需要自己下载cos框架的JAR文件,并将该文件放在WEB-INF/lib路径下. >  
+ <constant name="struts.multipart.parser" value="jakarta" />  
+  -->  
+       <!--该属性指定上传文件的临时保存路径,该属性的默认值是javax.servlet.context.tempdir. >  
+ <constant name="struts.multipart.saveDir" value="" />  
+  -->  
+       <!--该属性指定Struts 2文件上传中整个请求内容允许的最大字节数. >  
+ <constant name="struts.multipart.maxSize" value="1000000000000" />  
+  -->  
+       <!--该属性指定需要Struts 2处理的请求后缀,该属性的默认值是action,即所有匹配*.action的请求都由Struts 2处理.如果用户需要指定多个请求后缀,则多个后缀之间以英文逗号(,)隔开. >  
+ <constant name="struts.action.extension" value="do" />  
+  -->  
+       <!--该属性设置是否通过JAR文件提供静态内容服务,该属性只支持true和false属性值,该属性的默认属性值是true. >  
+ <constant name="struts.serve.static" value="true" />  
+  -->  
+       <!--该属性设置浏览器是否缓存静态内容.当应用处于开发阶段时,我们希望每次请求都获得服务器的最新响应,则可设置该属性为false. >  
+ <constant name="struts.serve.static.browserCache" value="true" />  
+  -->  
+       <!--该属性设置Struts 2应用是否使用开发模式.如果设置该属性为true,则可以在应用出错时显示更多、更友好的出错提示.该属性只接受true和flase两个值,该属性的默认值是false.通常,应用在开发阶段,将该属性设置为true,当进入产品发布阶段后,则该属性设置为false. >  
+ <constant name="struts.devMode" value="false" />  
+  -->  
+       <!--该属性设置是否每次HTTP请求到达时,系统都重新加载资源文件(允许国际化文件重载).该属性默认值是false.在开发阶段将该属性设置为true会更有利于开发,但在产品发布阶段应将该属性设置为false.   
+           提示:开发阶段将该属性设置了true,将可以在每次请求时都重新加载国际化资源文件,从而可以让开发者看到实时开发效果;产品发布阶段应该将该属性设置为false,是为了提供响应性能,每次请求都需要重新加载资源文件会大大降低应用的性能. >  
+ <constant name="struts.i18n.reload" value="false" />  
+  -->  
+       <!--该属性指定视图标签默认的视图主题,该属性的默认值是xhtml. >  
+ <constant name="struts.ui.theme" value="simple" />  
+  -->  
+       <!--该属性指定模板文件的后缀,该属性的默认属性值是ftl.该属性还允许使用ftl、vm或jsp,分别对应FreeMarker、Velocity和JSP模板. >  
+ <constant name="struts.ui.templateSuffix" value="ftl" />  
+  -->  
+       <!--该属性设置当struts.xml文件改变后,系统是否自动重新加载该文件.该属性的默认值是false. >  
+ <constant name="struts.configuration.xml.reload" value="false" />  
+  -->  
+       <!--该属性指定Struts 2应用所需要的国际化资源文件,如果有多份国际化资源文件,则多个资源文件的文件名以英文逗号(,)隔开. >  
+ <constant name="struts.custom.i18n.resources" value="nationz" />  
+  -->  
+       <!--对于某些Java EE服务器,不支持HttpServlet Request调用getParameterMap()方法,此时可以设置该属性值为true来解决该问题.该属性的默认值是false.对于WebLogic、Orion和OC4J服务器,通常应该设置该属性为true. >  
+ <constant name="struts.dispatcher.parametersWorkaround" value="false" />  
+  -->  
+       <!--指定是否缓存FreeMarker模版。默认值false。>  
+ <constant name="struts.freemarker.templatesCache" value="true" />  
+  -->  
+       <!--该属性只支持true和false两个属性值,默认值是true.通常无需修改该属性值. >  
+ <constant name="struts.freemarker.wrapper.altMap" value="true" />  
+  -->  
+       <!--该属性指定XSLT Result是否使用样式表缓存.当应用处于开发阶段时,该属性通常被设置为true;当应用处于产品使用阶段时,该属性通常被设置为false. >  
+ <constant name="struts.xslt.nocache" value="false" />  
+  -->  
+       <!--该属性指定Struts 2框架默认加载的配置文件,如果需要指定默认加载多个配置文件,则多个配置文件的文件名之间以英文逗号(,)隔开.该属性的默认值为struts-default.xml,struts-plugin.xml,struts.xml,看到该属性值,所以应该明白为什么Struts 2框架默认加载struts.xml文件了. >  
+ <constant name="struts.configuration.files" value="struts-default.xml,struts-plugin.xml" />  
+  -->  
+       <!--设置映射器是否总是选择完整的名称空间。该属性的默认值时false。>  
+ <constant name="struts.mapper.alwaysSelectFullNamespace" value="false" />  
+  -->  
+       <!--设置Convention插件定位视图资源的根路径。默认值为/WEB-INF/content>  
+ <constant name="struts.convention.result.path" value="/WEB-INF/content/" />  
+   -->  
+       <!--Convention插件以该常量指定包作为根包>  
+ <constant name="struts.convention.action.package" value="default" />  
+   -->  
+       <!--是否从包中搜索Action>  
+ <constant name="struts.convention.action.disableScanning" value="false"/>  
+         -->  
+       <!-- 官方只说明在jboss下需要设置，情况不明 
+ <constant name="struts.convention.exclude.parentClassLoader" value="true" />   
+ <constant name="struts.convention.action.fileProtocols" value="jar,zip" />  
+  -->  
+       <!--包括哪些jar包中的action。逗号分割字符串。>  
+ <constant name="struts.convention.action.includeJars" value=".*?/_wl_cls_gen.*?jar(!/)?" />  
+  
+       <!--确定搜索包的路径。只要是结尾为action的包都要搜索。>  
+ <constant name="struts.convention.package.locators" value="action" />  
+   
+   -->  
+   <!-- 让过滤器不过滤的请求 逗号分割 后面值是正则表达式
+   <constant name="struts.action.excludePattern" value="/static/.*,/css/.*,/images/.*,/js/.*,/services/.*" />  
+   -->
+</struts>  

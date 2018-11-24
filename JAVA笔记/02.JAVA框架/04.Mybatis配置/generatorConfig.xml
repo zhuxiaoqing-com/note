@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE generatorConfiguration PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN" "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+<generatorConfiguration>
+	<classPathEntry	location="mysql-connector-java-5.1.5-bin.jar的路径"/>
+	<context id="DB2Tables"	targetRuntime="MyBatis3">
+ <!-- 配置pojo的序列化 -->
+       <plugin type="org.mybatis.generator.plugins.SerializablePlugin" />
+
+
+		<commentGenerator>
+			<property name="suppressDate" value="true"/>
+			<property name="suppressAllComments" value="true"/>
+		</commentGenerator>
+		<jdbcConnection driverClass="驱动" connectionURL="数据库连接地址" userId="用户名" password="密码">
+		</jdbcConnection>
+		<javaTypeResolver>
+			<property name="forceBigDecimals" value="false"/>
+		</javaTypeResolver>
+		<javaModelGenerator targetPackage="生成model的包名" targetProject="根目录文件夹">
+			<property name="enableSubPackages" value="true"/>
+			<property name="trimStrings" value="true"/>
+		</javaModelGenerator>
+		<sqlMapGenerator targetPackage="生成mapper.xml文件的包名" targetProject="根目录文件夹">
+			<property name="enableSubPackages" value="true"/>
+		</sqlMapGenerator>
+		<javaClientGenerator type="XMLMAPPER" targetPackage="生成dao的包名" targetProject="根目录文件夹">
+			<property name="enableSubPackages" value="true"/>
+		</javaClientGenerator>
+		<table tableName="数据库表名" domainObjectName="表在java项目中的名字" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"></table>
+	<!--	 不生成 Example 类	
+	<table tableName="question_logic" domainObjectName="QuestionLogic" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false"></table>
+	-->
+		<table tableName="question_logic" domainObjectName="QuestionLogic"></table>
+	</context>
+</generatorConfiguration>

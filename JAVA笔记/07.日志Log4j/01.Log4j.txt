@@ -1,0 +1,176 @@
+<!-- 配置log4j -->
+  <context-param>
+  	<param-name>webAppRootKey</param-name>
+  	<param-value>ssm.root</param-value>
+  </context-param>
+  <context-param>
+  	<param-name>log4jConfigLocation</param-name>
+  	<param-value>classpath:log4j.properties</param-value>
+  </context-param>
+  <context-param>
+  	<param-name>log4jRefreshInterval</param-name>
+  	<!-- 应该是毫秒 -->
+  	<param-value>6000</param-value>
+  </context-param>
+  <listener>
+  	<listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>	
+  </listener>
+
+Log4j 是 Apache 的一个开源项目，通过使用 Log4j, 我们可以控制日志信息输送的目的地控制台或文件。
+    我们可以控制每一条日志的输出格式，通过定义每一条日志信息的级别，我们能够更加细致地控制日志的生成过程。
+    这些可以通过一个配置文件来灵活地进行配置，而不需要修改应用的代码。
+    通俗点讲，Log4j 就是一个日志操作的工具包
+
+Log4j 主要是为了方便我们监测生产环境的变量值变化以及代码运行轨迹等
+这些记录会被输出到我们指定的位置形成文件，帮助我们分析错误以及用户请求轨迹。
+
+需要使用到的 jar
+    commons-logging-1.1.1 jar
+    log4j-1.2.12 jar
+
+Log4j 有三个主要的组件：
+    Loggers(记录器)
+    Appenders(输出源)
+    Layouts(布局)
+    
+ 这里可简单理解为日志类别，日志要输出的地方和日志以何种形式输出。综合使用这三个组件可以轻松地记录信息的类型和级别，
+    并可以在运行时控制日志输出的样式和位置。
+
+Loggers
+    Loggers 组件在此系统中被分为五个级别：DEBUG INFO WARN ERROR FATAL
+    这五个级别是有顺序的，DEBUG < INFO < WARN < ERROR < FATAL ,分别用来指定这条日志信息的重要程度，明白这一点很
+    重要，Log4j 有一个规则：只输出级别不低于设定级别的日志信息，假设 Loggers 级别设定为 INFO,DEBUG 就不会输出。
+
+具体还是看 PPT 把
+log4j.logger.packageName[.ClassName]=level[,appender]
+
+log4j.appender.xxx  xxx 表示 appender 的名称。这个名称用于 Logger 
+Threshold 表示当前输出的等级 如果没有设置以父级为准。
+java.util.log 为 appender 名称的话。那么 java.util 就是父类
+    假如一个记录器的名称后面跟着一个被认为是子记录器前缀的“.”号，那么它就被认为是另一个记录器的祖先
+    例如，名称为“com.foo”的记录器是名称为“com.foo.Bar”的父。相似的是，“java”是“java.util”的父，
+    是“java.util.Vector”的祖先。这个命名规则对大多数的开发人员来说应该是很熟悉的
+
+log4j.logger.packageName[.ClassName]=level[,appender]
+    logger . 后面可以指定 包名和类名
+
+rootLogger 表示根目录 根目录的 级别 供没有级别的类继承
+
+${ssm.root} 在 web.xml 里面设置
+
+
+############ ERROR	WARM	INFO	DEBUG#####################
+log4j.rootLogger=INFO,AConsole,AInfo,AError
+#Console   log4j.appender.AConsole appender
+log4j.appender.AConsole=org.apache.log4j.ConsoleAppender  表示控制台
+log4j.appender.AConsole.layout=org.apache.log4j.PatternLayout
+log4j.appender.AConsole.layout.ConversionPattern=%d %p [%c] - %m%n
+#info log
+log4j.logger.AError=INFO,AInfo // 因为 这个并没有指定哪个包，指定的是自定义的 appendler 所以没什么软用 
+log4j.appender.AInfo=org.apache.log4j.RollingFileAppender
+log4j.appender.AInfo.Threshold=INFO
+log4j.appender.AInfo.File=${ssm.root}/WEB-INF/log/AInfo.log
+log4j.appender.AInfo.MaxFileSize=51200KB
+log4j.appender.AInfo.MaxBackupIndex=5
+log4j.appender.AInfo.layout=org.apache.log4j.PatternLayout
+log4j.appender.AInfo.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} [%c]-[%p] %m%n
+#ERROR AError
+# 你也可以单独指定 appender 的 logger 等级 先不用管这个
+log4j.logger.AError=ERROR,AError // 因为 这个并没有指定哪个包，指定的是自定义的 appendler 所以没什么软用 
+log4j.appender.AError=org.apache.log4j.RollingFileAppender
+log4j.appender.AError.Threshold=ERROR
+log4j.appender.AError.File=${ssm.root}/WEB-INF/log/AError.log
+log4j.appender.AError.MaxFileSize=51200KB
+log4j.appender.AError.MaxBackupIndex=5
+log4j.appender.AError.layout=org.apache.log4j.PatternLayout
+log4j.appender.AError.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} [%c]-[%p] %m%n
+#package userdao
+log4j.logger.cn.zhu.user.dao=INFO,userdao
+log4j.appender.userdao=org.apache.log4j.RollingFileAppender
+log4j.appender.userdao.Threshold=INFO
+log4j.appender.userdao.File=${ssm.root}/WEB-INF/log/user/dao.log
+log4j.appender.userdao.MaxFileSize=51200KB
+log4j.appender.userdao.MaxBackupIndex=5
+log4j.appender.userdao.layout=org.apache.log4j.PatternLayout
+log4j.appender.userdao.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} [%c]-[%p] %m%n
+#package usercontroller
+log4j.logger.cn.zhu.user.handler=INFO,userhandler
+log4j.appender.userhandler=org.apache.log4j.RollingFileAppender
+log4j.appender.userhandler.Threshold=INFO
+log4j.appender.userhandler.File=${ssm.root}/WEB-INF/log/user/userhandler.log
+log4j.appender.userhandler.MaxFileSize=51200KB
+log4j.appender.userhandler.MaxBackupIndex=5
+log4j.appender.userhandler.layout=org.apache.log4j.PatternLayout
+log4j.appender.userhandler.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} [%c]-[%p] %m%n
+
+
+
+
+
+------------------------------------------------------------------------------------------
+
+详细介绍
+1. log4j.rootLogger
+这个配置是必须的，它的定义格式：
+log4j.rootLogger = level  , appenderName, appenderName, …
+
+  level 
+    是定义的输出级别，低于该级别的将不会输出，主要级别有OFF、ALL、FATAL、ERROR、WARN、INFO、DEBUG或
+    自定义级别，其中OFF设定的话将不输出任何信息，ALL设定的话将输出所有信息；另外5个的级别
+    FATAL>ERROR>WARN>INFO>DEBUG，如果你的lenel设定为INFO，那么不能输出DEBUG信息；
+  appenderName是指定日志信息输出到哪个地方，是写你配置的自定义 appender 
+  
+ log4j.logger
+
+这个不是必需的，如果不配置这个，则采用log4j.rootLogger的level级别。它主要是具体到package、Class级别的info，它的定义格式如下：
+
+log4j.logger.packageName[.ClassName]=level[,appender]
+
+它也可以输出到指定的appender，也可以不指定输出到默认appender。
+
+
+* log4j.appender.D.Threshold = DEBUG ## 规定 appender D 的输出的最低等级
+
+它是 子Logger 是否继承 父Logger 的 输出源（appender）的标志位。具体说，默认情况下子Logger会继承父Logger的
+appender，也就是说子Logger会在父Logger的appender里输出。若是additivity设为false，则子Logger只会在自己的
+appender里输出，而不会在父Logger的appender里输出。
+
+
+log4j.additivity.java.net=false 表示 java.net 只会在 java.net 里面输出 不会在 java 里面输出，
+    默认为 true 是会在 java 里面输出的
+    你设置了 java 那么就 java 不会往父类输出。
+    java.net 还是会往 java 输出
+
+log4j.additivity"后边跟的包路径必须和另一项配置"log4j.logger"后边跟的包路径能对上, log4j不会分析你的项目的包结构.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

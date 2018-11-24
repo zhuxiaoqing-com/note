@@ -1,0 +1,450 @@
+自定义类型转换器
+    你需要创建一个 类型转换器类，并 extends DefaultTypeConverter 可能会出现问题
+                                所以你要继承 StrutsTypeConverter 转换器
+    实现里面的方法 vonverValue. 
+    你可以再里面进行关键字过滤，时间格式转换等等
+public Object convertValue(Map<String, Object> context, Object value, Class toType) {}
+
+    value 是配置的要过滤的值。
+    toType 是 value 的属性
+    
+    只有 xml 配置过的值才会进来
+
+配置 xml 
+想要使用自定义类型转换器还需要配置 xml 文件
+    
+   局部类型转换器
+       * 在 Action类所在的包下放置 ActionClassName-conversion.properties
+        * 在里面写键值对   属性名称=类型转换器的全类名
+
+        例如  * LoginAction-conversion.properties
+              *  gender=cn.zhu.converter.action.UserConverter
+
+    自定义全局类型转换器
+        在 WEB-INF/classes 下或 src 文件夹下放置 xwork-conversion.properties 文件。内容为
+        带转换的类型=类型转换器的全类名
+        java.lang.String=cn.zhu.converter.action.UserConverter
+
+        xwork 表示全局
+
+    作者：Night Silent
+链接：https://www.zhihu.com/question/35663067/answer/64028288
+来源：知乎
+著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。
+
+StrutsTypeConverter 的源码
+public abstract class StrutsTypeConverter extends DefaultTypeConverter {
+    public Object convertValue(Map context, Object o, Class toClass) {
+        if (toClass.equals(String.class)) {//目标对象 -> String
+            return convertToString(context, o);
+        } else if (o instanceof String[]) {//String[] -> 目标对象
+            return convertFromString(context, (String[]) o, toClass);
+        } else if (o instanceof String) {//String -> 目标对象
+            return convertFromString(context, new String[]{(String) o}, toClass);
+        } else {//类型转换后的备选方案
+            return performFallbackConversion(context, o, toClass);
+        }
+    }
+}
+
+
+文件上传
+    需要导入 jar 包 
+        common-FileUpload 
+      * 文件上传时，需要改变 form 的 enctype 属性
+        enctype="multipart/form-data"
+
+        application/x-www-form-urlencoded: 默认值，表单数据被编码为"名称/值"对,这是标准的编码格式
+        multipart/form-data : 上传二进制数据
+        text/plain: 表单数据已纯文本形式进行编码,其中不含任何控件或格式字符
+
+    单文件上传
+        private File myFile; //上传的文件对象
+        private String myFileFileName; //上传的文件名
+        private String myFileContentType; //上传的文件的 MIME 类型
+
+        其中的 myFile 是你文件上传 input 的 name 属性。
+        写法是固定的
+
+
+   多文件上传
+        
+        private List<File> myFile; //上传的文件对象
+        private List<String> myFileFileName; //上传的文件名
+        private List<String> myFileContentType; //上传的文件的 MIME 类型
+
+        在 form 的 input 的 name 属性的值 全部写一样
+      
+            <input type="file" name="myFile">
+            <input type="file" name="myFile">
+            <input type="file" name="myFile">
+            <input type="file" name="myFile">
+            <input type="file" name="myFile">
+
+       
+
+
+    文件上传失败问题
+        要注意 struts2 默认文件上传最大为 2M
+        
+         <!--该属性指定Struts 2文件上传中整个请求内容允许的最大字节数. >  
+        <constant name="struts.multipart.maxSize" value="1000000000000" />  
+
+     <!--该属性指定需要Struts 2处理的请求后缀,该属性的默认值是action,即所有匹配*.action的请求都由Struts 2处理.如果用户需要指定多个请求后缀,则多个后缀之间以英文逗号(,)隔开. >  
+        <constant name="struts.action.extension" value="do" />  
+         <constant name="struts.action.extension" value="do,," /> 
+         第二个 , 表示匹配空格， 就是不需要后缀名就可以跳转
+
+
+  Tomcat Server.xml
+    <Context docBase="D:\xiazai" path="/xiazai"/>
+    其 项目名为 /xiazai  ，在浏览器里面输入 uri + /xiazai 可以访问 D:\xiazai 里面的文件
+
+
+
+文件下载
+        content-Type:application/octet-stream // 表示是任意的字节流，会强制浏览器打开save as对话框来保存文件  不会显示是什么类型的
+        content-Type:application/x-msdownload
+        content-Disposition:attachment;filename=downloadfile
+        content-Length:filesize
+
+    Content-Type ：发送给 Web 浏览器的数据流的 MIME 类型(默认是text/plain),即下载文件内容类型
+    Content-Length： 数据流的长度，以字节为单位(浏览器显示一个进度栏),即下载文件的长度
+    contentDisposition : 用于控制文件下载的以一些信息，可选择的设置包括： 默认为 inline
+        inline;filename="下载文件名"      表示下载文件在本页面内部打开
+        attachment;filename="下载文件名"  表示弹出 "文件下载" 对话框
+        具体还的看浏览器
+
+   inputName: Action 中用来下载文件的属性的名字，该属性的类型是 InputStream. 默认值是 inputStream
+   bufferSize: 文件数据从输入复制到输出的缓冲区的大小，默认为 1024 字节
+
+
+
+Action
+    private String contentType; //mime类型
+    private int contentLength;// 文件大小
+    private String contentDisposition;// 文件描述 固定信息
+    private InputStream inputStream;// 输入流
+
+
+    名称都是固定的 如果改变了 struts2 就会报错，说没有找到 该变量
+
+     // 获取文件 mime 类型
+        String mime = ServletActionContext.getServletContext().getMimeType(path);
+
+xml result 的 type ="stream"
+<result name="success" type="stream"></result>
+
+
+下载时文件的 头 也可以在 xml 里面描述
+
+            <result name="downLoad" type="stream">
+				<!-- 运行下载的类型，指定为所有的二进制文件 -->
+				<param name="contentType">application/octet-stream</param>
+				<!-- 下载头，包括：浏览器显示的文件名 --> 
+				<param name="contentDisposition">attachment;filename=${downFileName}</param>
+				<!-- 对应的是Action中属性： 返回流的属性【其实就是getAttrInputStream()】 -->
+                <param name="inputName">attrInputStream</param>
+                 <!-- 缓冲区大小设置 -->
+                <param name="bufferSize">1024</param>
+                <!-- 文件打小 -->
+                <param name="contentLength">${attrInputStream.available()}</param>
+			</result>
+
+
+------------------------------------------------------
+
+struts 国际化
+    
+    首先需要准备资源文件，资源文件格式如下:
+    baseName_language_country.properties
+    baseName_language.properties
+
+    其中 baseName 是资源文件的基本名，一个国际化的资源文件的名称必须一致。
+    hah_zh_CN.properties
+    hah_en_US.properties
+
+   准备好资源文件以后，所有资源文件必须放在 src 下面，当然你也可以新建一个源文件夹，和 src 同级就可以了，再运行的时候，默认是在 src 下面的。
+   然后可以使用 s 标签来进行国际化
+
+    准备好资源文件以后，我们可以在 struts.xml 中通过 struts.custom.i18n.resources 常量把资源文件定义为全局资源文件，如下：
+
+        <constant name="struts.custom.i18n.resources" value="myLanguage"></constant>
+            myLanguage 为资源文件的基本名
+
+如果不在 src 下，你需要自己指定 value 的具体位置
+        <constant name="struts.custom.i18n.resources" value="cn/zhu/language/action/myLanguage"></constant>
+
+
+      在 jsp 怎么使用该资源文件
+        在 jsp 页面中使用 <s:text name=""/> 标签输出国际化信息：
+        name 里面写的值为资源文件中的 key
+
+        在 action 类中，可以继承 ActionSuppot ，使用 getText() 方法来得到国际化信息
+                 String s = getText("welcome");
+                 getText("String key")  为资源文件的 key  
+                 会自动判断你的浏览器当前的语言，然后根据语言返回 你的 key 对应的语言的 value
+                 比如 welcome 的中文 为  "你好"
+                                英文为  "hello"
+                            你访问的 action 的浏览器的语言为 中文，那么 getText("welcome") 就会返回 "你好"
+
+        
+    你也可以使用 action  来控制浏览器的国际化的 语言环境
+
+           // 设置国家和语言
+        Locale locale = new Locale("en","US");
+        // 设置本地语言环境
+        ActionContext.getContext().setLocale(locale);
+        // 将语言环境配置放到 session 中
+        ServletActionContext.getRequest().getSession().setAttribute("WW_TRANS_I18N_LOCALE", locale);
+
+        这样的话 你的浏览器再访问 本服务器的时候默认是 美国 en_US 语言的。只能转发有效。 重定向就没用了
+            存到 getRequest() 也可以  那么为什么要存到 session 中
+            存到 session 中，要向所有action都享用一个国际化值  只要你是action 转发的都是 英文吧应该
+            存到 session 中的话，其他 action 不需要设置就是 session 存储的语言
+
+
+    国际化 -- 输出带占位符的国际化信息
+
+        在  hah_zh_CN.properties
+            hah_en_US.properties
+          中配置占位符
+            welcome=mememe{0} study{1}
+            这样 输出的是 mememe{0} study{1}
+
+            你可以在 jsp 这么配置
+
+            <s:text name="welcome" >
+                <s:param><s:property value="nishi"/></s:param>
+                <s:param>学习</s:param>
+            </s:text>
+            mememe{0} study{1}
+        这样{1} 就永远是 "学习"
+           {0} 的话 是从国际化里面取 nishi 是key 根据语言变化
+
+           也可以在 action 里面使用 getText(String key, String[] args) 或 getText(String key, List args);
+           意思是 如果获取的 key 里面有占位符的话就使用，数组里面的值来代替占位符
+            如果你是使用 getText(String key)  那么获取的 key 中带着占位符，那么会将占位符原本输出出来 
+
+
+    -----
+
+   国际化 Action 范围资源文件
+
+       我们也可以为某个 action 单独指定资源文件，方法如下：在 action 类所在的路径，放置
+       ActionClassName_language_country.properties 资源文件
+         ActionClassName 为 action 类的简单名称。
+         你也可以指定 包，在一整个包下面使用 包的名称 是固定的
+            package_en_US.properties
+            package_zh_CN.properties
+
+    ** 当查找指定 key 的消息时，系统会先从 ActionClassName_language_country.properties 资源文件查找。
+       如果没有找到对应的 key, 然后沿着 当前包往上 查找基本名为 package 的资源文件，一直找到最顶层包。
+       如果还没有找到对应的 key, 最后会从常量 struts.custom.i18n.resources 指定的资源文件中寻找
+
+
+
+    struts2 为我们提供了 <s:i18n> 标签，使用 <s:i18n> 标签我们可以在 类路径下直接从某个资源文件中获取国际化数据，
+    而无需任何配置：
+       <s:i18n name="cn.zhu.my">
+ 		<s:text name="welcome" >
+ 		<s:param><s:property value="nishi"/></s:param>
+ 		<s:param>学习</s:param>
+ 	</s:text>
+ 	</s:i18n>
+
+        name 属性值 为类路径下资源文件的基本名
+
+
+
+Struts2 自带的拦截器
+    Params 拦截器
+        负责将请求参数设置为 Action 属性
+    ServletConfig 拦截器
+        将源于 Servlet API 的各种对象注入到 Action 中
+    fileUpload 拦截器
+        对文件上传提供支持
+    exception 拦截器
+        捕获异常，并且将异常映射到用户自定义的错误页面
+    validation 拦截器
+        调用验证框架进行数据验证
+    workflow 拦截器
+        调用 Action 类的 validate(), 执行编码验证
+
+
+Struts2 内置拦截器
+    struts2 内建了大量的拦截器，这些拦截器以 name-class 对的形式配置在 struts-default.xml 文件中  在 struts 的 core 包里面
+    name 是拦截器的名称，就是以后使用该拦截器的唯一标识
+    class 则指定了该拦截器的实现类。
+    如果我们定义的 pageage 继承了 struts2 的 struts-default 包，则可以自由使用内置的拦截器，否则必须自己定义这些拦截器。
+
+
+
+
+
+自定义拦截器
+   implements interceptor
+   extends AbstractInterceptor
+   extends MethodFilterInterceptor
+
+   MehtodFilterInterceptor 通过指定 included/excluded 方法列表来选择拦截器或排除的方法，可以设置的参数如下：
+    excludeMethods ---- 要排除的方法。
+    includeMethods ---- 要拦截的方法。
+
+        <interceptor-ref name="validation">
+            <param name="excludeMethods">input,back</param>
+            <param name="includeMethods">input2,back2</param>
+        </interceptor-ref>
+
+        如果你写了 includeMethods 那么只会拦截你要拦截的方法
+        如果你写了 excludeMethods 那么只会排除你要排除的方法
+        如果你都写了那么以 你要 includeMethods 的的方法为准。其他默认都是  excludeMethods
+
+
+如果一个方法的名称同时出现在 excludeMethods 和 includeMethods 参数中，那么它会被当做要拦截的方法。
+    也就是说， includeMethods 优先于 excludeMethods 
+
+  
+  Struts2 对每一个 Action 的请求使用的是同一个拦截器实例来拦截调用 拦截器只会创建一次 ? 
+
+
+拦截器自定义了 默认的就会失效，所以要吧默认的也加进去
+
+
+
+struts中符号的使用比较灵活，尤其是“%”、“#”、“$”这三个符号的使用
+    都是获取值栈数据
+ 
+    “#”   访问非根对象（struts中值栈为根对象）访问 ActionContext.getContext context 里面的数据
+
+
+    “%”   符号的用途是在标签的属性值被理解为字符串类型时，告诉执行环境%{}里的是OGNL表达式。
+
+        在property标签中，value之后的字符串会自动被解析为OGNL表达式 所以不需要 使用 %
+        但是你在其他 Html 中就需要 % {} 了。 这样就可以获取 变量了  将字符串转换成了 OGNL 表达式
+
+    “$” 主要用在 xml 等配置文件中，告诉 struts2 这是 OGNL 表达式
+        可以在 xml 里面获取值栈的数据 
+
+        你可以在 OGNL 里面直接调用方法，如果是 get 方法的话，直接点属性 或 [''] 就可以了
+
+
+ OGNL 好处 
+    支持对象方法调用  如果报错了 最新版本的struts2不支持OGNL访问静态方法了
+    静态方法调用 @类的全路径@方法名  @类的全路径@属性名
+        @@floor(10.9) struts2 默认类  和 @Math@floor(10.9) 一样
+
+         CompoundRoot保存着这样的数据：
+
+            Action对象以及Action对象的成员属性数据
+            使用ValueStack对象.push()进去的数据
+            使用ValueStack对象.set()进去的数据
+            其他代理对象的数据
+            OgnlContext保存着这样的数据：
+
+            维护了CompoundRoot中所有的数据
+            request、response等域对象所有的数据
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

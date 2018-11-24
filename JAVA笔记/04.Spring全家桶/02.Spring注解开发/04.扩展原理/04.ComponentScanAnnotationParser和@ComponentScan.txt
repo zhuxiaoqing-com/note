@@ -1,0 +1,104 @@
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Documented
+@Repeatable(ComponentScans.class)
+public @interface ComponentScan {
+
+	@AliasFor("basePackages")
+	String[] value() default {};
+
+	@AliasFor("value")
+	String[] basePackages() default {};
+ 
+首先你要知道 basePackages 和 value 互为别名
+所以你给 basePackages 赋值就是给 value 赋值
+给 value 赋值就是给 basePackages 赋值
+并且两个人的属性必须一样，defult 也要一样，不然会报错
+
+
+然后我们看下
+    ComponentScanAnnotationParser 类
+看名字就知道这是一个  ComponentScanAnnotation 的解析器
+
+从这里进入 
+// componentScan 是已经解析好的类，是拥有 componentScan 注解的所有信息的类
+// declaringClass 是标记了 @Configuration  的类的全类名
+// 应该是我们传入的 AnnotationConfigApplicationContext 类的全类名
+public Set<BeanDefinitionHolder> parse(AnnotationAttributes componentScan, final String declaringClass) {
+		
+        // 获取 basePackages 就是我们的 value
+		Set<String> basePackages = new LinkedHashSet<String>();
+		String[] basePackagesArray = componentScan.getStringArray("basePackages");
+		for (String pkg : basePackagesArray) {
+			String[] tokenized = StringUtils.tokenizeToStringArray(this.environment.resolvePlaceholders(pkg),
+					ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS);
+			basePackages.addAll(Arrays.asList(tokenized));
+		}
+		for (Class<?> clazz : componentScan.getClassArray("basePackageClasses")) {
+			basePackages.add(ClassUtils.getPackageName(clazz));
+		}
+        // 如果为空的话就进行 ClassUtils.getPackageName(declaringClass)  进入
+		if (basePackages.isEmpty()) {
+			basePackages.add(ClassUtils.getPackageName(declaringClass));
+		}
+
+		scanner.addExcludeFilter(new AbstractTypeHierarchyTraversingFilter(false, false) {
+			@Override
+			protected boolean matchClassName(String className) {
+				return declaringClass.equals(className);
+			}
+		});
+        // 进行扫描 使用 basePackages  
+        // 在指定的基本包内执行扫描，返回已注册的bean定义。
+		return scanner.doScan(StringUtils.toStringArray(basePackages));
+	}
+
+
+
+进入 ClassUtils 
+    public static String getPackageName(String fqClassName) {
+		Assert.notNull(fqClassName, "Class name must not be null");
+		int lastDotIndex = fqClassName.lastIndexOf(PACKAGE_SEPARATOR);
+        // 将传入的类的包名返回
+		return (lastDotIndex != -1 ? fqClassName.substring(0, lastDotIndex) : "");
+	}
+
+
+
+得出结论，如果我们使用 @ComponentScan 没有使用 value 或 basePackages 属性指定包的话，就会默认使用
+    当前配置类的包名来进行扫描
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

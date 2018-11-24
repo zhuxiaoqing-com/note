@@ -1,0 +1,275 @@
+Spring 单元测试
+    需要 
+    <!-- spring Test -->
+		<!-- https://mvnrepository.com/artifact/org.springframework/spring-test -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+			<version>4.3.7.RELEASE</version>
+			<scope>test</scope>
+		</dependency>
+
+*  推荐 spring 的项目使用 spring 的单元测试，可以自动注入我们需要的 对象
+ *  1. 导入 springTest 模块
+ *  2. @ContextConfigration 指定 Spring 配置文件位置
+ *  3. 直接 autowirtd 
+ 在类上写
+@RunWith(value=SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations={"classpath:applicationContext.xml"})
+
+然后就可以
+     @Autowired
+    DepartmentMapper departmentMapper;
+    @Autowired
+    EmployeeMapper employeeMappers;
+      
+      直接注入了
+
+
+// 批量插入 
+    你需要在 applicationContext.xml 里面配置
+        
+    <!-- 配置一个可以执行批量的 sqlSession -->
+	<bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactoryBean"></constructor-arg>
+		<constructor-arg name="executorType" value="BATCH"></constructor-arg>
+	</bean>
+
+       如果报错就是 你的 mybatis 的版本问题 这个是在 spring 4.3.7.RELEASE  和 mybatis 3.4.2 下使用的  mybatis-spring 是 1.3.1
+        <dependency>
+			<groupId>org.mybatis</groupId>
+			<artifactId>mybatis</artifactId>
+			<version>3.4.2</version>
+		</dependency>
+
+然后在要用 批量的地方注入对象 
+
+     @Autowired
+    SqlSession sqlSession;
+
+ EmployeeMapper mapper = sqlSession.getMapper(EmployeeMapper.class); //  通过 mapper 类来获取 批量插入的对象
+        for (int i = 0; i <1000 ; i++) {
+            String uid = UUID.randomUUID().toString().substring(0, 5) + i;
+            mapper.insert(new Employee(null, uid, "M", uid+"@qq.com", 1));
+        }
+
+
+
+*<jsp:forward>:转发与RequestDispather的forward方法是一样的，一个是在Servlet中使用的，一个是在jsp中使用的
+
+
+mybatis 分页
+    网址
+        https://github.com/pagehelper/Mybatis-PageHelper/blob/master/wikis/zh/HowToUse.md
+
+    使用插件之前 你先要在 mybaits 里面配置拦截器 注意 plugins 的顺序
+       <plugins>
+		<plugin interceptor="com.github.pagehelper.PageInterceptor">
+			<!-- 分页参数合理化  配置这个以后 小于 0就是 0 大于最大就是 最大-->
+			<property name="reasonable" value="true" />
+			<!-- 数据库方言 -->
+			<!-- 设置数据库类型 Oracle,Mysql,MariaDB,SQLite,Hsqldb,PostgreSQL六种数据库-->        
+        <property name="dialect" value="mysql"/>
+		</plugin>
+	</plugins>
+
+    // 引入 PageHelper 分页插件
+         // 使用 pageHelper 来进行 分页 从第几页开始 一共要 5 页
+        Page<Employee> list = PageHelper.startPage(pageNumber, 5);
+        // 开始查询 因为使用了 分页所有不需要返回值了 自动将 返回值给了 list
+        employeeService.getAllEmployee();
+        // 传入你需要分几页  5 
+        PageInfo<Employee> pageInfo = new PageInfo<>(list, 5);
+        model.addAttribute("pageInfo", pageInfo);
+
+
+    System.out.println("当前页码" + page.getPageNum());
+        System.out.println("总记录数" + page.getTotal());
+        System.out.println("每页的记录数" + page.getPageSize());
+        System.out.println("总页码" + page.getPages());
+        int[] nums = info.getNavigatepageNums(); 页码页数  23456 什么的 自动就帮你分配了 你应该显示的页面
+        System.out.println("连续显示的页码 ：" );
+        for (int i : nums) {
+            System.out.println(i);
+        }
+          // 获取员工数据
+        List<Employee> list = pi.getList();
+        for (Employee employee : list) {
+            System.out.println(employee);
+        }
+
+    你可以查看 pageInfo 的源码 来获取想要的参数。都有注释！！！在第几页第几页什么的 
+
+    其实 pageInfo 也是 一个特殊的 bean 所以可以直接变成 json 返回给页面，也好给 iso 安卓 解析
+    
+    reasonable ：分页合理化参数，默认值为false。当该参数设置为 true 时，pageNum<=0 时会查询第一页， 
+    pageNum>pages（超过总数时），会查询最后一页。默认false 时，直接根据参数进行查询。
+
+
+使用原理：
+
+pageHelper会使用ThreadLocal获取到同一线程中的变量信息，各个线程之间的Threadlocal不会相互干扰，也就是Thread1中的ThreadLocal1之后获取到
+    Tread1中的变量的信息，不会获取到Thread2中的信息
+所以在多线程环境下，各个Threadlocal之间相互隔离，可以实现，不同thread使用不同的数据源或不同的Thread中执行不同的SQL语句
+所以，PageHelper利用这一点通过拦截器获取到同一线程中的预编译好的SQL语句之后将SQL语句包装成具有分页功能的SQL语句，并将其再次赋值给下一步操作，
+    所以实际执行的SQL语句就是有了分页功能的SQL语句
+
+
+EL{} 表达式显示 字符只能用 "" 不能用 '' 号
+
+
+
+/*
+    分页特别要注意的就是 给 li 添加点击事件，就是 如果你没有 禁用就给 点击事件，如果你禁用了 就不给点击事件
+    这样的话就不会出现禁用了，却还是发出请求了。因为禁用本质上只是一个动画效果，并不会真的禁用
+    而对于 pageHepler 的话也进行了过滤 配置了 reasonable 如果查了小于 第一页
+    就查第一页，如果查了超过总页数的，就查最后一页。
+ */
+
+
+
+你的jsp 的数据可以放在 按钮元素上，用 attr() 和 data() 建议 data data 是 jquery 特有的好像
+
+ // 为删除编辑按钮添加 id  也就说将 empid 存在了 按钮里面
+		 editBtn.data("edit-id",item.empId);
+		 delBtn.data("delete-id",item.empId);
+
+val() 设置 radio select 里面的值
+    你只要获取 其元素，然后更改元素的 val() 会自动将你传入的 val() 的值选中
+    $("radio").val(["M"]) 会自动选中 value = M , 的值
+必须要有 [] 不然没有用
+
+
+@RequestMapping(value="/emp/{empId}",method=RequestMethod.GET)
+    public Msg updateEmpById(Employee employee) {}
+    对于 "/emp/{empId}" 如果 入参是一个对象的话就会将 存其属性里面去，其本质应该是
+    {empId} 会先被放入request。然后才会被进行 数据处理，数据处理会将所有符合条件的数据全部
+    放到一个 Map 里面，然后再进行填充  至于 value="/emp/{empId} 和 直接带过来的参数有一样的，谁会被覆盖就
+    不得而知了  经过测试， PathVariable 的值会被先放入 request 中，然后 queryString（只代表URL?后面的
+    所以这里不是 queryString 而是 请求体) 会将 PathVraiable 里面的
+    值覆盖。
+
+
+对于 ajax 直接发送 PUT 请求
+    问题： 
+        请求体中有数据;
+        但是 Employee 对象封装不上
+
+    原因：
+        Tomcat:
+            1.将请求体中的数据，封装一个 map
+            2.request.getParameter("xxx") 就会从这个 map 中取值
+            3.SpringMVC 封装 POJO 对象的时候。
+                会把 POJO 中每个属性的值，request.getParamter("xxx") 取出
+    AJAX 发送 PUT 请求引发的血案：
+        PUT 请求，请求体中的数据，request.getParameter("xxx")取不到
+        Tomcat 一看是 PUT 请求，就不会封装请求体中的数据为 map,只有 POST 形式的请求才会封装请求体为 map
+        
+        Tomcat 源码 org.apache.catalina.connector.Request;
+        protected void parseParameters() {}(3218)
+
+         if( !getConnector().isParseBodyMethod(getMethod()) ) {
+                success = true;
+                return;
+            }
+            就是说如果 getConnector().isParseBodyMethod(getMethod()) 返回 false 就不进行 下边(没写我，但是源码里面有)
+            的解析 请求体将其封装到 Map 里面的行为了。
+        拿到连接器 调用其 方法判断请求体。我们来查看 public class Connector extends LifecycleMBeanBase类
+        连接器的方法
+            protected boolean isParseBodyMethod(String method) {
+
+                return parseBodyMethodsSet.contains(method);
+
+            }
+         是 从 parseBodyMethodsSet 是一个 Set 里面拿到值，那么 parseBodyMethodsSet 是怎么赋值的呢
+         parseBodyMethodsSet 是一个全局变量，默认是没有值的。我们找到了为 parseBodyMethodsSet 赋值的方法
+        
+            public void setParseBodyMethods(String methods) {
+
+                HashSet<String> methodSet = new HashSet<String>();
+
+                if( null != methods ) {
+                    methodSet.addAll(Arrays.asList(methods.split("\\s*,\\s*")));
+                    // 是通过这个规则将 methods 进行切割，封装在 methodSet 里面
+                }
+
+                if( methodSet.contains("TRACE") ) {
+                    throw new IllegalArgumentException(sm.getString("coyoteConnector.parseBodyMethodNoTrace"));
+                }
+
+                this.parseBodyMethods = methods;
+                this.parseBodyMethodsSet = methodSet;
+
+            }
+
+           
+
+        是通过 setParseBodyMethods 传入的  methods 赋值的，将其付给了  this.parseBodyMethodsSet = methodSet;
+        而 是 initInternal 方法调用了 setParseBodyMethods() 方法传入了 method
+         protected void initInternal() throws LifecycleException {
+
+        super.initInternal();
+
+        // Initialize adapter
+        adapter = new CoyoteAdapter(this);
+        protocolHandler.setAdapter(adapter);
+
+        // Make sure parseBodyMethodsSet has a default
+        if( null == parseBodyMethodsSet ) {
+            setParseBodyMethods(getParseBodyMethods());
+        }
+        }
+
+        而 getParseBodyMethods 又是通过 类的属性 parseBodyMethods 拿到的值
+            
+    public String getParseBodyMethods() {
+
+        return this.parseBodyMethods;
+
+    }
+    而 parseBodyMethods 也是一个全局变量 其值为
+    protected String parseBodyMethods = "POST"; 
+    所以只有 POST 才会 解析请求体，将其放入 请求体中，而 PUT 请求没有再 这里面 所以就不会解析 PUT 请求的请求体。
+    
+
+
+怎么解决 
+    SpringMVC 也为我们，提供了 一个解决方法，为我们提供了一个 Filter
+
+	<!-- 配置 能让 tomcat解析 PUT 请求的 filter
+	  它的作用：将请求体中的数据解析包装成一个 Map
+	  request 被重新包装，request.getParameter() 被重写，就会从自己封装的 map 中取数据
+	 -->
+	<filter>
+		<filter-name>HttpPutFormContentFilter</filter-name>
+		<filter-class>org.springframework.web.filter.HttpPutFormContentFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>HttpPutFormContentFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

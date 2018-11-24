@@ -1,0 +1,185 @@
+1 配置连接池
+    <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+			<property name="driverClass" value="${jdbc.driverClass}"></property>
+			<property name="jdbcUrl" value="${jdbc.jdbcUrl}"></property>
+			<property name="user" value="${jdbc.user}"></property>
+			<property name="password" value="${jdbc.password}"></property>
+		</bean>
+
+
+2 创建sqlSessionFatory 工厂
+    <!-- 创建sqlSessionFatory 工厂 -->
+		<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		 <property name="dataSource" ref="dataSource"></property>
+		 <property name="configLocation" value="classpath:sqlMapConfig.xml"></property>
+		</bean>
+
+3 创建事务
+    	<!-- 创建事务 -->
+		<bean name="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">       
+		  <property name="dataSource" ref="dataSource"></property>  
+		</bean>
+   		<!-- 开启事务扫描 -->
+   		<tx:annotation-driven transaction-manager="transactionManager"/>     
+
+4 创建 Mapper 动态代理开发 扫描
+    <!-- 配置 mapperFactory mapper动态代理开发 -->
+   		<!-- <bean id="userMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+   			<property name="sqlSessionFactory" ref="sqlSessionFactory"></property>
+   			<property name="mapperInterface" value="cn.zhu.dao.mapper.PathTwoMapper"></property>
+   		</bean> -->
+   		<!-- Mapper 动态代理开发 扫描 -->
+   		<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+   			<property name="basePackage" value="cn.zhu.dao.mapper"></property>
+   		</bean>
+
+
+
+5.设置 sqlMapConfig.xml 
+   设置别名
+    <!-- spring 配置文件已经设置过扫描了 所以这里不用设置了 -->
+	<!-- <mappers>
+		<package name="cn.zhu.ssm.mapper"/>
+	</mappers> -->
+
+
+
+
+
+
+<!-- 引入外部文文件 -->
+	<context:property-placeholder location="classpath:jdbc.properties"/>
+	<!-- 
+		为什么 事务需要连接池  sqlSessionFactory 也需要连接池
+			应该是 sqlSessionFactory 里面会有判断的 先从一个 容器里面获取 connetion  判断容器里面的 connection 是否存在
+			没有事务的话就由 sqlSessionFactory 自己使用 dataSource 自己获取
+			如果一直有事务的话 那么应该 不需要 往 sqlSessionFactory 里面注入 datasorce 了 但是不知道是不是有 dataSource 是否存在的判断
+			
+	 -->
+	<!-- 配置连接池 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${jdbc.driverClass}"></property>
+		<property name="jdbcUrl" value="${jdbc.jdbcUrl}"></property>
+		<property name="user" value="${jdbc.user}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+	</bean>
+	<!-- 配置事务 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	<!-- 开启事务注解扫描 -->
+	<tx:annotation-driven  transaction-manager="transactionManager"/>
+	
+	<!--
+		ORM 都需要一个 factory 类
+		所以你也需要一个 factory 来生产 ORM 必须的 session 
+		配置 myBatis 的 sqlSessionFactoryBean 
+		在 myBatis-spring jar 里面
+			因为是专门为整合 spring 写的 和 myBatis jar 里面的 sqlSesionFactory 不一样 
+				比如 connection 的获取 上面提到过
+		你需要配置数据源 和 mybatis 的配置文件的位置
+		classpath:在类路径上查找 
+		file:在磁盘路径下查找
+	 -->
+	 <bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+	 	<property name="dataSource" ref="dataSource"></property>
+		<property name="mapperLocations"> <!-- 这样注册不用将 xml 和 dao 写在一起 -->
+			<value>classpath:cn/zhu/user/**/mapper/*.xml</value>
+		</property> 
+	 </bean>
+	 
+	 <!--
+	  	mapper扫描
+	  	有了工厂以后你还需要一个 mapper制造工厂
+	  	前面的 sqlSesstionFactory 只是一个 session 工厂
+	  	而 mapperScannerVonfigurer 是 mapper 制造工厂 
+	  	有了这个工厂就不需要 自己来获取 session 然后手动制造 mapper 代理类了
+	  	由于会自动寻找 sqlSessionFactory 所以不需要手动注入
+	  -->
+	 <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+	 	<property name="basePackage" value="cn.zhu.**.dao"></property>
+		<property name="sqlSessionFactoryBeanName" value="sessionFactory"></property>
+	 </bean>
+
+
+======================================================
+
+<!-- 事务 -->
+
+<!-- 配置数据源 -->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+		<property name="driverClassName" value="${jdbc.driver}"></property>
+		<property name="url" value="${jdbc.url}"></property>
+		<property name="username" value="${jdbc.username}"></property>
+		<property name="password" value="${jdbc.password}"></property>
+	</bean>
+	<!-- sessionFactory -->
+	<bean id="sessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="mapperLocations">
+			<value>classpath:cn/zhu/user/**/mapper/*.xml</value>
+		</property> 
+	</bean>
+	<!-- dao 注入到 spring 中 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="cn.zhu.**.dao"></property>
+		<property name="sqlSessionFactoryBeanName" value="sessionFactory"></property>
+	</bean>
+	<!-- 事务 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	<!-- 声明 事务 生效的 规则 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="add*" propagation="REQUIRED"/>
+			<tx:method name="save*" propagation="REQUIRED"/>
+			<tx:method name="insert*" propagation="REQUIRED"/>
+			<tx:method name="create*" propagation="REQUIRED"/>
+			<tx:method name="update*" propagation="REQUIRED"/>
+			<tx:method name="delete*" propagation="REQUIRED"/>
+			<tx:method name="del*" propagation="REQUIRED"/>
+			<!-- 声明 查询为只读 -->
+			<tx:method name="find*" propagation="REQUIRED" read-only="true"/>
+			<tx:method name="select*" propagation="REQUIRED" read-only="true"/>
+			<tx:method name="*List" propagation="REQUIRED" read-only="true"/>
+			<tx:method name="query*" propagation="REQUIRED" read-only="true"/>
+			<!-- 声明 回滚 -->
+			<tx:method name="*" rollback-for="Exception"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- 配置一个切面 把事务 织入到 Service层 -->
+	
+	<aop:config>
+		<!-- Service级别事务 -->
+		<aop:pointcut expression="execution(* cn.zhu.*.*.service.*.*(..))" id="txPoint"/>
+		<!-- 应用事务的范围 以及 切入点 -->
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPoint"/>
+	</aop:config>
+	<tx:annotation-driven proxy-target-class="true" transaction-manager="transactionManager"/>
+	
+======================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

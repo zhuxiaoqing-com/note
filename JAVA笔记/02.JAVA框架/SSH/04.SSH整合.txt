@@ -1,0 +1,209 @@
+hibernate 和 spring 整合时候，hibernate 核心配置文件名称和位置没有固定要求的
+
+hibernate 框架对 hibernate 框架进行封装，使用 hibernateTemplate
+
+
+struts2 框架和 spring 框架整合
+    把 struts2 的 action 对象创建交给 spring 进行管理
+    <bean id="" class="" scope="prototype" />
+   在 struts2 里面的 action 的 class 里面写 再 spring 里面配置的 bean id 这样就实现了 将 action的创建交给了 spring
+
+    struts2 在继承了 ActionSupper 的情况下整合 spring 如果 <aop:config  proxy-target-class="true"> 不写这个 就会找不到 action 类
+    你只要不继承 ActionSupper 也不会报错
+    <aop:config  proxy-target-class="true">
+        applicationContext.xml文件中的<aop:config>标签的proxy-target-class属性值得问题，proxy-target-class属性有两个值：true或者false。
+        默认状态下，proxy-target-class属性的值为false，那么被代理类是基于javaSE（JDK）的动态代理（一般被代理类会实现接口）；
+        如果显式的设置了proxy-target-class属性的值为true，那么被代理类就将基于cglib动态代理（spring框架中的代理）。
+
+        
+
+
+spring 框架和 hibernate 框架整合
+    把 hibernate 核心配置文件里面的数据库配置，直接写在 spring 配置文件中
+    第一次访问很慢，因为第一次访问时候创建 sessionFactory 对象
+    把 sessionFactory 对象创建交给 spring 管理
+    在服务器启动时候创建 sessionFactory 对象
+    
+    因为加载 sessionFactory 需要
+    Configuration configuration = new Configuration();
+           configuration.configure();
+           sessionFactory = configuration.buildSessionFactory();
+
+    而 spring 的 xml 没法配置调用方法。那么就不能直接加载获取到 sessionFactory
+    spring 里面针对上面的情况，封装了一个类，配置类对象就可以创建 sessionFactory
+
+    <!-- 配置 hibernate 将 sessionFactory 创建交给了 spring 管理 -->
+		<!-- 注意用的是 hibernate5的版本！！ -->
+		<bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+			<!-- 指定使用 hibernate 核心配置文件 -->
+			<property name="configLocations" value="classpath:hibernate.cfg.xml"></property>
+			<!-- 指定数据源 -->
+			<property name="dataSource" ref="dataSource"></property>
+		</bean>
+		<!-- 创建 hibernateTemplate 对象 -->
+		<bean id="hibernateTemplate" class="org.springframework.orm.hibernate5.HibernateTemplate">
+			<property name="sessionFactory" ref="sessionFactory"></property>
+		</bean>
+
+    配置完 sessionFactory 以后还要配置 hibernateTemplate ，spring 对 hibernate 进行了封装。
+    配置完 hibernateTemplate 以后，再 dao 里面注入 hibernateTemplate ，然后就可以使用 hibernateTemplate 来操作数据库了。
+    注意： hibernate 必须要有 事务，如果你不开启事务 会报错，说你没有开启事务， 不开启事务都是无效操作。所以必须开启事务
+        还有一种是 hibernate.cfg.xml文件中 ：<property name="hibernate.current_session_context_class">thread</property>  
+        将其注释掉就好了
+
+
+    事务开启注意，每种对 数据库进行操作的框架，spring 都为其做了相对应了 事务管理器，也就是说不同的 dao 框架对应的事务管理器是不同的。
+    hibernate 有 hibernate 的事务管理器
+        
+<!-- 配置事务管理器 -->	
+	<bean id="hibernateTransaction" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<!-- 开启事务注解 -->
+	<!-- <tx:annotation-driven transaction-manager="hibernateTransaction"/> -->
+	<!-- 配置事务增强 -->
+	<tx:advice id="txadvice1" transaction-manager="hibernateTransaction">
+		<tx:attributes>
+			<tx:method name="*" propagation="REQUIRED"/>
+		</tx:attributes>
+	</tx:advice>
+	<!-- 配置切面 -->
+	<aop:config proxy-target-class="true">
+		<aop:pointcut expression="execution(* cn.zhu..*.*(..))" id="pointcut1"/>
+		<aop:advisor pointcut-ref="pointcut1" advice-ref="txadvice1"/>
+	</aop:config>
+	
+
+
+        SSH 框架整合过程
+
+      第一步导入 jar 包
+
+      第二步 搭建 struts 环境
+         1. 创建 action, 创建 struts.xml 配置文件，配置 action 注意 action 交给 spring 来创建 配置多实例的
+         2. 配置 struts2 的过滤器
+
+     第三步 搭建 hibernate 环境
+     hibernate3.jar核心  +  required 必须引入的(6个) +  jpa 目录  + 数据库驱动包
+        1. 创建实体类
+        2. 配置实体类和数据库表映射关系表
+        3. 创建 hibernate 核心配置文件 
+         4. 引入映射配置文件
+        
+     第四步 搭建 spring 环境
+        1. 创建 spring 核心配置文件
+        2. 让 spring 配置文件在服务器启动时候加载
+            配置监听器
+            指定 spring 配置文件位置
+
+     第五步 struts2 和 spring 整合
+        1. 把 action 在 spring 配置 （action 配置多实例的）
+        2. 在 struts.xml 中 action 标签 class 属性里面写 bean 的 id 值
+
+     第六步 spring 和 hibernate 整合
+        1. 把 hibernate 核心配置文件中数据库配置，在 spring 里面配置
+        2. 把 hibernate 的 sessionFactory 在 spring 配置    
+            
+     第七步 在 dao 里面使用 hibernateTemplate
+        1. 在 dao 注入 hibernateTemplate 对象
+        2. 在 hibernateTemplate 对象中注入 sessionFactory
+
+     第八步 配置事务
+
+
+      整合其他方式
+            spring 整合 hibernate 时候，可以不写 hibernate 核心配置文件
+                把 hibernate 核心配置文件中，基本配置和映射引入都放到 spring 配置中去
+     
+                将其 prop 注入到      hibernateProperties 属性里面
+                将映射文件配置注入到  mappingResources      属性里面
+
+
+                            <!-- 注意用的是 hibernate5的版本！！ -->
+            
+                <bean id="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+                    <!-- 指定使用 hibernate 核心配置文件 -->
+                    <!-- <property name="configLocations" value="classpath:hibernate.cfg.xml"></property> -->
+                    <!-- 指定数据源 -->
+                    <property name="dataSource" ref="dataSource"></property>
+                    <!-- 不使用导入的方式，直接将hibernate 的核心配置写在 spring 里面 -->
+                    
+                    <!-- 1.hibernate 基本信息配置 -->
+                    <property name="hibernateProperties">
+                        <props>
+                            <prop key="hibernate.show_sql">true</prop>
+                            <prop key="hibernate.format_sql">true</prop>
+                            <prop key="hibernate.hbm2ddl.auto">update</prop>
+                            <prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+                        </props>
+                    </property>
+                    <!-- 2.把映射文件引入配置 -->
+                    <property name="mappingResources">
+                        <list>
+                            <value>cn/zhu/domain/Stu.hbm.xml</value>
+                        </list>
+                    </property>
+                </bean>
+
+
+
+----------------------------------------------
+
+
+   Spring 分模块开发
+    1. 在 spring 里面配置多个内容，造成配置混乱，不利于维护
+    2. 把 spring 核心配置文件中，一部分放到单独的配置文件中，在 spring 核心配置文件中引入单独配置文件
+
+    <!-- 引入其他 spring 配置文件 -->
+		<import resource="classpath:user.xml"/>
+        classpath: 可以去掉 但是建议加上
+    
+
+多个 Spring 配置文件通过 import 方式整合的话：配置文件会先合并，后解析，也就是说，无论是命名空间还是配置的内容，都会合并处理。因为多个 Spring 配置文件最终会合并到一起（形成一个 ApplicationContext），因此这些配置中的 bean 都是可以互相引用的。
+
+ 另一个 xml 里面 照样引入 约束 和 beans 标签 。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

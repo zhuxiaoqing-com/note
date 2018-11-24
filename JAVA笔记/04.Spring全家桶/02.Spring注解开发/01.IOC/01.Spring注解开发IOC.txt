@@ -1,0 +1,675 @@
+
+* 配置类就等于以前的配置文件
+ * 
+ */
+@Configuration // 告诉 Spring 这是一个配置类
+@ComponentScan(value="cn.zhu") // 自动扫描注解 value 指定了其要扫描的 包和 context:component-scan 作用一样
+public class MainConfig {
+    @Bean(value="person01") // 给容器中注册一个 Bean,类型为返回值的类型，id 默认方法名作为 id
+    // 如果有 value 那么 id 以 value 为准
+    public Person person() {
+        return new Person("list", 20);
+    }
+}
+发现 @Configuration 没什么用，写不写里面东西都会正常生效。可能是有多个配置类就必须标注了。
+因为我没写的也有效的那个配置类是我直接传入  AnnotationConfigApplicationContext的；
+
+
+
+
+    使用 
+        ApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext(MainConfig.class);
+        Object bean = annotationConfigApplicationContext.getBean("person");
+        // 获取 ioc 容器中所有 bean  的 id  获取的是定义时候的 Id  
+        // Spring 分为 定义(注册) 和 实例化 
+        // 所有可能成为 bean 的全部是先 定义(注册)过的。 然后才实例
+        // 定义是代表 IOC BeanFactory 会创建这个 Bean. 实例化只是能拿到对象了
+        String[] beanDefinitionNames = annotationConfigApplicationContext.getBeanDefinitionNames();
+        System.out.println(bean);
+
+    AnnotationConfigApplicationContext 来指定配置类的位置
+    
+
+
+
+@ComponentScan(value = "cn.zhu", excludeFilters= {@Filter(type=FilterType.ANNOTATION, classes={Controller.class,Service.class})}) // 自动扫描注解 value 指定了其要扫描的 包和
+                                 // context:component-scan 作用一样
+// excludeFilters 要排除的注解
+
+意思是 排除 被 Controller 注解注释的 类，就是不扫描被 Controller 注解注释的类
+
+    按照
+
+excludeFilters= {@Filter(type=FilterType.ANNOTATION)}
+
+FilterType.ANNOTATION           按照注解排除
+FilterType.ASSIGNABLE_TYPE      按照给定的类型排除
+FilterType.ASPECTJ              按照 ASPECTJ 表达式排除
+FilterType.REGEX                按照 正则表达式排除
+FilterType.CUSTOM               自定义排除
+
+  
+includeFilters ：和 excludeFilters  相反 想要让 includeFilters 生效 必须配置 useDefaultFilters=false，使默认的扫描全部注解的配置失效
+
+
+@Configuration // 告诉 Spring 这是一个配置类
+@ComponentScan(value = "cn.zhu", excludeFilters= {@Filter(type=FilterType.ANNOTATION, classes=Controller.class)},
+ useDefaultFilters=false) // 自动扫描注解 value 指定了其要扫描的 包和
+                                 // context:component-scan 作用一样
+// excludeFilters 要排除的注解
+
+
+// 可以指定多种扫描规则
+@ComponentScans(value= {@ComponentScan(value = "cn.zhu", excludeFilters= {@Filter(type=FilterType.ANNOTATION, classes=Controller.class)},
+    useDefaultFilters=false),@ComponentScan(value = "cn.zhu", excludeFilters= {@Filter(type=FilterType.ANNOTATION, classes=Controller.class)},
+    useDefaultFilters=false)})
+value  是一个 @ComponentScan 的数组;
+
+
+
+---------------------------
+
+
+@ComponentScan   自动扫描注解 value 指定了其要扫描的 包和 context:component-scan 作用一样
+     value  指定要扫描的包
+     useDefaultFilters false和true 默认 true ：意思是是否开启默认配置(扫描所有注解)
+     excludeFilters  要排除的注解
+     includeFilters  包含的注解 需要配置  useDefaultFilters=false 因为默认是全部扫描的，不需要 includeFilters 指定
+     excludeFilters 和 includeFilters  是一个  @Filter 数组，可以定义多个规则，第一个规则先过滤，符合的再第二个规则，这样过滤的
+        里面的属性    
+            @Filter  
+                type ：值是一个枚举类
+                    FilterType 其规则是
+                        FilterType.ANNOTATION           按照注解排除
+                        FilterType.ASSIGNABLE_TYPE      按照给定的类型排除
+                        FilterType.ASPECTJ              按照 ASPECTJ 表达式排除
+                        FilterType.REGEX                按照 正则表达式排除
+                        FilterType.CUSTOM               自定义排除
+
+                 classes  @Filter 指定的规则匹配的类，
+                     @Filter(type=FilterType.ANNOTATION, classes=Controller.class) 就是按照注解排除，然后要排除的类是 Controller.class;
+                 pattern 指定表达式
+
+
+
+
+FilterType 其规则是
+    FilterType.ANNOTATION           按照注解排除                  
+        @Filter(type=FilterType.ANNOTATION, classes=Controller.class)
+    
+    FilterType.ASSIGNABLE_TYPE      按照给定的类型排除            
+        @Filter(type=FilterType.ASSIGNABLE_TYPE, classes=BookService.class)
+           将其 BookService 的子类以及实现类和其本身类 排除
+    
+    FilterType.ASPECTJ              按照 ASPECTJ 表达式排除       
+        
+            
+    FilterType.REGEX                按照 正则表达式排除           
+        @Filter(type=FilterType.REGEX, pattern="")
+    
+    FilterType.CUSTOM               自定义排除                    
+        @Filter(type=FilterType.CUSTOM, classes=MyTypeFilter.class)
+        /** Filter candidates using a given custom
+         * {@link org.springframework.core.type.filter.TypeFilter} implementation.
+         */
+            CUSTOM
+            你需要自定义一个 类来实现 org.springframework.core.type.filter.TypeFilter
+            然后 classes 指定这个类
+           
+         public class MyFilterType implements TypeFilter {
+
+            @Override
+            public boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory)
+                    throws IOException {
+                // metadataReader 读取到的当前正在扫描的类的信息
+                // metadataReaderFactory 可以获取到 其他任何类信息
+                // 返回 false 匹配失败， true 匹配成功
+                // 获取当前类注解的信息
+                AnnotationMetadata annotationMetadata = metadataReader.getAnnotationMetadata();
+                // 获取当前正在扫描的类的类信息 
+                ClassMetadata classMetadata = metadataReader.getClassMetadata();
+                // 获取当前类资源(类的路径等) 
+                Resource resource = metadataReader.getResource();
+                
+                return false;
+            }
+        }   
+
+    注意你的规则
+        {@ComponentScan(value = "cn.zhu", excludeFilters= {@Filter(type=FilterType.CUSTOM, classes=MyTypeFilter.class)}
+        这样的话会扫描  cn.zhu 包下的所有对象，不管你有没有写了 @Controller.等注解。只要 cn.zhu 包下符合条件的 类，会被
+        全部加载进 IOC 容器。
+    其默认会有一个 useDefaultFilters=true; 会先将有 @Component 及其子类注解 注解的类加载进IOC 容器。
+        然后再由 excludeFilters 过滤
+
+
+-----------------------------------------
+
+@Socpe
+
+  // 默认 singleton
+    @Lazy
+    @Scope(value="prototype")
+    @Bean(value = "person01") // 给容器中注册一个 Bean,类型为返回值的类型，id 默认方法名作为 id
+    // 如果有 value 那么 id 以 value 为准
+    public Person person() {
+        return new Person("zhangsan", 20);
+    }
+
+
+@Lazy
+懒加载
+      容器启动不创建对象，第一次使用 bean 时创建对象，并初始化
+
+
+
+// 获取我们的运行环境
+    Environment environment = annotationConfigApplicationContext.getEnvironment();
+    String property = environment.getProperty("os.name");
+    System.out.println(property); // Windows 7
+
+
+------------------------------------------------
+
+ /**
+     * @Conditional  按照一定的条件进行判断，满足条件给容器中注册 bean
+     * 如果是 Windows 放行 bill
+     * 如果是 Linux 放行 linux
+     */
+@Conditional 
+    按照一定的条件进行判断，满足条件给容器中注册 bean
+        可以放在 类和方法上面
+    Class<? extends Condition>[] value();
+        Condition
+           boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata);
+           
+            public class WindowsCondition implements Condition{
+
+                @Override
+                public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+                    // ConditionContext  判断条件能使用的上下文(环境)
+                    // AnnotatedTypeMetadata  当前标注了 Condition 注解的注释信息
+                    // 是否为 Windows 系统 
+                    // 获取到 IOC 使用的 beanFactory
+                    ConfigurableListableBeanFactory factory = context.getBeanFactory();
+                    // 获取到类加载器
+                    context.getClassLoader();
+                    // 获取到当前环境的信息
+                    Environment environment = context.getEnvironment();
+                    // 获取到 bean 定义的注册类 可以操作 bean 对 bean 进行 增删改查
+                    BeanDefinitionRegistry registry = context.getRegistry();
+                    
+                    String property = environment.getProperty("os.name");
+                    if(property.contains("windows")) {
+                        return true;
+                    }
+                    return false;
+                }
+
+            }
+
+        @Conditional(value = { WindowsCondition.class })
+            @Bean("bill")
+            public Person person01() {
+                return new Person("Bill Gates", 20);
+            }
+ 
+
+
+----------------------------------------------
+
+给容器中注册 bean 的方法(组件)
+    1. 包扫描+组件标注注解(@Controller/ @Service/...)
+    2. @Bean（导入第三方包里面的组件）
+    3. @Import  
+        1. @Import (要导入到容器中的组件); 容器中就会自动注册这个组件，id 默认是组件的全类名
+        2. ImportSelector :返回需要导入的组件的全类名数组
+        3. ImportBeanDefinitionRegistrar
+    4. 使用 Spring 提供的 FactoryBean(工厂Bean)
+        1. 默认获取到的是工厂 bean 调用 getObject 创建的对象
+        2. 要获取工厂 bean本身，我们需要给 id 前面加一个 &  &PersonFactoryBean
+
+    
+
+@Import  导入组件  标注在类上
+@Import(value={Color.class})
+    将 Color 导入到 Spring IOC 容器中
+        id 默认是组件的全类名
+            cn.zhu.Color
+    
+
+@Import
+    1. @Import (要导入到容器中的组件); 容器中就会自动注册这个组件，id 默认是组件的全类名
+    2. ImportSelector :返回需要导入的组件的全类名数组
+    3. ImportBeanDefinitionRegistrar
+
+    @Import(value = { MyImportSelector.class }) 首先你需要一个自定义的类实现 ImportSelector 接口。 
+
+    
+    
+        // 自定义逻辑  返回 需要导入的组件
+        public class MyImportSelector implements ImportSelector {
+        // 返回值，就是要导入到容器中的组件全类名
+        @Override
+        public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+            /*
+             *  AnnotationMetadata 当前标注 @Import 注解的类的所有注解信息
+             *  就是 标注 @Import 注解的类 标注的其他的注解的信息
+             */
+            return new String[]{};
+        }
+
+
+
+
+
+@Import(value = { MyImportSelector.class, MyImportBeanDefinitionRegistrar.class})
+
+        public class MyImportBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
+        /**
+         * AnnotationMetadata ： 当前类的注解信息
+         * BeanDefinitionRegistry ： bean 定义的注册类
+         *  吧所有需要添加到容器中的 bean 调用
+         *  BeanDefinitionRegistry.registerBeanDefinition 来注册类 手动注册 bean 到容器中
+         */
+        @Override
+        public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+            boolean definition = registry.containsBeanDefinition("person");
+            if (definition) {
+                // 自定义 bean 名
+                // beanDefinition  RootBeanDefinition
+                // 指定 bean 的定义信息，(Bean 的类型，bean...)
+                RootBeanDefinition rootBeanDefinition = new RootBeanDefinition(Person.class);
+                // 注册一个 Bean 指定 Bean 名
+                registry.registerBeanDefinition("haha", rootBeanDefinition);
+            }
+        }
+    }
+        // 只是注册了 RootBeanDefinition 并没有将 bean 初始化。 因为只是 registerBeanDefinition 注册
+
+            初始化会调用 invokeInitMethods(beanName, wrappedBean, mbd); mbd 就是 RootBeanDefinition
+            这里的初始化是 实例已经创建好了 doCreateBean()
+            充填好了 bean populateBean()
+            invokeInitMethods() 进行调用 spring 的 init-menthod 方法; 再其前后调用 BeanPostProcessor
+
+
+
+ 4. 使用 Spring 提供的 FactoryBean(工厂Bean)
+
+
+
+// 工厂 bean 获取的是调用 getObject 创建的对象
+    @Bean
+    public PersonFactoryBean colorFactoryBean() {
+        return new PersonFactoryBean();
+    }
+
+
+    public class PersonFactoryBean implements FactoryBean<Person> {
+        @Override
+        public Person getObject() throws Exception {
+            return new Person("lisi", 19);
+        }
+        @Override
+        public Class<?> getObjectType() {
+            return Person.class;
+        }
+        // 是单例吗  true 是单例，false 多例
+        @Override
+        public boolean isSingleton() {
+            return true;
+        }
+    }
+
+
+        // 工厂 bean 获取的是调用 getObject 创建的对象
+        annotationConfigApplicationContext.getBean("colorFactoryBean");
+        // 获取工厂 bean 本身
+        annotationConfigApplicationContext.getBean("&colorFactoryBean");
+
+    BeanFactory 里面定义了
+        String FACTORY_BEAN_PREFIX = "&";
+
+
+        // 从这里可以看出 beanFactory 没有前置处理器
+        // 运行 bean的 BeanPostProcessor 后置处理器
+        // 而且没有初始化过程，简而言之就是什么都没有哇。。
+        // 除了后置处理器
+
+
+--------------------------------------------------------------
+
+@Bean  
+ bean 的生命周期
+    @Bean(initMethod="",destroyMethod="")
+    initMethod 初始化调用
+    destroyMethod 销毁调用
+    初始化 
+        singleton  对象创建好，并赋值好。调用初始化方法
+        prototype  对象创建好调用
+
+    销毁   
+        singleton  容器关闭的时候
+        prototype  容器不会管理这个 bean，容器不会调用销毁方法
+
+
+
+1. 指定初始化和销毁方法
+    通过 @Bean 指定 init-method 和 destory-method
+2. 由两个接口来指定 InitializingBean  和 DisposableBean 
+    通过 bean  实现 InitializingBean 和 DisposableBean 初始化和销毁
+3. 可以使用 JSR250, 定义好的两个注解  在 bean 相应的方法前注释   
+        @PostConstruct; 在 bean 创建完成并属性赋值完成
+        @PreDestroy;    在销毁之前调用
+        
+    如果上面的全部使用了。会全部执行不会报错
+
+4. BeanPostProcessor (interface): bean 后置处理器
+        在  bean 初始化前后进行一些处理
+       有两个方法 
+                postProcessBeforeInitialization  在 spring 初始化方法 之前调用
+                postProcessAfterInitialization   在 spring 初始化方法 之后调用
+                有两个参数 bean  和 beanName
+                bean 刚创建的实例
+                beanName bean 在容器中的 Id
+        @Component
+        public class MyBeanPostProceessor implements BeanPostProcessor {
+            @Override
+            public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+                System.out.println(beanName + "==>" + bean);
+                return bean;
+            }
+            @Override
+            public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+                System.out.println(beanName + "==>" + bean);
+                return bean;
+            }
+        }
+
+     会自动在每一个 bean 初始化前后运行
+
+
+
+BeanPostProcessor 原理：
+    	populateBean(beanName, mbd, instanceWrapper);// 给 Bean 的属性进行赋值
+
+    if (mbd == null || !mbd.isSynthetic()) {
+			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);// 前置处理器            
+		}
+
+		try {
+			invokeInitMethods(beanName, wrappedBean, mbd); // 执行初始化
+		}
+		catch (Throwable ex) {
+			throw new BeanCreationException(
+					(mbd != null ? mbd.getResourceDescription() : null),
+					beanName, "Invocation of init method failed", ex);
+		}
+
+		if (mbd == null || !mbd.isSynthetic()) {
+			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);// 后置处理器
+		}
+
+
+
+
+applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
+    遍历得到容器中所有的 BeanPostProcessor：挨个执行 beforeInitialization.
+    一旦返回 null.跳出 foe 循环，不会执行后面 beanPostProcessor
+
+
+
+-----------------------------------------------------
+
+赋值
+    使用
+    // 使用 @Value 赋值
+    // 1. 基本数值
+        @Value("张三")
+        private String name;
+
+    // 2. 可以写 SpEL:#{}
+        @Value("#{20-2}")
+        private Integer age;
+        
+    // 3. 可以写${} 取出配置文件中的值(运行环境变量中的值)
+        @Value("${person.nickName}")
+        private String nickName;
+    
+    标注在 bean 的 属性上
+
+
+
+// 使用 @ProertySource 读取外部配置文件中的 K/V 保存坳运行的环境变量中
+@PropertySource(value = { "classpath:/person.properties" })
+@Configuration
+public class MainConfigOfPropertyValues {
+    @Bean
+    public Person person() {
+        return new Person();
+    }
+}
+
+你也可以使用
+     // 获取环境变量的值
+        ConfigurableEnvironment environment = applicationContext.getEnvironment();
+        String property = environment.getProperty("person.nickName");
+        System.out.println(property);
+
+    因为所有的 properties 被Spring 加载后，都会被保存到 ConfigurableEnvironment 中
+
+
+
+
+-----------------------------------------
+
+自动装配 
+   Spring 利用依赖注入(DI) 完成对 IOC 容器中各个组件的依赖关系赋值
+
+
+@Autowired  
+    1. 默认优先按照类型去容器中找对应的组件: applicationContext.getBean(BookDao.class);
+    2. 如果找到多个相同类型的组件，再将属性的名称作为组件的 id 去容器中查找
+@Qualifier("bookDao") 和 @Autowired 搭配使用 明确指定需要装配的组件的 id, 而不是使用属性
+
+
+  @Autowired(required=false) 指不是必须要注入这个 bean ，IOC 里面没有相应的 bean，就不装配。
+
+@Primary 让 Spring 进行自动装配的时候默认使用首选的 Bean
+    @Primary
+    @Bean
+    public Person person() {
+        return new Person();
+    }
+
+    是在 @Configuration 类里面的 @Bean 注解方法一起使用的，使如果 @Autowired 装配的 Bean,在 IOC 里面，有多个相同的
+        类型的 bean 的话，首选装配由 @Primary 注解的 @Bean 方法。
+       当然你也可以使用 @Qualifier("xxx") 来明确指定要装配的 bean 的 id；来装配。
+       @Primary 只是再没有明确指定的时候来首选装配。明确指定的话就装配明确指定的 bean
+
+
+2. Spring 还支持使用 @Resource(JSR250) 和 @Inject(JSR330) [java 规范的注解 ]
+    JSR是Java Specification Requests——java 规范要求
+
+    @Resource
+        可以和 @Autowired 一样实现自动装配功能，默认是按照组件名称进行装配的
+        没有能支持 @Primary 功能没有支持 @Autowired(reqiured=false)
+    
+    @Inject
+        要使用这个注解还需要导入一个依赖
+            <!-- https://mvnrepository.com/artifact/javax.inject/javax.inject -->
+            <dependency>
+                <groupId>javax.inject</groupId>
+                <artifactId>javax.inject</artifactId>
+                <version>1</version>
+            </dependency>
+
+    也是和 @Resource 一样放在 属性前面的
+    和 @Autowried 一样，支持 @Primary ，但是没有 reqiured=false
+
+
+区别
+    @Autowired 是 Spring  定义的
+    @Resource  是 JSR 250 定义的
+    @Inject    是 JST 330 定义的
+
+
+3. AutowiredAnnotationBeanPostProcessor : 解析完成自动装配功能
+
+    因为使用 @ComponentScan 会将指定包下面的所有类全部扫描。
+
+
+    @Autowired
+        2. [标注在方法上]，Spring 容器创建当前对象，就会调用方法，完成赋值
+                方法使用的参数，自定义类型的值从 ioc 容器中获取
+                pirvate void setCar(Car car) {
+                    this.car = car;
+                }   
+               Car car 会从 Spring ioc 容器中获取
+        3. [标注在构造器上] ：如果组件只有一个有参构造器，这个有参构造器的 @Autowired 可以省略，参数位置的组件还是可以从容器中获取
+                    和标注在方法上面一样
+        4. [标注在形参上]  将形参类型的值从 ioc 容器中获取
+        5. [ @Bean + 方法参数;] 参数从 ioc 容器中获取，默认不写 @Autowired 效果都是一样的
+
+     @Bean
+        public Person person(Cat cat) {
+            return new Person();
+        }
+        
+        Cat cat 会自动从 Spring 的 IOC 容器中获取
+
+
+
+
+------------------------------------------
+
+Aware 接口 
+
+
+4. 自定义组件想要使用 Spring 容器底层的一些组件(ApplicationContext. BeanFactory, xxx)
+        自定义组件实现 xxxAware : 在创建对象的时候，会调用接口规定的方法注入相关的组件
+
+    1. ApplicationContextAware     帮我们注入 ApplicationContext
+    2. BeanNameAware               获取当前 bean 的名称
+    3. EmbeddedValueResolverAware  获取
+                void setEmbeddedValueResolver(StringValueResolver resolver);
+                public void setEmbedd2018/6/13edValueResolver(StringValueResolver resolver) {
+                    String string = resolver.resolveStringValue("#{20-2}");
+                }
+                将值解析器传递给我们，就是解析 ${} SpEL #{} 表达式的值的解析器
+    4. BeanFactoηAware
+          实现 BeanFactoηAware 接口的 bean 可以直接访问 Spring 容器，被容器创建以后，
+          它会拥有一个指向 Spring 容器的引用，可以利用该bean根据传入参数动态获取被spring工厂加载的bean
+                public void setBeanFactory(BeanFactory beanFactory) {
+                    会将 beanFactory 给你，
+                }
+
+
+        
+            spEL 
+                spEL 使用 #{...} 作为定界符，所有在大括号中的字符都将被认为是 spEL
+                spEL
+                    通过 bean 的 id 对 bean 进行引用
+                    调用方法以及引用对象中的属性
+                    计算表达式的值
+                    正则表达式的匹配
+                    可以在 xml 里面运算
+    
+    xxxAware 功能使用 xxxAwareProcessor 
+        上面的 xxxAware 全部使用了 ApplicationContextAwareProcessor 来进行 processor
+
+
+
+-------------------------------------------------
+
+@Profile
+    
+    可以给配置类赋值的 3 种方法
+       1. @Value("${db.user}")
+         private String user;
+       
+       2. public DataSource dataSourceTest(@Value("${db.password}") String password);
+       3. implements EmbeddedValueResolverAware 然后使用  StringValueResolver 解析器解析
+
+
+/**
+ * Profile:
+ *  Spring 为我们提供的可以根据当前环境，动态的激活和切换一系列组件的功能
+ *  开发环境、测试环境、生产环境
+ *  指定环境在哪个环境的情况下才能被注册到容器中，不指定，任何环境下都能注册这个环境
+ *  加了环境标识的 bean 只有环境被激活的时候才能注册到容器中
+ *    @Profile("default")
+ *  默认环境不标识 也可以，不标识，profile 默认就是 default 环境
+ *  
+ *  2. 写在 类上，只有是 profile 指定的环境的时候，整个配置类才能生效
+ *  3. 没有标注 环境标识的 bean ,再任何环境下都是加载的
+ */
+
+
+ @Profile("test")
+    //@Profile("default")// 默认环境不标识 也可以
+    @Bean("testDataSource") 
+    public DataSource dataSourceTest(@Value("${db.password}") String password) throws Exception {
+        ComboPooledDataSource dataSource = new ComboPooledDataSource();
+        dataSource.setUser(user);
+        dataSource.setPassword(password);
+        String value = resolver.resolveStringValue("${db.driverClass}");
+        dataSource.setDriverClass(value);
+        dataSource.setJdbcUrl("jdbc:mysql://localhost:3306/mydb1");
+        System.out.println("test");
+        return dataSource;
+    }
+
+
+
+  /*
+     * 改变运行环境 
+     * 1. 使用命令行动态参数 右键 run As --> run configurations --> Arguments --> VM
+     * arguments 里面写： -Dspring.profiles.active=test    -D 是固定写法
+     * 
+     * 2. 用代码的方式激活某种环境。参考 fun2()
+     */
+    @Test
+    public void fun2() {
+        /*
+         * 其实就是把 AnnotationConfigApplicationContext 的有参构造器里面的方法自己执行一遍
+         */
+        //1. 创建一个 applicationContext
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
+        //2. 设置需要激活的环境
+        context.getEnvironment().setActiveProfiles("test","dev");
+        //3. 注册主配置类
+        context.register(MainConfigOfProfile.class);
+        //4. 启动刷新容器
+        context.refresh();
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,532 @@
+
+首先我们从 @EnableTransactionManagement 开始
+
+@Import(TransactionManagementConfigurationSelector.class)
+public @interface EnableTransactionManagement {
+    // 是否使用 CGLIB 代理 true 使用 
+    // false 是使用 JDK 代理
+    // 如果开启了 CGLIB 不仅仅 {@code @Transactional} 生效，而是所有的 PROXY 都会生效
+	boolean proxyTargetClass() default false;
+	AdviceMode mode() default AdviceMode.PROXY; // 事务模式
+	// 指明事务advisor的执行顺序
+    // 当在一个特定的连接点上应用多个建议时。
+    // 默认的是 排序的lowest优先权。
+    int order() default Ordered.LOWEST_PRECEDENCE;
+}
+
+        3. @Import  
+        1. @Import (要导入到容器中的组件); 容器中就会自动注册这个组件，id 默认是组件的全类名
+        2. ImportSelector :返回需要导入的组件的全类名数组
+        3. ImportBeanDefinitionRegistrar
+
+ 注册了一个 TransactionManagementConfigurationSelector  是 Import 的注册器
+    我们查看 TransactionManagementConfigurationSelector 
+
+    @Override
+	protected String[] selectImports(AdviceMode adviceMode) {
+		switch (adviceMode) {
+			case PROXY:// 因为 EnableTransactionManagement 默认是  AdviceMode.PROXY 
+				return new String[] {AutoProxyRegistrar.class.getName(), ProxyTransactionManagementConfiguration.class.getName()};
+			case ASPECTJ:
+				return new String[] {TransactionManagementConfigUtils.TRANSACTION_ASPECT_CONFIGURATION_CLASS_NAME};
+			default:
+				return null;
+		}
+	}
+
+   我们就注册了
+        AutoProxyRegistrar  
+        ProxyTransactionManagementConfiguration
+
+
+
+
+
+
+
+
+ProxyTransactionManagementConfiguration 分析
+
+// 我们发现这个是一个配置类
+@Configuration
+public class ProxyTransactionManagementConfiguration extends AbstractTransactionManagementConfiguration {
+
+	@Bean(name = TransactionManagementConfigUtils.TRANSACTION_ADVISOR_BEAN_NAME)
+	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+	public BeanFactoryTransactionAttributeSourceAdvisor transactionAdvisor() {
+        // 创建一个 BeanFactoryTransactionAttributeSourceAdvisor 增强器
+		BeanFactoryTransactionAttributeSourceAdvisor advisor = new BeanFactoryTransactionAttributeSourceAdvisor();
+        // 调用了 transactionAttributeSource() 获取 @Transaction 的 Source
+		advisor.setTransactionAttributeSource(transactionAttributeSource());
+        // 设置 transactionInterceptor 拦截器
+		advisor.setAdvice(transactionInterceptor());
+		advisor.setOrder(this.enableTx.<Integer>getNumber("order"));
+		return advisor;
+	}
+
+	@Bean
+	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+	public TransactionAttributeSource transactionAttributeSource() {
+        // 创建了一个 AnnotationTransactionAttributeSource
+		return new AnnotationTransactionAttributeSource();
+	}
+
+	@Bean
+	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
+	public TransactionInterceptor transactionInterceptor() {
+        // 创建一个 interceptor 需要 @Transaction  的 Source
+		TransactionInterceptor interceptor = new TransactionInterceptor();
+		interceptor.setTransactionAttributeSource(transactionAttributeSource());
+		if (this.txManager != null) {
+			interceptor.setTransactionManager(this.txManager);
+		}
+		return interceptor;
+	}
+
+}
+
+
+关于
+    AnnotationTransactionAttributeSource
+    这个是一个 @Transaction 的解析器。也可以称之为 Transaction 的 Source 。因为它就是用来解析 @Transaction 注解的
+
+
+    public AnnotationTransactionAttributeSource(boolean publicMethodsOnly) {
+		this.publicMethodsOnly = publicMethodsOnly;
+		this.annotationParsers = new LinkedHashSet<TransactionAnnotationParser>(2);
+        // 创建了 各种解析器 是用来解析 Transaction 注解的
+		this.annotationParsers.add(new SpringTransactionAnnotationParser());
+		if (jta12Present) {
+			this.annotationParsers.add(new JtaTransactionAnnotationParser());
+		}
+		if (ejb3Present) {
+			this.annotationParsers.add(new Ejb3TransactionAnnotationParser());
+		}
+	}
+
+
+
+关于 TransactionInterceptor 因为逻辑都是在这里面调用的 这个是 interceptor
+    所以我们看下  TransactionInterceptor 里面都写了什么
+
+
+进入了 TransactionInterceptor  类
+    因为默认都是直接调用  invoke
+    @Override
+	public Object invoke(final MethodInvocation invocation) throws Throwable {
+		// Work out the target class: may be {@code null}.
+		// The TransactionAttributeSource should be passed the target class
+		// as well as the method, which may be from an interface.
+		Class<?> targetClass = (invocation.getThis() != null ? AopUtils.getTargetClass(invocation.getThis()) : null);
+
+		// Adapt to TransactionAspectSupport's invokeWithinTransaction...
+		return invokeWithinTransaction(invocation.getMethod(), targetClass, new InvocationCallback() {// 调用了这个方法
+			@Override
+			public Object proceedWithInvocation() throws Throwable {
+				return invocation.proceed();
+			}
+		});
+	}
+
+
+进入了 TransactionAspectSupport 类
+
+        protected Object invokeWithinTransaction(Method method, Class<?> targetClass, final InvocationCallback invocation)
+			throws Throwable {
+
+		// If the transaction attribute is null, the method is non-transactional.
+        // 获取 @Transaction 的 source
+		final TransactionAttribute txAttr = getTransactionAttributeSource().getTransactionAttribute(method, targetClass);
+		// 获取 PlatformTransactionManager 也就是所有 事务管理器的 父类接口
+        final PlatformTransactionManager tm = determineTransactionManager(txAttr); // 进入
+		final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
+
+		if (txAttr == null || !(tm instanceof CallbackPreferringPlatformTransactionManager)) {
+			// Standard transaction demarcation with getTransaction and commit/rollback calls.
+			TransactionInfo txInfo = createTransactionIfNecessary(tm, txAttr, joinpointIdentification);
+			Object retVal = null;
+			try {
+				// This is an around advice: Invoke the next interceptor in the chain.
+				// This will normally result in a target object being invoked.
+				retVal = invocation.proceedWithInvocation();
+			}
+			catch (Throwable ex) {
+				// target invocation exception
+				completeTransactionAfterThrowing(txInfo, ex);
+				throw ex;
+			}
+			finally {
+				cleanupTransactionInfo(txInfo);
+			}
+			commitTransactionAfterReturning(txInfo);
+			return retVal;
+		}
+
+		else {
+			// It's a CallbackPreferringPlatformTransactionManager: pass a TransactionCallback in.
+			try {
+				Object result = ((CallbackPreferringPlatformTransactionManager) tm).execute(txAttr,
+						new TransactionCallback<Object>() {
+							@Override
+							public Object doInTransaction(TransactionStatus status) {
+								TransactionInfo txInfo = prepareTransactionInfo(tm, txAttr, joinpointIdentification, status);
+								try {
+									return invocation.proceedWithInvocation();
+								}
+								catch (Throwable ex) {
+									if (txAttr.rollbackOn(ex)) {
+										// A RuntimeException: will lead to a rollback.
+										if (ex instanceof RuntimeException) {
+											throw (RuntimeException) ex;
+										}
+										else {
+											throw new ThrowableHolderException(ex);
+										}
+									}
+									else {
+										// A normal return value: will lead to a commit.
+										return new ThrowableHolder(ex);
+									}
+								}
+								finally {
+									cleanupTransactionInfo(txInfo);
+								}
+							}
+						});
+
+				// Check result: It might indicate a Throwable to rethrow.
+				if (result instanceof ThrowableHolder) {
+					throw ((ThrowableHolder) result).getThrowable();
+				}
+				else {
+					return result;
+				}
+			}
+			catch (ThrowableHolderException ex) {
+				throw ex.getCause();
+			}
+		}
+	}
+
+
+
+
+
+
+    protected PlatformTransactionManager determineTransactionManager(TransactionAttribute txAttr) {
+		// Do not attempt to lookup tx manager if no tx attributes are set
+		if (txAttr == null || this.beanFactory == null) {
+			return getTransactionManager();
+		}
+        // 这个属性其实就是 @Transaction
+		// @Transactional(transactionManager="在这里可以指定要使用什么事务管理器 id")
+        // getQualifier 就是获取 transactionManager 的值。我们没有指定
+        String qualifier = txAttr.getQualifier();
+		if (StringUtils.hasText(qualifier)) {// 没有指定就是 null
+			return determineQualifiedTransactionManager(qualifier);
+		}
+        // 我们也没有指定 transactionManagerBeanName
+		else if (StringUtils.hasText(this.transactionManagerBeanName)) {
+			return determineQualifiedTransactionManager(this.transactionManagerBeanName);
+		}
+		else {
+            // 当然这里也没有  getTransactionManager 就是获取 this.transactionManager
+			PlatformTransactionManager defaultTransactionManager = getTransactionManager();
+			if (defaultTransactionManager == null) {
+                // DEFAULT_TRANSACTION_MANAGER_KEY 默认是 一个 new Obejct(); 我们第一次就没有 Cache
+				defaultTransactionManager = this.transactionManagerCache.get(DEFAULT_TRANSACTION_MANAGER_KEY);
+				if (defaultTransactionManager == null) {
+                    // 所以最终来到了这里 从 beanFactory 里面获取。我们有的，因为我们配置了
+					defaultTransactionManager = this.beanFactory.getBean(PlatformTransactionManager.class);
+                    // 将其存贮 以 DEFAULT_TRANSACTION_MANAGER_KEY 是一个 new Obejct(); 为 Key
+					this.transactionManagerCache.putIfAbsent(
+							DEFAULT_TRANSACTION_MANAGER_KEY, defaultTransactionManager);
+				}
+			}
+            // 最终从 beanFactory IOC 容器里面拿出了 TransactionManager
+			return defaultTransactionManager;
+		}
+	}
+
+
+
+
+
+
+进入了 TransactionAspectSupport 类
+
+        protected Object invokeWithinTransaction(Method method, Class<?> targetClass, final InvocationCallback invocation)
+			throws Throwable {
+
+		// If the transaction attribute is null, the method is non-transactional.
+        // 获取 @Transaction 的 source
+		final TransactionAttribute txAttr = getTransactionAttributeSource().getTransactionAttribute(method, targetClass);
+		// 获取 PlatformTransactionManager 也就是所有 事务管理器的 父类接口
+        final PlatformTransactionManager tm = determineTransactionManager(txAttr); // 进入过了
+        -------- 从这里进来
+        // 应该是 日志有关的东西
+		final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
+
+		if (txAttr == null || !(tm instanceof CallbackPreferringPlatformTransactionManager)) {
+			// Standard transaction demarcation with getTransaction and commit/rollback calls.
+            // 事务是在这里调用的
+            // 获取 TransactionInfo  内置 PlatformTransactionManager
+            // 将 事务管理器 和 事务Source   创建事务如果有需要的话 // 进入 >>>1
+			TransactionInfo txInfo = createTransactionIfNecessary(tm, txAttr, joinpointIdentification);
+			Object retVal = null;
+			try {
+				// This is an around advice: Invoke the next interceptor in the chain.
+				// This will normally result in a target object being invoked.
+				retVal = invocation.proceedWithInvocation();// 运行 拦截器链 和 AOP 一样
+			}
+			catch (Throwable ex) {
+				// target invocation exception
+                // 出现异常 在这里 rallback
+				completeTransactionAfterThrowing(txInfo, ex); // 进入 >>>2
+				throw ex;
+			}
+			finally {
+				cleanupTransactionInfo(txInfo);
+			}
+            // 没有出现异常 commit  进入 >>>3
+			commitTransactionAfterReturning(txInfo);
+			return retVal;
+		}
+
+		else {
+			// It's a CallbackPreferringPlatformTransactionManager: pass a TransactionCallback in.
+			try {
+				Object result = ((CallbackPreferringPlatformTransactionManager) tm).execute(txAttr,
+						new TransactionCallback<Object>() {
+							@Override
+							public Object doInTransaction(TransactionStatus status) {
+								TransactionInfo txInfo = prepareTransactionInfo(tm, txAttr, joinpointIdentification, status);
+								try {
+									return invocation.proceedWithInvocation();
+								}
+								catch (Throwable ex) {
+									if (txAttr.rollbackOn(ex)) {
+										// A RuntimeException: will lead to a rollback.
+										if (ex instanceof RuntimeException) {
+											throw (RuntimeException) ex;
+										}
+										else {
+											throw new ThrowableHolderException(ex);
+										}
+									}
+									else {
+										// A normal return value: will lead to a commit.
+										return new ThrowableHolder(ex);
+									}
+								}
+								finally {
+									cleanupTransactionInfo(txInfo);
+								}
+							}
+						});
+
+				// Check result: It might indicate a Throwable to rethrow.
+				if (result instanceof ThrowableHolder) {
+					throw ((ThrowableHolder) result).getThrowable();
+				}
+				else {
+					return result;
+				}
+			}
+			catch (ThrowableHolderException ex) {
+				throw ex.getCause();
+			}
+		}
+	}
+
+
+
+
+    >>>1
+    protected TransactionInfo createTransactionIfNecessary(
+                PlatformTransactionManager tm, TransactionAttribute txAttr, final String joinpointIdentification) {
+
+            // If no name specified, apply method identification as transaction name.
+            if (txAttr != null && txAttr.getName() == null) {
+                txAttr = new DelegatingTransactionAttribute(txAttr) {
+                    @Override
+                    public String getName() {
+                        return joinpointIdentification;
+                    }
+                };
+            }
+
+            TransactionStatus status = null;
+            if (txAttr != null) {
+                if (tm != null) {
+                    status = tm.getTransaction(txAttr); // 在这里获取 getTransaction
+                }
+                else {
+                    if (logger.isDebugEnabled()) {
+                        logger.debug("Skipping transactional joinpoint [" + joinpointIdentification +
+                                "] because no transaction manager has been configured");
+                    }
+                }
+            }
+            return prepareTransactionInfo(tm, txAttr, joinpointIdentification, status);
+        }
+
+
+    >>>2
+    protected void completeTransactionAfterThrowing(TransactionInfo txInfo, Throwable ex) {
+		if (txInfo != null && txInfo.hasTransaction()) {
+			if (logger.isTraceEnabled()) {
+				logger.trace("Completing transaction for [" + txInfo.getJoinpointIdentification() +
+						"] after exception: " + ex);
+			}
+			if (txInfo.transactionAttribute.rollbackOn(ex)) {
+				try {
+                    // 进行 rollback
+					txInfo.getTransactionManager().rollback(txInfo.getTransactionStatus());
+				}
+				catch (TransactionSystemException ex2) {
+					logger.error("Application exception overridden by rollback exception", ex);
+					ex2.initApplicationException(ex);
+					throw ex2;
+				}
+				catch (RuntimeException ex2) {
+					logger.error("Application exception overridden by rollback exception", ex);
+					throw ex2;
+				}
+				catch (Error err) {
+					logger.error("Application exception overridden by rollback error", ex);
+					throw err;
+				}
+			}
+			else {
+				// We don't roll back on this exception.
+				// Will still roll back if TransactionStatus.isRollbackOnly() is true.
+				try {
+					txInfo.getTransactionManager().commit(txInfo.getTransactionStatus());
+				}
+				catch (TransactionSystemException ex2) {
+					logger.error("Application exception overridden by commit exception", ex);
+					ex2.initApplicationException(ex);
+					throw ex2;
+				}
+				catch (RuntimeException ex2) {
+					logger.error("Application exception overridden by commit exception", ex);
+					throw ex2;
+				}
+				catch (Error err) {
+					logger.error("Application exception overridden by commit error", ex);
+					throw err;
+				}
+			}
+		}
+	}
+
+
+
+
+
+    >>>3
+    protected void commitTransactionAfterReturning(TransactionInfo txInfo) {
+            if (txInfo != null && txInfo.hasTransaction()) {
+                if (logger.isTraceEnabled()) {
+                    logger.trace("Completing transaction for [" + txInfo.getJoinpointIdentification() + "]");
+                }
+                txInfo.getTransactionManager().commit(txInfo.getTransactionStatus());
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

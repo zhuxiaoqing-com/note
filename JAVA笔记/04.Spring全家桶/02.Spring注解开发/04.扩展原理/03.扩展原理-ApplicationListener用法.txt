@@ -1,0 +1,1093 @@
+扩展原理- ApplicationListener 用法
+
+监听容器中发布的事件，事件驱动模型开发
+public interface ApplicationListener<E extends ApplicationEvent> extends EventListener {
+	void onApplicationEvent(E event);
+}
+
+    监听 ApplicationEvent 及其子类的事件
+
+
+实例 ：
+        @Component
+        public class MyApplicationListenter implements ApplicationListener {
+            // 当容器中发布此事件以后，方法触发
+            @Override
+            public void onApplicationEvent(ApplicationEvent event) {
+                System.out.println("收到的事件" + event);
+            }
+        }
+
+
+    收到的事件org.springframework.context.event.ContextRefreshedEvent
+        [source=org.springframework.context.annotation.AnnotationConfigApplicationContext @7c53a9eb: 
+        startup date [Fri Jun 15 20:44:37 CST 2018]; root of context hierarchy]
+
+    收到的事件org.springframework.context.event.ContextClosedEvent
+        [source=org.springframework.context.annotation.AnnotationConfigApplicationContext @7c53a9eb:
+        startup date [Fri Jun 15 20:44:37 CST 2018]; root of context hierarchy]
+
+
+我们自己发布事件
+    基于事件开发
+        
+        1. 写一个监听器来监听某个事件(ApplicationEvent及其子类)
+        2. 把监听器加入到容器
+        3. 只要容器中有相关事件的发布，我们就能监听到这个事件
+            ContextRefreshedEvent : 容器刷新完成(所有 bean 都完全创建)
+            ContextClosedEvent ：关闭容器会发布这个事件
+        4. 发布一个事件
+            @Test
+        public void fun1() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ExtConfig.class);
+        // 发布事件;
+        context.publishEvent(new ApplicationEvent(new String("我发布的事件")) {});
+        context.close();
+    }
+
+
+监听 ContextRefreshedEvent 过程
+
+源码
+    refresh();
+
+进入 AbstractApplicationContext 类
+    
+    public void refresh() throws BeansException, IllegalStateException {
+        // Invoke factory processors registered as beans in the context.
+				invokeBeanFactoryPostProcessors(beanFactory);
+
+				// Register bean processors that intercept bean creation.
+				registerBeanPostProcessors(beanFactory);
+                
+                // Initialize event multicaster for this context.
+				initApplicationEventMulticaster();
+
+				// Initialize other special beans in specific context subclasses.
+				onRefresh();
+
+				// Check for listener beans and register them.
+				registerListeners();
+
+				// Instantiate all remaining (non-lazy-init) singletons.
+				finishBeanFactoryInitialization(beanFactory);
+
+				// Last step: publish corresponding event.
+                // 发布相应的事件  进入
+				finishRefresh();
+    }
+
+    protected void finishRefresh() {
+		// Initialize lifecycle processor for this context.
+		initLifecycleProcessor();
+
+		// Propagate refresh to lifecycle processor first.
+		getLifecycleProcessor().onRefresh();
+
+		// Publish the final event.
+        // 发布最后的事件 进入
+        //  Create a new ContextRefreshedEvent. 将 this 包装
+		publishEvent(new ContextRefreshedEvent(this));
+
+		// Participate in LiveBeansView MBean, if active.
+		LiveBeansView.registerApplicationContext(this);
+	    }
+
+    public void publishEvent(ApplicationEvent event) {
+		publishEvent(event, null);
+	}
+
+
+    protected void publishEvent(Object event, ResolvableType eventType) {
+		Assert.notNull(event, "Event must not be null");
+		if (logger.isTraceEnabled()) {
+			logger.trace("Publishing event in " + getDisplayName() + ": " + event);
+		}
+
+		// Decorate event as an ApplicationEvent if necessary
+        // 在必要时将装饰事件作为应用事件
+		ApplicationEvent applicationEvent;
+		if (event instanceof ApplicationEvent) {
+			applicationEvent = (ApplicationEvent) event;
+		}
+		else {
+			applicationEvent = new PayloadApplicationEvent<Object>(this, event);
+			if (eventType == null) {
+				eventType = ((PayloadApplicationEvent)applicationEvent).getResolvableType();
+			}
+		}
+
+		// Multicast right now if possible - or lazily once the multicaster is initialized
+        // 如果可能的话，现在就进行多播——或者在多播器被初始化后延迟
+		if (this.earlyApplicationEvents != null) { 为 null
+			this.earlyApplicationEvents.add(applicationEvent);
+		}
+		else {//进入这里  获取 ApplicationEventMulticaster 进行 multicastEvent
+        // getApplicationEventMulticaster() 就是 return this.applicationEventMulticaster
+			getApplicationEventMulticaster().multicastEvent(applicationEvent, eventType);
+		}
+
+		// Publish event via parent context as well...
+		if (this.parent != null) {
+			if (this.parent instanceof AbstractApplicationContext) {
+				((AbstractApplicationContext) this.parent).publishEvent(event, eventType);
+			}
+			else {
+				this.parent.publishEvent(event);
+			}
+		}
+	}
+
+
+
+进入 SimpleApplicationEventMulticaster 类
+
+        public void multicastEvent(final ApplicationEvent event, ResolvableType eventType) {
+		ResolvableType type = (eventType != null ? eventType : resolveDefaultEventType(event));
+        // 将所有的 listener 全部通知  getApplicationListeners 也是
+		for (final ApplicationListener<?> listener : getApplicationListeners(event, type)) {
+			Executor executor = getTaskExecutor();
+            // 获取执行器，如果有执行器的话就进行异步执行器
+            // Executor 是 jdk 的。可以支持使用 Executor 进行异步开发
+			if (executor != null) {
+				executor.execute(new Runnable() {
+					@Override
+					public void run() {
+						invokeListener(listener, event);
+					}
+				});
+			}
+			else {
+				invokeListener(listener, event);// 进行同步执行 我们到了这里
+			}
+		}
+	}
+
+    protected void invokeListener(ApplicationListener<?> listener, ApplicationEvent event) {
+		ErrorHandler errorHandler = getErrorHandler();
+		if (errorHandler != null) {
+			try {
+				doInvokeListener(listener, event);
+			}
+			catch (Throwable err) {
+				errorHandler.handleError(err);
+			}
+		}
+		else {
+			doInvokeListener(listener, event); // 进入
+		}
+	}
+
+    private void doInvokeListener(ApplicationListener listener, ApplicationEvent event) {
+		try {
+            // 回调我们重写的方法
+			listener.onApplicationEvent(event);
+		}
+	}
+
+
+
+
+监听 自定义的 Event 过程
+
+      @Test
+        public void fun1() {
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ExtConfig.class);
+        // 发布事件;
+        context.publishEvent(new ApplicationEvent(new String("我发布的事件")) {});
+        context.close();
+
+源码    
+    
+    直接调用
+   AbstractApplicationContext 类的
+        public void publishEvent(ApplicationEvent event) {
+		publishEvent(event, null);
+	}
+      一切都是从这里开始的
+
+
+
+ *  【事件发布流程】：
+ *  	3）、publishEvent(new ContextRefreshedEvent(this));
+ *  			1）、获取事件的多播器（派发器）：getApplicationEventMulticaster()
+ *  			2）、multicastEvent派发事件：
+ *  			3）、获取到所有的ApplicationListener；
+ *  				for (final ApplicationListener<?> listener : getApplicationListeners(event, type)) {
+ *  				1）、如果有Executor，可以支持使用Executor进行异步派发；
+ *  					Executor executor = getTaskExecutor();
+ *  				2）、否则，同步的方式直接执行listener方法；invokeListener(listener, event);
+ *  				 拿到listener回调onApplicationEvent方法；
+
+
+
+
+
+------------------------------------------------
+
+
+
+
+
+那么 ApplicationEventMulticaster 派发器又是怎么来的呢
+    
+    进入 AbstractApplicationContext 类
+    
+    public void refresh() throws BeansException, IllegalStateException {
+        // Invoke factory processors registered as beans in the context.
+				invokeBeanFactoryPostProcessors(beanFactory);
+
+				// Register bean processors that intercept bean creation.
+				registerBeanPostProcessors(beanFactory);
+                
+                // Initialize event multicaster for this context.
+                // 进行初始化派发器  进入
+				initApplicationEventMulticaster();
+
+				// Initialize other special beans in specific context subclasses.
+				onRefresh();
+
+				// Check for listener beans and register them.
+				registerListeners();
+
+				// Instantiate all remaining (non-lazy-init) singletons.
+				finishBeanFactoryInitialization(beanFactory);
+
+				// Last step: publish corresponding event.
+				finishRefresh();
+    }
+
+protected void initApplicationEventMulticaster() {
+        // 获取 beanFactory
+		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+        // APPLICATION_EVENT_MULTICASTER_BEAN_NAME = "applicationEventMulticaster";
+        // 查看容器里面是不是有 applicationEventMulticaster id 的 bean   当然我们是没有的
+		if (beanFactory.containsLocalBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME)) {
+			this.applicationEventMulticaster =
+					beanFactory.getBean(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, ApplicationEventMulticaster.class);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Using ApplicationEventMulticaster [" + this.applicationEventMulticaster + "]");
+			}
+		}
+		else {
+            // 没有的话就 自己 new 一个 SimpleApplicationEventMulticaster();  保存到 this.applicationEventMulticaster 里面;
+			this.applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory);
+            // 然后注册 在bean注册表中，在给定的bean名称下，将给定的现有对象登记为 singleton。
+			beanFactory.registerSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, this.applicationEventMulticaster);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Unable to locate ApplicationEventMulticaster with name '" +
+						APPLICATION_EVENT_MULTICASTER_BEAN_NAME +
+						"': using default [" + this.applicationEventMulticaster + "]");
+			}
+		}
+	}
+  
+
+
+
+
+
+【事件多播器（派发器）】
+ *  	1）、容器创建对象：refresh();
+ *  	2）、initApplicationEventMulticaster();初始化ApplicationEventMulticaster；
+ *  		1）、先去容器中找有没有id=“applicationEventMulticaster”的组件；
+ *  		2）、如果没有this.applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory);
+ *  			并且加入到容器中，我们就可以在其他组件要派发事件，自动注入这个applicationEventMulticaster；
+
+
+
+
+
+
+-----------------------------------------------
+
+
+还有那么 ApplicationListener 是什么时候初始化的呢
+    
+     public void refresh() throws BeansException, IllegalStateException {
+        // Invoke factory processors registered as beans in the context.
+				invokeBeanFactoryPostProcessors(beanFactory);
+
+				// Register bean processors that intercept bean creation.
+				registerBeanPostProcessors(beanFactory);
+                
+                // Initialize event multicaster for this context.
+                // 进行初始化派发器  
+				initApplicationEventMulticaster();
+
+				// Check for listener beans and register them.
+                // 注册 listener 进入
+				registerListeners();
+
+				// Instantiate all remaining (non-lazy-init) singletons.
+				finishBeanFactoryInitialization(beanFactory);
+
+				// Last step: publish corresponding event.
+				finishRefresh();
+    }
+
+
+
+    protected void registerListeners() {
+		// Register statically specified listeners first.
+        // 因为 第一次 获取不到任何 listeners
+		for (ApplicationListener<?> listener : getApplicationListeners()) {
+			getApplicationEventMulticaster().addApplicationListener(listener);
+		}
+
+		// Do not initialize FactoryBeans here: We need to leave all regular beans
+		// uninitialized to let post-processors apply to them!
+        // 拿到所有 ApplicationListener
+		String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
+		for (String listenerBeanName : listenerBeanNames) {
+            // 将其添加到  ApplicationEventMulticaster() 里面 进入
+			getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
+		}
+
+		// Publish early application events now that we finally have a multicaster...
+		Set<ApplicationEvent> earlyEventsToProcess = this.earlyApplicationEvents;
+		this.earlyApplicationEvents = null;
+		if (earlyEventsToProcess != null) {
+			for (ApplicationEvent earlyEvent : earlyEventsToProcess) {
+				getApplicationEventMulticaster().multicastEvent(earlyEvent);
+			}
+		}
+	}
+
+
+  初始化完成
+
+
+
+
+-----------------------------------------
+
+接着上面的
+进入 AbstractApplicationEventMulticaster 
+public void addApplicationListenerBean(String listenerBeanName) {
+		synchronized (this.retrievalMutex) {
+			this.defaultRetriever.applicationListenerBeans.add(listenerBeanName); // 进入
+			this.retrieverCache.clear();
+		}
+	}
+    defaultRetriever 为
+    private final ListenerRetriever defaultRetriever = new ListenerRetriever(false);
+        ListenerRetriever 为其 private 的 类
+            将其添加到 public final Set<String> applicationListenerBeans; 里面
+   
+ 
+
+
+ 所有我们的 
+         getApplicationListeners(event, type) 也知道了怎么回事了
+
+进入 AbstractApplicationEventMulticaster  类
+    protected Collection<ApplicationListener<?>> getApplicationListeners(
+			ApplicationEvent event, ResolvableType eventType) {
+
+		Object source = event.getSource();
+		Class<?> sourceType = (source != null ? source.getClass() : null);
+		ListenerCacheKey cacheKey = new ListenerCacheKey(eventType, sourceType);
+
+		// Quick check for existing entry on ConcurrentHashMap...
+		ListenerRetriever retriever = this.retrieverCache.get(cacheKey);
+		if (retriever != null) {
+			return retriever.getApplicationListeners();
+		}
+
+		if (this.beanClassLoader == null ||
+				(ClassUtils.isCacheSafe(event.getClass(), this.beanClassLoader) &&
+						(sourceType == null || ClassUtils.isCacheSafe(sourceType, this.beanClassLoader)))) {
+			// Fully synchronized building and caching of a ListenerRetriever
+			synchronized (this.retrievalMutex) {
+				retriever = this.retrieverCache.get(cacheKey);
+				if (retriever != null) {
+					return retriever.getApplicationListeners();
+				}
+				retriever = new ListenerRetriever(true);
+				Collection<ApplicationListener<?>> listeners = // 进入这里
+						retrieveApplicationListeners(eventType, sourceType, retriever);
+				this.retrieverCache.put(cacheKey, retriever);
+				return listeners;
+			}
+		}
+		else {
+			// No ListenerRetriever caching -> no synchronization necessary
+			return retrieveApplicationListeners(eventType, sourceType, null);
+		}
+	}
+
+
+进入 AbstractApplicationEventMulticaster 类
+
+private Collection<ApplicationListener<?>> retrieveApplicationListeners(
+			ResolvableType eventType, Class<?> sourceType, ListenerRetriever retriever) {
+
+		LinkedList<ApplicationListener<?>> allListeners = new LinkedList<ApplicationListener<?>>();
+		Set<ApplicationListener<?>> listeners;
+		Set<String> listenerBeans;
+		synchronized (this.retrievalMutex) {
+            // 主要还是这句 从 this.defaultRetriever.applicationListeners 获取，因为我们初始化的时候存进去了
+			listeners = new LinkedHashSet<ApplicationListener<?>>(this.defaultRetriever.applicationListeners);
+			listenerBeans = new LinkedHashSet<String>(this.defaultRetriever.applicationListenerBeans);
+		}
+		for (ApplicationListener<?> listener : listeners) {
+			if (supportsEvent(listener, eventType, sourceType)) {
+				if (retriever != null) {
+					retriever.applicationListeners.add(listener);
+				}
+				allListeners.add(listener);
+			}
+		}
+		return allListeners;
+	}
+
+    
+----------------------------------------------------
+
+
+ *  【容器中有哪些监听器】
+ *  	1）、容器创建对象：refresh();
+ *  	2）、registerListeners();
+ *  		从容器中拿到所有的监听器，把他们注册到applicationEventMulticaster中；
+ *  		String[] listenerBeanNames = getBeanNamesForType(ApplicationListener.class, true, false);
+ *  		//将listener注册到ApplicationEventMulticaster中
+ *  		getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName);
+
+
+
+
+
+
+对于 Executor 
+    Spring 为我们准备了两个 Executor
+    I : TaskExecutor
+        C: SyncTaskExecutor
+        I: AsyncTaskExecutor
+
+
+
+
+--------------------------------------------------------------------------------------------------
+
+
+还有一种方法
+    @EventListener
+
+
+
+@Service
+public class UserService {
+    /*
+     *  classes 指定要监听什么类型的事件
+     *  还需要在方法上面添加形参 ApplicationEvent event
+     */
+    @EventListener(classes= {ApplicationEvent.class})
+   public void listen(ApplicationEvent event) {
+       System.out.println("UserService" + event);
+   }
+}
+
+我们来看下 @EventListener 注解
+     * @see EventListenerMethodProcessor // 叫我们看下 EventListenerMethodProcessor
+ */
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface EventListener {
+	@AliasFor("classes")
+	Class<?>[] value() default {};
+	@AliasFor("value")
+	Class<?>[] classes() default {};
+	String condition() default "";
+}
+
+
+原理使用 EventListenerMethodProcessor 处理器来解析方法上的 @EventListener 注解
+public interface SmartInitializingSingleton {
+	void afterSingletonsInstantiated();
+}
+
+public class EventListenerMethodProcessor implements SmartInitializingSingleton, ApplicationContextAware {
+    	public void afterSingletonsInstantiated() {
+		List<EventListenerFactory> factories = getEventListenerFactories();
+		String[] beanNames = this.applicationContext.getBeanNamesForType(Object.class);
+		for (String beanName : beanNames) {
+			if (!ScopedProxyUtils.isScopedTarget(beanName)) {
+				Class<?> type = null;
+				try {
+					type = AutoProxyUtils.determineTargetClass(this.applicationContext.getBeanFactory(), beanName);
+				}
+				catch (Throwable ex) {
+					// An unresolvable bean type, probably from a lazy bean - let's ignore it.
+					if (logger.isDebugEnabled()) {
+						logger.debug("Could not resolve target class for bean with name '" + beanName + "'", ex);
+					}
+				}
+				if (type != null) {
+					if (ScopedObject.class.isAssignableFrom(type)) {
+						try {
+							type = AutoProxyUtils.determineTargetClass(this.applicationContext.getBeanFactory(),
+									ScopedProxyUtils.getTargetBeanName(beanName));
+						}
+						catch (Throwable ex) {
+							// An invalid scoped proxy arrangement - let's ignore it.
+							if (logger.isDebugEnabled()) {
+								logger.debug("Could not resolve target bean for scoped proxy '" + beanName + "'", ex);
+							}
+						}
+					}
+					try {
+						processBean(factories, beanName, type);
+					}
+					catch (Throwable ex) {
+						throw new BeanInitializationException("Failed to process @EventListener " +
+								"annotation on bean with name '" + beanName + "'", ex);
+					}
+				}
+			}
+		}
+	}
+}
+
+
+
+我们就先看下 什么时候调用的 
+    public interface SmartInitializingSingleton {
+	void afterSingletonsInstantiated();
+}
+    afterSingletonsInstantiated 方法
+
+先总结下 是在 bean 实例化完成，容器刷新之前调用
+    
+ 
+ 首先 
+    refresh();
+  
+进入 AbstractApplicationContext 类
+    public void refresh() throws BeansException, IllegalStateException {
+        // Instantiate all remaining (non-lazy-init) singletons.
+	    finishBeanFactoryInitialization(beanFactory); 
+    }
+
+
+    protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
+		// Instantiate all remaining (non-lazy-init) singletons.
+		beanFactory.preInstantiateSingletons();
+	}
+
+进入 DefaultListableBeanFactory 类
+
+    public void preInstantiateSingletons() throws BeansException {
+		if (this.logger.isDebugEnabled()) {
+			this.logger.debug("Pre-instantiating singletons in " + this);
+		}
+
+		// Iterate over a copy to allow for init methods which in turn register new bean definitions.
+		// While this may not be part of the regular factory bootstrap, it does otherwise work fine.
+		List<String> beanNames = new ArrayList<String>(this.beanDefinitionNames);
+        
+		// Trigger initialization of all non-lazy singleton beans...
+        // 这里是获取所有 bean 的 name 进行 create bean
+		for (String beanName : beanNames) {
+			RootBeanDefinition bd = getMergedLocalBeanDefinition(beanName);
+			if (!bd.isAbstract() && bd.isSingleton() && !bd.isLazyInit()) {
+				if (isFactoryBean(beanName)) {
+					final FactoryBean<?> factory = (FactoryBean<?>) getBean(FACTORY_BEAN_PREFIX + beanName);
+					boolean isEagerInit;
+					if (System.getSecurityManager() != null && factory instanceof SmartFactoryBean) {
+						isEagerInit = AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+							@Override
+							public Boolean run() {
+								return ((SmartFactoryBean<?>) factory).isEagerInit();
+							}
+						}, getAccessControlContext());
+					}
+					else {
+						isEagerInit = (factory instanceof SmartFactoryBean &&
+								((SmartFactoryBean<?>) factory).isEagerInit());
+					}
+					if (isEagerInit) {
+						getBean(beanName);
+					}
+				}
+				else {
+                    // 获取 Bean 完成
+					getBean(beanName);
+				}
+			}
+		}
+
+		// Trigger post-initialization callback for all applicable beans...
+        // 获取 bean 以后，然后来调用实现了 SmartInitializingSingleton 接口的 Bean
+		for (String beanName : beanNames) {
+			Object singletonInstance = getSingleton(beanName);
+			if (singletonInstance instanceof SmartInitializingSingleton) {
+				final SmartInitializingSingleton smartSingleton = (SmartInitializingSingleton) singletonInstance;
+                // 这个 应该就是 Spring SecurityManager 框架了
+				if (System.getSecurityManager() != null) {
+					AccessController.doPrivileged(new PrivilegedAction<Object>() {
+						@Override
+						public Object run() {
+							smartSingleton.afterSingletonsInstantiated();
+							return null;
+						}
+					}, getAccessControlContext());
+				}
+				else {
+                    // 是在这里调用的  for 调用的
+					smartSingleton.afterSingletonsInstantiated();
+				}
+			}
+		}
+	}
+
+
+
+至此调用完成
+    		
+ *   SmartInitializingSingleton 原理：->afterSingletonsInstantiated();
+ *   		1）、ioc容器创建对象并refresh()；
+ *   		2）、finishBeanFactoryInitialization(beanFactory);初始化剩下的单实例bean；
+ *   			1）、先创建所有的单实例bean；getBean();
+ *   			2）、获取所有创建好的单实例bean，判断是否是SmartInitializingSingleton类型的；
+ *   				如果是就调用afterSingletonsInstantiated();
+
+
+
+
+-------------------------------------
+
+
+
+
+让我们看下 afterSingletonsInstantiated 都干了什么
+
+public class EventListenerMethodProcessor implements SmartInitializingSingleton, ApplicationContextAware {
+}
+
+进入到
+    public void afterSingletonsInstantiated() {
+		List<EventListenerFactory> factories = getEventListenerFactories();
+        // 获取所有的 bean 循环
+		String[] beanNames = this.applicationContext.getBeanNamesForType(Object.class);
+		for (String beanName : beanNames) {
+			if (!ScopedProxyUtils.isScopedTarget(beanName)) {
+				Class<?> type = null;
+				try {
+					type = AutoProxyUtils.determineTargetClass(this.applicationContext.getBeanFactory(), beanName);
+				}
+				catch (Throwable ex) {
+					// An unresolvable bean type, probably from a lazy bean - let's ignore it.
+					if (logger.isDebugEnabled()) {
+						logger.debug("Could not resolve target class for bean with name '" + beanName + "'", ex);
+					}
+				}
+				if (type != null) {
+					if (ScopedObject.class.isAssignableFrom(type)) {
+						try {
+							type = AutoProxyUtils.determineTargetClass(this.applicationContext.getBeanFactory(),
+									ScopedProxyUtils.getTargetBeanName(beanName));
+						}
+						catch (Throwable ex) {
+							// An invalid scoped proxy arrangement - let's ignore it.
+							if (logger.isDebugEnabled()) {
+								logger.debug("Could not resolve target bean for scoped proxy '" + beanName + "'", ex);
+							}
+						}
+					}
+					try {
+                        // 前面都没什么软用 看这里 处理 bean
+						processBean(factories, beanName, type);
+					}
+					catch (Throwable ex) {
+						throw new BeanInitializationException("Failed to process @EventListener " +
+								"annotation on bean with name '" + beanName + "'", ex);
+					}
+				}
+			}
+		}
+	}
+
+
+进入到
+    protected void processBean(final List<EventListenerFactory> factories, final String beanName, final Class<?> targetType) {
+		if (!this.nonAnnotatedClasses.contains(targetType)) {// 空集合 进来
+			Map<Method, EventListener> annotatedMethods = null;
+			try {
+                // 重点是这里 将类型传入 selectMethods 查看方法 进入
+				annotatedMethods = MethodIntrospector.selectMethods(targetType,
+						new MethodIntrospector.MetadataLookup<EventListener>() {
+							@Override
+                            // findMergedAnnotation 传入一个注解查找是不是有这个注解
+							public EventListener inspect(Method method) {
+								return AnnotatedElementUtils.findMergedAnnotation(method, EventListener.class);
+							}
+						});
+			}
+			catch (Throwable ex) {
+				// An unresolvable type in a method signature, probably from a lazy bean - let's ignore it.
+				if (logger.isDebugEnabled()) {
+					logger.debug("Could not resolve methods for bean with name '" + beanName + "'", ex);
+				}
+			}
+			if (CollectionUtils.isEmpty(annotatedMethods)) {
+				this.nonAnnotatedClasses.add(targetType);
+				if (logger.isTraceEnabled()) {
+					logger.trace("No @EventListener annotations found on bean class: " + targetType.getName());
+				}
+			}
+			else {
+				// Non-empty set of methods
+				for (Method method : annotatedMethods.keySet()) {
+					for (EventListenerFactory factory : factories) {
+						if (factory.supportsMethod(method)) {
+							Method methodToUse = AopUtils.selectInvocableMethod(
+									method, this.applicationContext.getType(beanName));
+							ApplicationListener<?> applicationListener =
+									factory.createApplicationListener(beanName, targetType, methodToUse);
+							if (applicationListener instanceof ApplicationListenerMethodAdapter) {
+								((ApplicationListenerMethodAdapter) applicationListener)
+										.init(this.applicationContext, this.evaluator);
+							}
+							this.applicationContext.addApplicationListener(applicationListener);
+							break;
+						}
+					}
+				}
+				if (logger.isDebugEnabled()) {
+					logger.debug(annotatedMethods.size() + " @EventListener methods processed on bean '" +
+							beanName + "': " + annotatedMethods);
+				}
+			}
+		}
+	}
+
+
+
+进入 MethodIntrospector 类
+    public static <T> Map<Method, T> selectMethods(Class<?> targetType, final MetadataLookup<T> metadataLookup) {
+		final Map<Method, T> methodMap = new LinkedHashMap<Method, T>();
+        // 存放已经处理过的 Type 的 集合
+		Set<Class<?>> handlerTypes = new LinkedHashSet<Class<?>>();
+		Class<?> specificHandlerType = null;
+        
+        // 查看是不是代理对象 false step into 
+		if (!Proxy.isProxyClass(targetType)) {
+			handlerTypes.add(targetType);
+			specificHandlerType = targetType;
+		}
+        // 获取其所有的 接口 并将其添加到已经处理过的 set 里面
+		handlerTypes.addAll(Arrays.asList(targetType.getInterfaces()));
+
+		for (Class<?> currentHandlerType : handlerTypes) {
+			final Class<?> targetClass = (specificHandlerType != null ? specificHandlerType : currentHandlerType);
+            // 进入这个方法
+			ReflectionUtils.doWithMethods(currentHandlerType, new ReflectionUtils.MethodCallback() {
+				@Override
+				public void doWith(Method method) {
+					Method specificMethod = ClassUtils.getMostSpecificMethod(method, targetClass);
+					T result = metadataLookup.inspect(specificMethod);
+					if (result != null) {
+						Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
+						if (bridgedMethod == specificMethod || metadataLookup.inspect(bridgedMethod) == null) {
+							methodMap.put(specificMethod, result);
+						}
+					}
+				}
+			}, ReflectionUtils.USER_DECLARED_METHODS);
+		}
+
+		return methodMap;
+	}
+
+
+进入 ReflectionUtils 类
+    public static void doWithMethods(Class<?> clazz, MethodCallback mc, MethodFilter mf) {
+            // Keep backing up the inheritance hierarchy.
+            Method[] methods = getDeclaredMethods(clazz);
+            // 获取所有的方法进行循环
+            for (Method method : methods) {
+                if (mf != null && !mf.matches(method)) {
+                    continue;
+                }
+                try {
+                    mc.doWith(method); // 处理 进入
+                }
+                catch (IllegalAccessException ex) {
+                    throw new IllegalStateException("Not allowed to access method '" + method.getName() + "': " + ex);
+                }
+            }
+            if (clazz.getSuperclass() != null) {
+                doWithMethods(clazz.getSuperclass(), mc, mf);
+            }
+            else if (clazz.isInterface()) {
+                for (Class<?> superIfc : clazz.getInterfaces()) {
+                    doWithMethods(superIfc, mc, mf);
+                }
+            }
+        }
+
+进入 MethodIntrospector 类 的匿名类
+	public static <T> Map<Method, T> selectMethods(Class<?> targetType, final MetadataLookup<T> metadataLookup) {
+		final Map<Method, T> methodMap = new LinkedHashMap<Method, T>();
+		Set<Class<?>> handlerTypes = new LinkedHashSet<Class<?>>();
+		Class<?> specificHandlerType = null;
+
+		if (!Proxy.isProxyClass(targetType)) {
+			handlerTypes.add(targetType);
+			specificHandlerType = targetType;
+		}
+		handlerTypes.addAll(Arrays.asList(targetType.getInterfaces()));
+
+		for (Class<?> currentHandlerType : handlerTypes) {
+			final Class<?> targetClass = (specificHandlerType != null ? specificHandlerType : currentHandlerType);
+
+			ReflectionUtils.doWithMethods(currentHandlerType, new ReflectionUtils.MethodCallback() {
+				@Override
+         --------------------- 进入了这里
+				public void doWith(Method method) {
+					Method specificMethod = ClassUtils.getMostSpecificMethod(method, targetClass);
+                    // 进入这里
+					T result = metadataLookup.inspect(specificMethod);
+					if (result != null) {
+						Method bridgedMethod = BridgeMethodResolver.findBridgedMethod(specificMethod);
+						if (bridgedMethod == specificMethod || metadataLookup.inspect(bridgedMethod) == null) {
+							methodMap.put(specificMethod, result);
+						}
+					}
+				}
+			}, ReflectionUtils.USER_DECLARED_METHODS);
+		}
+
+		return methodMap;
+	}
+
+
+
+进入 EventListenerMethodProcessor 类
+
+    protected void processBean(final List<EventListenerFactory> factories, final String beanName, final Class<?> targetType) {
+		if (!this.nonAnnotatedClasses.contains(targetType)) {
+			Map<Method, EventListener> annotatedMethods = null;
+			try {
+				annotatedMethods = MethodIntrospector.selectMethods(targetType,
+						new MethodIntrospector.MetadataLookup<EventListener>() {
+							@Override
+                    -------------------------- 进入这个内部类
+							public EventListener inspect(Method method) {
+                                // 进入 传入了 method 和 EventListener.class 判断 method 是否有 这个注解
+                                // 到了这里 如果能进入就已经开始 Proxy 了
+								return AnnotatedElementUtils.findMergedAnnotation(method, EventListener.class);
+							}
+						});
+			}
+			catch (Throwable ex) {
+				// An unresolvable type in a method signature, probably from a lazy bean - let's ignore it.
+				if (logger.isDebugEnabled()) {
+					logger.debug("Could not resolve methods for bean with name '" + beanName + "'", ex);
+				}
+			}
+			if (CollectionUtils.isEmpty(annotatedMethods)) {
+				this.nonAnnotatedClasses.add(targetType);
+				if (logger.isTraceEnabled()) {
+					logger.trace("No @EventListener annotations found on bean class: " + targetType.getName());
+				}
+			}
+			else {
+				// Non-empty set of methods
+				for (Method method : annotatedMethods.keySet()) {
+					for (EventListenerFactory factory : factories) {
+						if (factory.supportsMethod(method)) {
+							Method methodToUse = AopUtils.selectInvocableMethod(
+									method, this.applicationContext.getType(beanName));
+							ApplicationListener<?> applicationListener =
+									factory.createApplicationListener(beanName, targetType, methodToUse);
+							if (applicationListener instanceof ApplicationListenerMethodAdapter) {
+								((ApplicationListenerMethodAdapter) applicationListener)
+										.init(this.applicationContext, this.evaluator);
+							}
+							this.applicationContext.addApplicationListener(applicationListener);
+							break;
+						}
+					}
+				}
+				if (logger.isDebugEnabled()) {
+					logger.debug(annotatedMethods.size() + " @EventListener methods processed on bean '" +
+							beanName + "': " + annotatedMethods);
+				}
+			}
+		}
+	}
+
+
+
+进入 AnnotatedElementUtils  这里
+    public static <A extends Annotation> A findMergedAnnotation(AnnotatedElement element, Class<A> annotationType) {
+		Assert.notNull(annotationType, "'annotationType' must not be null");
+
+		// Shortcut: directly present on the element, with no merging needed?
+		if (!(element instanceof Class)) {
+			// Do not use this shortcut against a Class: Inherited annotations
+			// would get preferred over locally declared composed annotations.
+            // 获取 annotationType 类型的注解
+			A annotation = element.getAnnotation(annotationType);
+			if (annotation != null) {
+                // step into
+				return AnnotationUtils.synthesizeAnnotation(annotation, element);
+			}
+		}
+
+		// Exhaustive retrieval of merged annotation attributes...
+		AnnotationAttributes attributes = findMergedAnnotationAttributes(element, annotationType, false, false);
+		return AnnotationUtils.synthesizeAnnotation(attributes, annotationType, element);
+	}
+    
+进入 AnnotationUtils 类
+    	public static <A extends Annotation> A synthesizeAnnotation(A annotation, AnnotatedElement annotatedElement) {
+		return synthesizeAnnotation(annotation, (Object) annotatedElement);
+	}
+
+
+    static <A extends Annotation> A synthesizeAnnotation(A annotation, Object annotatedElement) {
+		if (annotation == null) {
+			return null;
+		}
+		if (annotation instanceof SynthesizedAnnotation) {
+			return annotation;
+		}
+
+		Class<? extends Annotation> annotationType = annotation.annotationType();
+		if (!isSynthesizable(annotationType)) {
+			return annotation;
+		}
+
+		DefaultAnnotationAttributeExtractor attributeExtractor =
+				new DefaultAnnotationAttributeExtractor(annotation, annotatedElement);
+		InvocationHandler handler = new SynthesizedAnnotationInvocationHandler(attributeExtractor);
+
+		// Can always expose Spring's SynthesizedAnnotation marker since we explicitly check for a
+		// synthesizable annotation before (which needs to declare @AliasFor from the same package)
+		Class<?>[] exposedInterfaces = new Class<?>[] {annotationType, SynthesizedAnnotation.class};
+		return (A) Proxy.newProxyInstance(annotation.getClass().getClassLoader(), exposedInterfaces, handler);
+	}
+
+
+
+还是没搞懂。。。
+算了 以后再说
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

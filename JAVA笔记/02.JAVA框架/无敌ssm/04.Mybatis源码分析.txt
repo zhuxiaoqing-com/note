@@ -1,0 +1,115 @@
+1. 创建 sqlSessionFactoryBuilder 对象
+2. build(input Stream)
+3. 创建解析器
+4. 解析每一个标签吧详细信息保存在 Configuration 中
+5. 解析 mapper.xml
+6. 返回 Configuration
+7. build(Configuration)
+8. new DefaultSqlSession()
+9. 返回创建的 DefaultSqlSession,包含了保存全局配置信息的 Configuration
+Mapper.xml 中的每一个元素信息解析出来并保存在全局配置中
+将增删改查标签的每一个标签每一个属性都解析出来
+封装成一个 MapperStatement
+一个 MapperStatement 就代表一个增删改查标签的详细信息
+
+总结 把配置文件的信息解析出来并保存在 Configuration 对象中，
+返回包含了 Configuration 的 DefaultSqlSession 对象 
+
+
+总结
+    1. 根据配置文件(全局，sql 映射) 初始化  Configuration 对象
+    2. 创建一个 DefaultSqlSession 对象，
+        它里面包含 Configuration 以及
+        Executor (根据全局配置文件中的 defaultExrcutorType 创建出 Executor)
+    3. DefaultSqlSession.getMapper() : 拿到 Mapper 接口对应的 MapperProxy;
+    4. MapperProxy 里面有 (DefaultSqlSession)
+    5. 执行增删改查方法：
+        1. 调用 DefaultSqlSession 的增删改查 (Executor)
+        2. 会创建一个 StatementHandler 对象
+            ( 同时也会创建出 ParameterHandler 和 ResultSetHandler)
+        3. 调用 StatementHandler 预编译参数以及设置参数值
+            使用 ParameterHandler 来给 sql 设置参数
+        4. 调用 StatementHandler 的增删改查方法
+        5. ResultSetHandler 封装结果
+   四大对象每个创建的时候都有一个 interceptorChain.pluginAll(parameterHandler);.
+
+
+代理对象
+    创建动态代理的时候，是按照插件配置顺序创建层层代理对象。
+    执行目标方法的之后，按照逆向顺序执行
+
+  因为先在 xml 配置的 intercepter 先被包装成一个 代理
+  然后被下一个 对象又包装成一个代理
+  然后 所有的实际方法有是在拦截前 执行的
+  所以是后包装的先执行，执行拦截前的方法完毕后再执行包装对象的方法
+
+
+
+mybatis 
+
+数据处理
+    参数映射 
+    ParameterHandler
+    SQL 解析
+    SqlSource
+    SQL 执行
+    Executor
+    结果处理和映射
+    ResultSetHandler
+
+Executor 执行器
+ParameterHandler 参数处理器
+ResultSetHandler 结果集处理器
+StatementHandler SQL 语句处理器
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,109 @@
+Struts2
+
+   jar包有8个：
+
+    commons-fileupload-1.2.2.jar      【文件上传相关包】
+    commons-io-2.0.1.jar【文件上传相关包】
+    struts2-core-2.3.4.1.jar 【struts2核心功能包】
+    xwork-core-2.3.4.1.jar           【Xwork核心包】
+    ognl-3.0.5.jar                     【Ognl表达式功能支持表】
+    commons-lang3-3.1.jar          【struts对java.lang包的扩展】
+    freemarker-2.3.19.jar            【struts的标签模板库jar文件】
+    javassist-3.11.0.GA.jar           【struts对字节码的处理相关jar】
+
+
+配置web.xml
+
+在web.xml中配置的过滤器，其实就是在为struts进行初始化工作
+
+值得注意的是：如果该web.xml配置了多个fileter，那么struts的filter需要在最后面！
+
+
+struts流程的重点：
+
+服务器启动
+
+    加载web.xml文件
+    找到我们配置的 filter 中的 StrutsPrepareAndExecuteFilter
+    StrutsPrepareAndExecuteFilter 在里边执行 init() 方法
+    一直到 Dispatcher dispatcher = init.initDispatcher(config) ;，初始化 dispatcher
+    在初始化 dispatcher 的时候加载 struts-default.xml 和我们配置的 struts.xml
+
+
+访问阶段
+
+    首先，它会创建我们在struts.xml中配置的Action对象
+    接着，它会按照默认的顺序执行18个拦截器【也就是调用默认拦截器栈】
+    最后，它会执行Action的业务方法【也就是execute()，我们在struts.xml文件中配置了什么，就执行什么业务方法】
+    值得注意的是：每访问Action一次，它就会创建一个对象…它并不是和Servlet一样只有一个对象…因此它是线程安全的.
+
+
+XML 深入
+    
+
+    算了不学了 Struts2
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

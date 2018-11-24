@@ -1,0 +1,39 @@
+总代价模型计算
+
+COST = CPU Cost + IO Cost
+
+CPU COST
+  Mysql 上层，处理返回记录所花开销
+  每 5 条记录的处理时间。为 1 Cost
+
+IO Cost
+
+    聚簇索引 IO Cost
+
+    全扫描
+        IO Cost = table -> stat_clustered_index_size
+
+        聚簇索引页面总数
+        一个页面作为 1 Cost
+
+     范围扫描
+        
+        IO Cost = [{ranges+rows}/total_rows] * 全扫描 IO  Cost
+        
+        聚簇索引范围扫描与返回的记录成比率
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

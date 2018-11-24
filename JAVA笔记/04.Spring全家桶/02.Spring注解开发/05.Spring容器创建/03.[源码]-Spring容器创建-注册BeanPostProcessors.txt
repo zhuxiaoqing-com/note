@@ -1,0 +1,305 @@
+[源码]-Spring容器创建-注册BeanPostProcessors
+
+
+
+public void refresh() throws BeansException, IllegalStateException {
+		synchronized (this.startupShutdownMonitor) {
+			// Prepare this context for refreshing.
+            // 进行 容器刷新前预处理。处理一些我们自定义的一个属性，还有 new earlyApplicationEvents 来存储早期的事件，
+            // 以便等派发器的时候派发出去
+			prepareRefresh();
+
+			// Tell the subclass to refresh the internal bean factory.
+            // 获取 beanFactory 主要是 给 容器 GenericApplicationContext Constructor 的时候就创建的 ConfigurableListableBeanFactory
+            // 设置一个 serializable id 然后将其 beanFactory 获取过来
+			ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+
+			// Prepare the bean factory for use in this context.
+            // 对 beanFactory 的一些预处理，主要注册一些属性，然后忽略一些属性使其不能通过其忽略的类型注入
+			prepareBeanFactory(beanFactory);
+
+			try {
+				// Allows post-processing of the bean factory in context subclasses.
+                // beanFactory 后置处理器
+				postProcessBeanFactory(beanFactory);
+
+				// Invoke factory processors registered as beans in the context.
+                // 运行 实现了 BeanFactoryPostProcessors 和 BeanDefinitionRegistryPostProcessor 的后置处理器
+				invokeBeanFactoryPostProcessors(beanFactory);
+
+				// Register bean processors that intercept bean creation.
+                注册 implements BeanPostProcessors 的类 它在 bean init-method 的前后运行 我们现在主要来看这里
+				registerBeanPostProcessors(beanFactory);
+
+				// Initialize message source for this context.
+				initMessageSource();
+
+				// Initialize event multicaster for this context.
+				initApplicationEventMulticaster();
+
+				// Initialize other special beans in specific context subclasses.
+				onRefresh();
+
+				// Check for listener beans and register them.
+				registerListeners();
+
+				// Instantiate all remaining (non-lazy-init) singletons.
+				finishBeanFactoryInitialization(beanFactory);
+
+				// Last step: publish corresponding event.
+				finishRefresh();
+			}
+
+			catch (BeansException ex) {
+				if (logger.isWarnEnabled()) {
+					logger.warn("Exception encountered during context initialization - " +
+							"cancelling refresh attempt: " + ex);
+				}
+
+				// Destroy already created singletons to avoid dangling resources.
+				destroyBeans();
+
+				// Reset 'active' flag.
+				cancelRefresh(ex);
+
+				// Propagate exception to caller.
+				throw ex;
+			}
+
+			finally {
+				// Reset common introspection caches in Spring's core, since we
+				// might not ever need metadata for singleton beans anymore...
+				resetCommonCaches();
+			}
+		}
+	}
+
+
+
+
+
+        // Register bean processors that intercept bean creation.
+            注册 implements BeanPostProcessors 的类 它在 bean init-method 的前后运行 我们现在主要来看这里
+            registerBeanPostProcessors(beanFactory);
+            
+        不同接口类型的BeanPostProcessor；在Bean创建前后的执行时机是不一样的
+		BeanPostProcessor、
+		DestructionAwareBeanPostProcessor、
+		InstantiationAwareBeanPostProcessor、
+		SmartInstantiationAwareBeanPostProcessor、
+		MergedBeanDefinitionPostProcessor【internalPostProcessors】、
+
+
+
+
+    protected void registerBeanPostProcessors(ConfigurableListableBeanFactory beanFactory) {
+		PostProcessorRegistrationDelegate.registerBeanPostProcessors(beanFactory, this);
+	}
+
+进入 PostProcessorRegistrationDelegate 类
+
+
+    public static void registerBeanPostProcessors(
+			ConfigurableListableBeanFactory beanFactory, AbstractApplicationContext applicationContext) {
+        // 获取所有 实现了 BeanPostProcessor  接口的类
+		String[] postProcessorNames = beanFactory.getBeanNamesForType(BeanPostProcessor.class, true, false);
+
+		// Register BeanPostProcessorChecker that logs an info message when
+		// a bean is created during BeanPostProcessor instantiation, i.e. when
+		// a bean is not eligible for getting processed by all BeanPostProcessors.
+		int beanProcessorTargetCount = beanFactory.getBeanPostProcessorCount() + 1 + postProcessorNames.length;
+        // 添加一个 BeanPostProcessorChecker 检查器
+		beanFactory.addBeanPostProcessor(new BeanPostProcessorChecker(beanFactory, beanProcessorTargetCount));
+
+		// Separate between BeanPostProcessors that implement PriorityOrdered,
+		// Ordered, and the rest.
+        // 创建集合
+		List<BeanPostProcessor> priorityOrderedPostProcessors = new ArrayList<BeanPostProcessor>();
+		List<BeanPostProcessor> internalPostProcessors = new ArrayList<BeanPostProcessor>();
+		List<String> orderedPostProcessorNames = new ArrayList<String>();
+		List<String> nonOrderedPostProcessorNames = new ArrayList<String>();
+		for (String ppName : postProcessorNames) {
+			if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
+				BeanPostProcessor pp = beanFactory.getBean(ppName, BeanPostProcessor.class);
+				priorityOrderedPostProcessors.add(pp);
+                // 如果是 MergedBeanDefinitionPostProcessor 类型的放入 internalPostProcessors 集合中
+				if (pp instanceof MergedBeanDefinitionPostProcessor) {
+					internalPostProcessors.add(pp);
+				}
+			}
+			else if (beanFactory.isTypeMatch(ppName, Ordered.class)) {
+				orderedPostProcessorNames.add(ppName);
+			}
+			else {
+				nonOrderedPostProcessorNames.add(ppName);
+			}
+		}
+
+		// First, register the BeanPostProcessors that implement PriorityOrdered.
+        // 注册实现了 PriorityOrdered 接口的 BeanPostProcessors
+		sortPostProcessors(priorityOrderedPostProcessors, beanFactory);
+		registerBeanPostProcessors(beanFactory, priorityOrderedPostProcessors);
+
+		// Next, register the BeanPostProcessors that implement Ordered.
+		List<BeanPostProcessor> orderedPostProcessors = new ArrayList<BeanPostProcessor>();
+		for (String ppName : orderedPostProcessorNames) {
+			BeanPostProcessor pp = beanFactory.getBean(ppName, BeanPostProcessor.class);
+			orderedPostProcessors.add(pp);
+			if (pp instanceof MergedBeanDefinitionPostProcessor) {
+				internalPostProcessors.add(pp);
+			}
+		}
+        // 注册实现了 Ordered 接口的 BeanPostProcessors
+		sortPostProcessors(orderedPostProcessors, beanFactory);
+		registerBeanPostProcessors(beanFactory, orderedPostProcessors);
+
+		// Now, register all regular BeanPostProcessors.
+         // 注册实现了 其他没有实现 排序 接口的 BeanPostProcessors
+		List<BeanPostProcessor> nonOrderedPostProcessors = new ArrayList<BeanPostProcessor>();
+		for (String ppName : nonOrderedPostProcessorNames) {
+			BeanPostProcessor pp = beanFactory.getBean(ppName, BeanPostProcessor.class);
+			nonOrderedPostProcessors.add(pp);
+			if (pp instanceof MergedBeanDefinitionPostProcessor) {
+				internalPostProcessors.add(pp);
+			}
+		}
+		registerBeanPostProcessors(beanFactory, nonOrderedPostProcessors);
+
+		// Finally, re-register all internal BeanPostProcessors.
+        // 最后，重新注册所有internal BeanPostProcessors
+		sortPostProcessors(internalPostProcessors, beanFactory);
+		registerBeanPostProcessors(beanFactory, internalPostProcessors);
+
+		// Re-register post-processor for detecting inner beans as ApplicationListeners,
+		// moving it to the end of the processor chain (for picking up proxies etc).
+        // 添加 检查 Bean 是不是监听器的 后置处理器
+		beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(applicationContext));
+	}
+    如果是就将其添加到 this.applicationContext.addApplicationListener((ApplicationListener<?>) bean);
+    监听器容器中，
+进入 ApplicationListenerDetector 类的逻辑
+        @Override
+	public Object postProcessAfterInitialization(Object bean, String beanName) {
+		if (this.applicationContext != null && bean instanceof ApplicationListener) {
+			// potentially not detected as a listener by getBeanNamesForType retrieval
+			Boolean flag = this.singletonNames.get(beanName);
+			if (Boolean.TRUE.equals(flag)) {
+				// singleton bean (top-level or inner): register on the fly
+				this.applicationContext.addApplicationListener((ApplicationListener<?>) bean);
+			}
+			else if (Boolean.FALSE.equals(flag)) {
+				if (logger.isWarnEnabled() && !this.applicationContext.containsBean(beanName)) {
+					// inner bean with other scope - can't reliably process events
+					logger.warn("Inner bean '" + beanName + "' implements ApplicationListener interface " +
+							"but is not reachable for event multicasting by its containing ApplicationContext " +
+							"because it does not have singleton scope. Only top-level listener beans are allowed " +
+							"to be of non-singleton scope.");
+				}
+				this.singletonNames.remove(beanName);
+			}
+		}
+		return bean;
+	}
+
+
+
+
+
+6、registerBeanPostProcessors(beanFactory);注册BeanPostProcessor（Bean的后置处理器）【 intercept bean creation】
+		不同接口类型的BeanPostProcessor；在Bean创建前后的执行时机是不一样的
+		BeanPostProcessor、
+		DestructionAwareBeanPostProcessor、
+		InstantiationAwareBeanPostProcessor、
+		SmartInstantiationAwareBeanPostProcessor、
+		MergedBeanDefinitionPostProcessor【internalPostProcessors】、
+		
+		1）、获取所有的 BeanPostProcessor;后置处理器都默认可以通过PriorityOrdered、Ordered接口来执行优先级
+		2）、先注册PriorityOrdered优先级接口的BeanPostProcessor；
+			把每一个BeanPostProcessor；添加到BeanFactory中
+			beanFactory.addBeanPostProcessor(postProcessor);
+		3）、再注册Ordered接口的
+		4）、最后注册没有实现任何优先级接口的
+		5）、最终注册MergedBeanDefinitionPostProcessor；
+		6）、注册一个ApplicationListenerDetector；来在Bean创建完成后检查是否是ApplicationListener，如果是
+			applicationContext.addApplicationListener((ApplicationListener<?>) bean);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

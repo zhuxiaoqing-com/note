@@ -1,0 +1,748 @@
+创建 Spring 的目的就是用来替代更加重量级的企业级的 java 技术
+简化 java 开发
+    基于 pojo 轻量级和最小侵入式开发
+    通过依赖注入和面向接口实现松耦合
+    基于切面和惯例进行声明式编程
+    通过切面和模板减少样板式代码
+
+Spring是一种非侵入式的框架…
+
+侵入式
+
+对于EJB、Struts2等一些传统的框架，通常是要实现特定的接口，继承特定的类才能增强功能
+改变了java类的结构
+非侵入式
+
+对于Hibernate、Spring等框架，对现有的类结构没有影响，就能够增强JavaBean的功能
+
+Spring 可以分为 6 大模块
+    Spring Core  spring 的核心功能： IOC 容器，解决对象创建及依赖关系
+    Spring Web  spring 对 web 模块的支持
+        可以与 struts 整合，让 struts 的 action 创建交给 spring 
+        spring mvc 模式 等等
+    Spring DAO Spring 对 jdbc 操作的支持  事务transaction management 【JdbcTemplate模板工具类】
+    Spring ORM  spring对orm的支持：orm 数据库与对象的映射关系 
+        既可以与hibernate整合，【session】
+        也可以使用spring的对hibernate操作的封装
+        ibatis 等
+    Spring AOP  切面编程  AspectJ integration
+    SpringEE   spring 对javaEE其他模块的支持  EJBS 等 Email 等也进行了封装
+    Spring Context
+    
+Spring Core  就是 IOC 解决了对象的创建以及依赖注入
+Spring WEB   就是对 web 层的框架的支持  整合了 struts2 和 springMVC
+Spring DAO   封装了 jdbc 事务
+Spring EE    对 javaEE 其他模块的支持
+Spring ORM   Spring 对 orm 的支持 数据库与对象的映射关系  整合了 hibernate 和 封装了 hibernate  hiebrnateTemplate
+Spring AOP   切面编程
+
+
+Core 模块快速入门
+   涉及到Spring core的开发jar包有五个
+    commons-logging-1.1.3.jar           日志
+    spring-beans-3.2.5.RELEASE.jar        bean节点  xml 配置
+    spring-context-3.2.5.RELEASE.jar       spring上下文节点  注解配置
+    spring-core-3.2.5.RELEASE.jar         spring核心功能    核心包  IOC
+    spring-expression-3.2.5.RELEASE.jar    spring表达式相关表  表达式
+
+-----------------------------------------------------------------------
+
+1. spring-core
+    这个 jar 文件包含 Spring 框架基本的核心工具类，Spring 其他组件都要使用到这个包里面的类，是其他组件的基本核心，
+    当然你也可以在自己的应用系统中使用这些工具类。
+
+2. spring-beans
+    这个 jar 文件是所有应用都要用到的，它包含访问配置文件、创建和管理 bean 以及进行 Inversion of Control / Dependency Injection（IoC/DI）
+    操作相关的所有类。如果应用只需基本的 ioc/DI 支持，引入 spring-core.jar 及 spring-beans.jar 文件就可以刻
+
+3. spring-aop
+    这个 jar 文件包含应用中使用 spring 的 aop  特性时所需的类。使用基于 aop 的 spring 特性，如声明型事务管理（Declarative Transaction Management），
+    也要在应用里包含这个jar包。
+ 
+4. spring-context    applicationContext 类要的 jar 包  注解包
+    这个 jar 文件为 spring 核心提供了大量扩展。可以找到 spring ApplicationContext 特性时所需的全部类， JDNI 所需的全部类，
+    UI方面的用来与模板（Templating）引擎如Velocity、FreeMarker、JasperReports集成的类，以及校验Validation方面的相关类。
+
+5. 
+
+6. spring-hibernate.jar   
+　　这个jar文件包含Spring对Hibernate 2及Hibernate 3进行封装的所有类。
+
+7. spring-jdbc.jar  事务在这个包里面   
+　　这个jar文件包含对 Spring 对 JDBC 数据访问进行封装的所有类。
+
+8. spring-orm.jar
+　　这个jar文件包含Spring对DAO特性集进行了扩展，使其支持 iBATIS、JDO、OJB、TopLink，因为Hibernate已经独立成包了，现在不包含在这个包里了。
+    这个jar文件里大部分的类都要依赖spring-dao.jar里的类，用这个包时你需要同时包含spring-dao.jar包。
+
+9. spring-web.jar   就是能将 applicationContext 将其放到 listener  下初始化，然后将其放到了 serlvetContext 里面。
+　　这个jar文件包含Web应用开发时，用到Spring框架时所需的核心类，包括自动载入WebApplicationContext特性的类、Struts与JSF集成类、文件上传的支持类、
+    Filter类和大量工具辅助类。
+
+10. spring-webmvc.jar
+　　 这个jar文件包含Spring MVC框架相关的所有类。包含国际化、标签、Theme、视图展现的FreeMarker、JasperReports、Tiles、Velocity、XSLT相关类。
+     当然，如果你的应用使用了独立的MVC框架，则无需这个JAR文件里的任何类。
+
+-----------------------------------------------------------------------
+
+
+
+    Spring 核心的配置文件 applicationContext.xml 或者叫 bean.xml
+
+Core 模块是 : IOC 容器，解决对象创建和之间的依赖关系
+    归为两种类型
+    **Bean工厂，BeanFactory【功能简单】 **
+    应用上下文，ApplicationContext【功能强大，一般我们使用这个】
+
+
+
+IOC 的好处
+    1.不用自己组装，拿来就用
+    2.享受单例的好处，效率高，不浪费空间
+    3.便于单元测试，方便切换 mock 组件
+    4.便于进行 AOP 操作，对于使用者是透明的
+    5.统一配置，便于修改
+--------------------------------------------------------------
+
+使修改文件不需要修改源代码
+
+IOC容器创建对象
+    对象的创建交给外部容器完成，这个就做控制反转。
+
+    Spring使用控制反转来实现对象不用在程序中写死
+    控制反转解决对象处理问题【把对象交给别人创建】
+
+    第一，资源集中管理，实现资源的可配置和易管理。第二，降低了使用资源双方的依赖程度，也就是我们说的耦合度。
+    因为交易由第三方来负责联系，而且甲乙都认为第三方可靠。那么交易就能很可靠很灵活的产生和进行了
+在Spring中总体来看可以通过三种方式来配置对象:
+
+        使用XML文件配置
+        使用注解来配置
+        使用JavaConfig来配置
+        编写一个java类，使用@Configuration修饰该类
+        被@Configuration修饰的类就是配置类
+
+  XML 方式
+        在构造函数上，普通类型
+            <bean id="userService" class="bb.UserService" >
+                <constructor-arg >
+                    <list>
+                        //普通类型
+                        <value></value>
+                    </list>
+                </constructor-arg>
+            </bean>
+        在属性上,引用类型
+             <property name="userDao">
+                 <list>
+                     <ref></ref>
+                 </list>
+             </property>
+
+
+注解方式
+    1）先引入context 名称空间
+    xmlns:context="http://www.springframework.org/schema/context"
+    2）开启注解扫描器
+    <context:component-scan base-package=""></context:component-scan>  annotation-config="true"
+     annotation-config="true"  是否自动开启创建 注解 bean 就是 aotuwride 等类 resource  等类。 是需要实例化以后才能用的注解类，但是你配置了以后就不需要实例化了
+
+        @ComponentScan扫描器
+        @Configuration表明该类是配置类
+        @Component   指定把一个对象加入IOC容器--->@Name也可以实现相同的效果【一般少用】
+        @Repository   作用同@Component； 在持久层使用       //把对象添加到 IOC 容器中,首字母会小写  对象的名称会在 IOC 容器中，名称是类名的首字母小写 的类名
+        @Service      作用同@Component； 在业务逻辑层使用   //把对象添加到容器中,首字母会小写
+        @Controller    作用同@Component； 在控制层使用      //把对象添加到容器中,首字母会小写
+        @Resource  依赖关系
+        如果@Resource 不指定值，那么就根据类型来找，相同的类型在IOC容器中不能有两个
+        如果@Resource 指定了值，那么就根据名字来找
+
+
+
+scope属性
+        控制着创建对象的时间。
+    当使用 singleton 的时候，对象在IOC容器生成的时候就已经创建了  在加载 xml 文件的时候就已经将其创建了
+    当使用 prototype 的时候，对象在使用的时候才创建
+
+lazy-init属性
+    只对 singleton 【单例】的对象有效…..lazy-init默认为false….
+    想要对象在使用的时候才创建，那么将lazy-init设置为ture就行了
+
+
+init-method和destroy-method
+      <bean id="user" class="User" scope="singleton" lazy-init="true" init-method="" destroy-method=""/>
+
+        如果我们想要对象在创建后，执行某个方法，我们指定为 init-method 属性就行了。。
+
+        如果我们想要IOC容器销毁后，执行某个方法，我们指定 destroy-method 属性就行了。
+
+         1) 对象创建： 单例/多例
+         *  scope="singleton", 默认值， 即 默认是单例 【service/dao/工具类】
+         *  scope="prototype", 多例；              【Action对象】
+         * 
+         * 2) 什么时候创建
+         *    scope="prototype"  在用到对象的时候，才创建对象。
+         *    scope="singleton"  在启动(容器初始化之前)， 就已经创建了bean，且整个应用只有一个。
+              scope="request"    每一个 request 创建一个 bean 
+              scope="session"    每一个 session 创建一个 bean
+         * 3)是否延迟创建
+         *    lazy-init="false"  默认为false,  不延迟创建，即在启动时候就创建对象
+         *    lazy-init="true"   延迟初始化， 在用到对象的时候才创建对象
+         *    （只对单例有效）
+         * 4) 创建对象之后，初始化/销毁
+         *    init-method="init_user"       【对应对象的init_user方法，在对象创建之后执行 】
+         *    destroy-method="destroy_user"  【在调用容器对象的destroy方法时候执行，(容器用实现类)】
+
+
+----------------------------------------------------------------------------------------
+
+使用IOC容器来解决对象之间的依赖关系  DI
+对象之间的依赖关系，其实就是给对象上的属性赋值！因为对象上有其他对象的变量，因此存在了依赖…
+        
+
+        Spring提供了好几种的方式来给属性赋值
+
+        * 1) 通过构造函数
+        * 2) 通过set方法给属性注入值
+          3) p名称空间
+          4)自动装配(了解)
+        * 5) 注解
+
+XML 自动装载
+自动装载默认是不打开的，自动装配常用的可分为两种：
+
+    根据名字来装配
+    根据类型类装配  （博主没有写到）
+使用了根据类型来自动装配，那么在IOC容器中只能有一个这样的类型，否则就会报错！
+
+
+<!--
+        1.通过名字来自动装配
+        2.发现userService中有个叫userDao的属性
+        3.看看IOC容器UserDao类型的对象
+        4.如果有，就装配进去
+    -->
+        <bean id="userDao" class="UserDao"/>
+<bean id="userService" class="UserService" autowire="byType"/>
+
+我们这只是测试两个对象之间的依赖关系，如果我们有很多对象，我们也可以使用默认自动分配
+    在 <beans.....".."  default-autowire="byType">
+
+
+使用注解来实现自动装配
+    @Autowired注解来实现自动装配：
+
+    可以在构造器上修饰
+    也可以在setter方法上修饰
+    来自java的@Inject的和@AutoWired有相同的功能
+    如果没有匹配到bean，又为了避免异常的出现，我们可以使用 required 属性上设置为false。【谨慎对待】
+
+
+
+使用JavaConfig配置类实现对象依赖  （了解下名字）
+
+
+
+========================================================
+    装饰者模式的目的是想要增强自身能力，也就是说这个能力是我想要的，很乐意接受的，并且会因此去学习。代理模式是我需要这个功能，但是这个功能不值得我花时间去学习，只要完成目的就行了，就像明星和经济人一样，明星自己不需要去学习怎么拉赞助，拉广告，有经济人去干就行了，我只管唱歌。
+        所以，装饰者：明星自己去学习拉广告，拉赞助
+        代理模式：明星找经济人去干
+
+Spring的AOP模块 
+    由于静态代理需要实现目标对象的相同接口，那么可能会导致代理类会非常非常多….不好维护---->因此出现了动态代理
+       静态代理和装饰者模式代码形式基本一样。都是继承或实现接口类，然后 constructor 或 method 来设置一个要加强的类进来，再其前后进行加强
+       静态代理和装饰者模式的代码一样，你可以理解为，行为方式一样，但是目的不一样。
+
+动态代理也有个约束：目标对象一定是要有接口的，没有接口就不能实现动态代理…..----->因此出现了cglib代理
+
+cglib代理也叫子类代理，从内存中构建出一个子类来扩展目标对象的功能！
+
+CGLIB是一个强大的高性能的代码生成包，它可以在运行期扩展Java类与实现Java接口。它广泛的被许多AOP的框架使用，例如Spring AOP和dynaop，
+为他们提供方法的 interception （拦截）。
+
+
+编写cglib代理
+    需要引入cglib – jar文件， 但是spring的核心包中已经包括了cglib功能，所以直接引入spring-core-3.2.5.jar即可。
+    引入功能包后，就可以在内存中动态构建子类
+    代理的类不能为final，否则报错【在内存中构建子类来做扩展，当然不能为final，有final就不能继承了】
+    目标对象的方法如果为final/static, 那么就不会被拦截，即不会执行目标对象额外的业务方法。
+
+    使用cglib就是为了弥补动态代理的不足【动态代理的目标对象一定要实现接口】
+
+
+手动实现AOP编程
+
+    AOP 面向切面的编程：
+
+    AOP可以实现“业务代码”与“关注点代码”分离
+    
+    业务代码与关注点代码分离，好处？
+    1.关注点代码写一次即可；
+    2.开发者只需要关注核心业务；
+    3.运行时期，执行核心业务代码时候动态植入关注点代码； 【代理】
+
+    关注点：重复代码就叫做关注点。 也就是用来加强业务代码的代码
+    切面：关注点形成的类，就叫切面(类)！
+    切入点：
+    执行目标对象方法，动态植入切面代码。
+    可以通过切入点表达式，指定拦截哪些类的哪些方法； 给指定的类在运行的时候植入切面类代码。
+    切入点表达式：指定哪些类的哪些方法被拦截
+
+
+使用Spring AOP开发步骤
+    先引入aop相关jar文件        （ aspectj  aop优秀组件）
+        spring-aop-3.2.5.RELEASE.jar   【spring3.2源码】
+        aopalliance.jar                  【spring2.5源码/lib/aopalliance】
+        aspectjweaver.jar              【spring2.5源码/lib/aspectj】或【aspectj-1.8.2\lib】
+        aspectjrt.jar                  【spring2.5源码/lib/aspectj】或【aspectj-1.8.2\lib】
+
+   注意： 用到spring2.5版本的jar文件，如果用jdk1.7可能会有问题。
+
+  <!-- 开启aop注解方式 -->
+    <aop:aspectj-autoproxy proxy-target-class="true"></aop:aspectj-autoproxy>
+        请记住要实例化 @Aspect bean !!!
+  proxy-target-class  该属性值默认为false,表示使用JDK动态代理织入增强;当值为true时,表示使用CGLib动态代理织入增强;但是,即使设置为false,如果目标类没有生命接口,则Spring将自动使用CGLib动态代理
+
+    @Aspect                            指定一个类为切面类
+
+    @Pointcut("execution(* cn.itcast.e_aop_anno..(..))")  指定切入点表达式
+
+    @Before("pointCut_()")                前置通知: 目标方法之前执行
+
+    @After("pointCut_()")                后置通知：目标方法之后执行（始终执行）
+
+    @AfterReturning("pointCut_()")            返回后通知： 执行方法结束前执行(异常不执行)
+
+    @AfterThrowing("pointCut_()")            异常通知:  出现异常时候执行
+
+    @Around("pointCut_()")                环绕通知： 环绕目标方法执行 最贴近方法
+
+    // 环绕通知：环绕目标方式执行
+        @Around("pointCut_()")
+        public void around(ProceedingJoinPoint pjp) throws Throwable{
+            System.out.println("环绕前....");
+            pjp.proceed();  // 执行目标方法
+            System.out.println("环绕后....");
+        }
+
+
+    每次写Before、After等，都要重写一次切入点表达式，这样就不优雅了。
+
+    使用 @Pointcut 这个注解，来指定切入点表达式，在用到的地方中，直接引用就行了！
+        @Component
+        @Aspect//指定为切面类
+        public class AOP {
+
+
+            // 指定切入点表达式，拦截哪个类的哪些方法
+            @Pointcut("execution(* aa.*.*(..))")
+            public void pt() {
+
+            }
+
+            @Before("pt()")
+            public void begin() {
+                System.out.println("开始事务");
+            }
+
+
+            @After("pt()")
+            public void close() {
+                System.out.println("关闭事务");
+            }
+        }
+
+
+
+
+execution(<修饰符模式>?<返回类型模式><方法声明的类型>?<方法名模式>(<参数模式>)<异常模式>?)
+execution(modifiers-pattern? ret-type-pattern declaring-type-pattern? name-pattern(param-pattern) throws-pattern?)
+    ?号代表0或1，可以不写
+    “*”号代表任意类型，0或多
+    方法参数为..表示为可变参数
+
+modifiers-pattern?【修饰的类型，可以不写】  public
+ret-type-pattern【方法返回值类型，必写】
+declaring-type-pattern?【方法声明的类型，可以不写】   static
+name-pattern(param-pattern)【要匹配的名称，括号里面是方法的参数】
+throws-pattern?【方法抛出的异常类型，可以不写】
+
+
+  <!-- 【多个表达式】 -->
+        <!--<aop:pointcut expression="execution(* cn.itcast.g_pointcut.UserDao.save()) || execution(* cn.itcast.g_pointcut.OrderDao.save())" id="pt"/>-->
+        <!--<aop:pointcut expression="execution(* cn.itcast.g_pointcut.UserDao.save()) or execution(* cn.itcast.g_pointcut.OrderDao.save())" id="pt"/>-->
+        <!-- 下面2个且关系的，没有意义 -->
+        <!--<aop:pointcut expression="execution(* cn.itcast.g_pointcut.UserDao.save()) &amp;&amp; execution(* cn.itcast.g_pointcut.OrderDao.save())" id="pt"/>-->
+        <!--<aop:pointcut expression="execution(* cn.itcast.g_pointcut.UserDao.save()) and execution(* cn.itcast.g_pointcut.OrderDao.save())" id="pt"/>-->
+
+        <!-- 【取非值】 -->
+        <!--<aop:pointcut expression="!execution(* cn.itcast.g_pointcut.OrderDao.save())" id="pt"/>-->
+
+
+
+===================================================
+
+Spring【DAO模块】
+   
+
+    事务控制分为两种：
+
+    编程式事务控制
+    声明式事务控制
+
+编程式事务控制
+    Jdbc代码：
+    Conn.setAutoCommite(false);  // 设置手动控制事务
+    Hibernate代码：
+    Session.beginTransaction();    // 开启一个事务
+    【细粒度的事务控制： 可以对指定的方法、指定的方法的某几行添加事务控制】
+    (比较灵活，但开发起来比较繁琐： 每次都要开启、提交、回滚.)
+
+
+声明式事务控制
+
+    Spring提供对事务的控制管理就叫做声明式事务控制
+
+    Spring提供了对事务控制的实现。
+
+    如果用户想要使用Spring的事务控制，只需要配置就行了。
+    当不用Spring事务的时候，直接移除就行了。
+    Spring的事务控制是基于AOP实现的。因此它的耦合度是非常低的。
+    【粗粒度的事务控制： 只能给整个方法应用事务，不可以对方法的某几行应用事务。】
+    (因为aop拦截的是方法。)
+    Spring给我们提供了事务的管理器类，事务管理器类又分为两种，因为JDBC的事务和Hibernate的事务是不一样的。
+
+    Spring声明式事务管理器类：
+    Jdbc技术：DataSourceTransactionManager
+    Hibernate技术：HibernateTransactionManager
+
+
+
+    我们基于Spring的 hibernate 来做例子吧
+
+    引入相关jar包
+
+    AOP相关的jar包【因为Spring的声明式事务控制是基于AOP的，那么就需要引入AOP的jar包。】
+    引入tx名称空间  tx 是 transaction 包
+    引入AOP名称空间
+    引入jdbcjar包【jdbc.jar包和tx.jar包】 jdbc.jar 对 dao 层支持的 jar 包
+
+           <!--数据连接池配置-->
+        <bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+            <property name="driverClass" value="com.mysql.jdbc.Driver"></property>
+            <property name="jdbcUrl" value="jdbc:mysql:///mydb1"></property>
+            <property name="user" value="root"></property>
+            <property name="password" value="123"></property>
+            <property name="initialPoolSize" value="3"></property>
+            <property name="maxPoolSize" value="10"></property>
+            <property name="maxStatements" value="100"></property>
+            <property name="acquireIncrement" value="2"></property>
+        </bean>
+
+    配置事务
+    
+   <!--1.配置事务的管理器类:hibernate  创建事务-->
+<bean id="hibernateTransaction" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+
+ <!--2.配置如何管理事务 事务的增强-->
+    <tx:advice id="txAdvice" transaction-manager="hibernateTransaction">
+
+        <!--配置事务的属性-->
+        <tx:attributes>
+            <!--所有的方法，并不是只读-->
+            <tx:method name="*" read-only="false"/>
+        </tx:attributes>
+    </tx:advice>
+
+
+ <!--3.配置拦截哪些方法+事务的属性-->
+    <aop:config>
+        <aop:pointcut id="pt" expression="execution(* bb.UserService.*(..) )"/>
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="pt"></aop:advisor>
+    </aop:config>
+
+
+使用注解的方法实现事务控制
+
+       <!--1.配置事务的管理器类:hibernate-->
+    <bean id="hibernateTransaction" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+
+       <!--开启以注解的方式实现事务控制-->
+    <tx:annotation-driven transaction-manager="hibernateTransaction"/>
+    最后，想要控制哪个方法事务，在其前面添加 @Transactional 这个注解就行了！如果想要控制整个类的事务，那么在类上面添加就行了。
+
+* @Transactional
+
+  @Transactional 可以作用于接口、接口方法、类以及类方法上。当作用于类上时，该类的所有 public 方法将都具有该类型的事务属性，同时，我们也可以在方法级别使用该标注来覆盖类级别的定义。
+
+   虽然 @Transactional 注解可以作用于接口、接口方法、类以及类方法上，但是 Spring 建议不要在接口或者接口方法上使用该注解，因为这只有在使用基于接口的代理时它才会生效。
+   另外， @Transactional 注解应该只被应用到 public 方法上，这是由 Spring AOP 的本质决定的。如果你在 protected、private 或者默认可见性的方法上使用 @Transactional 注解，】
+    这将被忽略，也不会抛出任何异常。
+
+   默认情况下，只有来自外部的方法调用才会被AOP代理捕获，也就是，类内部方法调用本类内部的其他方法并不会引起事务行为，即使被调用方法使用 @Transactional 注解进行修饰。
+
+
+savapoint
+
+我们还可以使用savepoint设置中间点。如果在某地方出错了，我们设置中间点，回滚到出错之前即可。
+
+应用场景：现在我们要算一道数学题，算到后面发现算错数了。前面的运算都是正确的，我们不可能重头再算【直接rollback】，
+最好的做法就是在保证前面算对的情况下，设置一个保存点。从保存点开始重新算。
+
+注意：savepoint不会结束当前事务，普通提交和回滚都会结束当前事务的
+ 
+
+
+
+  数据库定义了4个隔离级别：
+
+    Serializable【可避免脏读，不可重复读，虚读】 读用读锁，写用写锁，不使用 mvcc mvcc: 就是读不加锁。读写不冲突
+    Repeatable read【可避免脏读，不可重复读】  也可以避免 虚读。当然 select 还是会查询到不同的语句的 毕竟是快照读
+    Read committed 【可避免脏读】
+    Read uncommitted 【级别最低，什么都避免不了】 
+    分别对应Connection类中的4个常量
+
+    TRANSACTION_READ_UNCOMMITTED
+    TRANSACTION_READ_COMMITTED
+    TRANSACTION_REPEATABLE_READ
+    TRANSACTION_SERIALIZABLE
+    脏读：一个事务读取到另外一个事务未提交的数据
+        例子：A向B转账，A执行了转账语句，但A还没有提交事务，B读取数据，发现自己账户钱变多了！B跟A说，我已经收到钱了。A回滚事务【rollback】，等B再查看账户的钱时，发现钱并没有多。
+
+    不可重复读：一个事务读取到另外一个事务已经提交的数据，也就是说一个事务可以看到其他事务所做的修改   在同一事务中，两次读取同一数据，得到内容不同。
+        注：A查询数据库得到数据，B去修改数据库的数据，导致A多次查询数据库的结果都不一样【危害：A每次查询的结果都是受B的影响的，那么A查询出来的信息就没有意思了】
+
+    虚读(幻读)：是指在一个事务内读取到了别的事务插入的数据，导致前后读取不一致。 同一事务中，用同样的操作读取两次，得到的记录数不相同。
+       注：和不可重复读类似，但虚读(幻读)会读到其他事务的插入的数据，导致前后读取不一致
+
+    简单总结：脏读是不可容忍的，不可重复读和虚读在一定的情况下是可以的【做统计的肯定就不行】。
+
+        幻读的重点在于新增或者删除(删除基本上不会 因为 不可重复读的时候已经将数据锁住了)
+        不可重复读的重点是修改:
+        避免不可重复读需要锁行就行
+        避免幻影读则需要锁表
+
+    脏读：读到了别的事务未提交的数据
+    不可重复读 读到了 事务 修改了的数据 就是读的时候没有加锁
+       在可重复读中，该sql第一次读取到数据后，就将这些数据加锁，其它事务无法修改这些数据，就可以实现可重复 读了
+       也就是说在一次事务中，操作过的数据都会被锁定起来别的事务无法操作
+       也就是说只要将行锁住就可以了
+    幻读（虚读） 读到了 事务增加或删除的数据
+        如果你锁住了行，当然锁住了行可以阻止其他事务 删除满足条件的记录，但你还是不能阻止别的事务增加数据，如果有事务增加了符合你查询条件的数据，那么幻读就产生了
+        所以必须锁表
+    想要避免幻读
+        需要Serializable隔离级别 ，读用读锁，写用写锁，读锁和写锁互斥，这么做可以有效的避免幻读、不可重复读、脏读等问题，但会极大的降低数据库的并发能力。
+    
+    因为事务操作时，可能会行锁，所以不用担心其他事务影响了当前事务
+
+  元数据
+
+    什么是元数据
+
+    元数据其实就是数据库，表，列的定义信息
+
+    为什么我们要用元数据
+
+    即使我们写了一个简单工具类，我们的代码还是非常冗余。对于增删改而言，只有SQL和参数是不同的，我们为何不把这些相同的代码抽取成一个方法？对于查询而言，不同的实体查询出来的结果集是不一样的。我们要使用元数据获取结果集的信息，才能对结果集进行操作。
+
+    ParameterMetaData –参数的元数据
+    ResultSetMetaData –结果集的元数据
+    DataBaseMetaData –数据库的元数据
+
+只读：read-only
+        如果你一次执行单条查询语句，则没有必要启用事务支持，数据库默认支持SQL执行期间的读一致性； 
+    如果你一次执行多条查询语句，例如统计查询，报表查询，在这种场景下，多条查询SQL必须保证整体的读一致性，否则，在前条SQL查询之后，后条SQL查询之前，数据被其他用户改变，则该次整体的统计查询将会出现读数据不一致的状态，此时，应该启用事务支持
+    read-only="true"表示该事务为只读事务，比如上面说的多条查询的这种情况可以使用只读事务，
+    由于只读事务不存在数据的修改，因此数据库将会为只读事务提供一些优化手段，例如Oracle对于只读事务，不启动回滚段，不记录回滚log。
+    （1）在JDBC中，指定只读事务的办法为： connection.setReadOnly(true);
+    （2）在Hibernate中，指定只读事务的办法为： session.setFlushMode(FlushMode.NEVER); 
+    此时，Hibernate也会为只读事务提供Session方面的一些优化手段
+    （3）在Spring的Hibernate封装中，指定只读事务的办法为： bean配置文件中，prop属性增加“read-Only”
+    或者用注解方式@Transactional(readOnly=true)
+    Spring中设置只读事务是利用上面两种方式（根据实际情况）
+    在将事务设置成只读后，相当于将数据库设置成只读数据库，此时若要进行写的操作，会出现错误。
+
+
+    “只读事务”并不是一个强制选项，它只是一个“暗示”，提示数据库驱动程序和数据库系统，这个事务并不包含更改数据的操作，
+    那么JDBC驱动程序和数据库就有可能根据这种情况对该事务进行一些特定的优化，比方说不安排相应的数据库锁，以减轻事务对数据库的压力，
+    毕竟事务也是要消耗数据库的资源的。 
+    但是你非要在“只读事务”里面修改数据，也并非不可以，只不过对于数据一致性的保护不像“读写事务”那样保险而已。 
+    因此，“只读事务”仅仅是一个性能优化的推荐配置而已，并非强制你要这样做不可。
+
+    在oracle下测试，发现不支持readOnly，也就是不论Connection里的readOnly属性是true还是false均不影响SQL的增删改查；
+
+    2、在mysql下测试，发现支持readOnly，设置为true时，只能查询，若增删改会异常：
+
+
+
+事务传播行为:
+        事务传播行为的属性有很多个，常用的就只有两个：
+
+        Propagation.REQUIRED【如果当前方法已经有事务了，加入当前方法事务】 
+            也就是说会将事务合并变成就一个事务 如果出错了，会两个方法一起回滚
+        Propagation.REQUIRED_NEW【如果当前方法有事务了，当前方法事务会挂起。始终开启一个新的事务，直到新的事务执行完、当前方法的事务才开始】
+            当执行到saveDept()中的insertLog()方法时，insertLog()方法发现 saveDept()已经存在事务了，insertLog()会独自新开一个事务，
+            直到事务关闭之后，再执行下面的方法
+
+            如果在中途中抛出了异常，insertLog()是不会回滚的，因为它的事务是自己的，已经提交了
+
+
+
+
+
+
+
+
+spring 路径配置通配符是如何实现的
+    在 spring 的配置文件中、经常看见类似这样的配置路径: classpath:/com/module/**/*sql.xml
+    系统会根据配置路径自动加载符合路径规则的 xml 文件
+    Spring 还提供了一种更强大的 Ant 模式通配符匹配，从能一个路径匹配一批资源。
+    Ant 路径通配符支持 ? * ** ,注意通配符匹配不包括目录分隔符 / 
+
+    ? : 匹配一个字符，如 "config?.xml" 将匹配 "config1.xml"
+    * : 匹配零个或多个字符串，如"cn/*/config.xml" 将匹配 "cn/javass/config.xml",但不匹配"cn/config.xml”；
+            而“cn/config-*.xml”将匹配“cn/config-dao.xml”；
+    ** : 匹配路径中的零个或多个目录，如 "cn/**/config.xml" 将匹配"cn /config.xml",也匹配 "cn/javass/spring/config.xml";
+       而"cn/javass/config-**.xml"将匹配"cn/javass/config-dao.xml"，即把"**"当做两个"*"处理。
+
+ 
+    Spring在加载类路径资源时除了提供前缀“classpath:”的来支持加载一个Resource，还提供一个前缀“classpath*:”来支持加载所有匹配的类路径Resource。
+
+
+    一：“classpath”： 用于加载类路径（包括jar包）中的一个且仅一个资源；对于多个匹配的也只返回一个，所以如果需要多个匹配的请考虑“classpath*:”前缀；
+            只会到你的class路径中查找找文件。
+
+    二：“classpath*”： 用于加载类路径（包括jar包）中的所有匹配的资源。带通配符的classpath使用“ClassLoader”的“Enumeration<URL> getResources(String name)”方法来查找通配符之前的资源，
+    然后通过模式匹配来获取匹配的资源。如“classpath:META-INF/*.INF”将首先加载通配符之前的目录“META-INF”，然后再遍历路径进行子路径匹配从而获取匹配的资源。
+            不仅包含class路径，还包括jar文件中（class路径）进行查找。
+
+    三：“file”：加载一个或多个文件系统中的Resource。如“file:D:/*.txt”将返回D盘下的所有txt文件；
+
+    四：无前缀：通过ResourceLoader实现加载一个资源。 
+    AppliacationContext提供的getResources方法将获取资源委托给ResourcePatternResolver实现，默认使用PathMatchingResourcePatternResolver。
+
+    classpath 指的是 类路径下 也就是 classes 下
+    file 带盘符
+    无前缀 项目路径下
+
+    用classpath*:需要遍历所有的classpath，所以加载速度是很慢的；因此，在规划的时候，应该尽可能规划好资源文件所在的路径，尽量避免使用classpath*。
+
+    classpath*的使用：
+        当项目中有多个classpath路径，并同时加载多个classpath路径下（此种情况多数不会遇到）的文件，*就发挥了作用，如果不加*，则表示仅仅加载第一个classpath路径。
+            只是路径而已！！！ classpath 也会加载多个文件，但是只加载一个目录
+
+    2、"**/"表示的是任意目录；"**/applicationContext-*.xml"表示任意目录下的以"applicationContext-"开头的XML文件。  
+
+    3、程序部署到tomcat后，src目录下的配置文件会和class文件一样，自动copy到应用的WEB-INF/classes目录下；classpath:与classpath*:的区别在于，前者只会从第一个classpath中加载，而 后者会从所有的classpath中加载。
+
+    4、如果要加载的资源，不在当前ClassLoader的路径里，那么用classpath:前缀是找不到的，这种情况下就需要使用classpath*:前缀。
+
+    5、在多个classpath中存在同名资源，都需要加载时，那么用classpath:只会加载第一个，这种情况下也需要用classpath*:前缀。
+
+    classpath     只会到 classes 下面找 不会到 lib(jar 包里面寻找)
+    classpath*    会到 classes 和 lib 的 classes 里面寻找
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

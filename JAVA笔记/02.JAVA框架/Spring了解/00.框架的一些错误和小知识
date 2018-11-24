@@ -1,0 +1,194 @@
+hibernate 和 Strut2s 整合的时候 使用 myeclipse 自动生成有个 bug 有 jar 包冲突
+    antlr-2.7.7.jar 将这个包从其中的一个 框架里面去除就好了
+
+为什么 事务需要连接池  sqlSessionFactory 也需要连接池
+			应该是 sqlSessionFactory 里面会有判断的 先从一个 容器里面获取 connetion  判断容器里面的 connection 是否存在
+			没有事务的话就由 sqlSessionFactory 自己使用 dataSource 自己获取
+
+            如果一直有事务的话 那么应该 不需要 往 sqlSessionFactory 里面注入 datasorce 了 但是不知道是不是有 dataSource 是否存在的判断
+
+
+spring aop 被代理的对象 中方法相互调用为什么不会执行通知
+    因为动态代理的本质 在 invocationHandler 接口的实现方法里面。调用的是被代理的类的方法
+        method.invoke(object, args) 
+        如果你是从外部调用的话调用的是 代理类的方法，代理类会执行自己的方法，在自己的方法里面再执行被代理的类的方法
+        如果你是内部调用的话，那么其实 是在 method.invoke(object, args)  被代理类的方法里面调用，和 代理对象没有关系，也不会使用到代理对象，使用的一直都是被代理对象
+
+spring 多个资源文件加载，${}通配符失效问题
+    在用通配符配置属性的时候发现，mongo的配置文件中的通配符找不到属性，经过多方查证，多个xml需要各自加载属性文件需要加个参数ignore-unresolvable="true"
+        <context:property-placeholder location="classpath:db-mybatis.properties" ignore-unresolvable="true"/>
+        <context:property-placeholder location="classpath:db-mongo.properties" ignore-unresolvable="true" />
+        pring容器采用反射扫描的发现机制，在探测到Spring容器中有一个org.springframework.beans.factory.config.PropertyPlaceholderConfigurer的Bean就会停止对
+        剩余PropertyPlaceholderConfigurer的扫描（Spring 3.1已经使用PropertySourcesPlaceholderConfigurer替代PropertyPlaceholderConfigurer了）。 
+
+        而<context:property-placeholder/>这个基于命名空间的配置，其实内部就是创建一个PropertyPlaceholderConfigurer Bean而已。
+        换句话说，即Spring容器仅允许最多定义一个PropertyPlaceholderConfigurer(或<context:property-placeholder/>)，其余的会被Spring忽略掉
+        （其实Spring如果提供一个警告就好了）。
+
+关闭面包屑
+在面包屑工具条上右击，选择hide Breadcrumb,就可以啊
+
+
+我们是在SpringMVC上aop监测，那么所有的报扫描注入都在SpringMVC的配置文件中完成，不要再spring的配置文件中完成，不然在开启代理后，发现还是没有起到任何作用。
+    因为全包扫描是在 springMVC 里面的 所以 <aop:aspectj-autoproxy/> 也必须要放在 springMVC 里面 因为 aop 的完成需要依赖注解
+
+   spring（applicationContext），SpringMVC（webApplicationContext） 是两个独立的配置文件 互相不影响，所以 springMVC 开启的 bean 扫描，必须和  <aop:aspectj-autoproxy/>  写在一个文件里面
+
+
+Unable to the determine sourceType <S> and targetType <T> which your Converter<S, T> converts between; declare these generic types.
+    关于 springMVC 转换器
+    你必须使用一个接口来实现 转换器接口 写上 转换类型
+    然后使用类来实例化他
+    可能是因为你是在类上写的 泛型。而代理类代理的却是接口，原生的接口上并没有写 泛型的类型
+    而如果你使用一个接口去继承 转换器的接口，并写上 <S,T> 的具体类型的时候，那么 proxy 就可以知道你的类型了 
+    public interface myConveter extends Converter<String, Date>{}
+
+
+
+组件扫描最佳配置
+
+    在spring-servlet.xml中配置：请记得添加 <load-on-startup>1</load-on-startup> 让其在 服务器启动时就初始化
+
+        <!-- Spring MVC 扫描包路径配置 -->
+        <context:component-scan base-package="com.a.b"
+            use-default-filters="false"> // 默认自动扫描所有注解
+            <!-- expression 里面代表了 @Controller  -->
+            <context:include-filter type="annotation"  expression="org.springframework.stereotype.Controller" />
+        </context:component-scan>
+
+
+    在applicationContext.xml中配置：
+
+        <!-- 注册相关后置处理器,扫描包路径下的注解配置 -->
+        <context:component-scan base-package="com.a.b">
+            <context:exclude-filter type="annotation"
+                expression="org.springframework.stereotype.Controller" />
+        </context:component-scan>
+
+    use-default-filters="false"  有 true(默认)  和 false 
+     true  表示默认全部扫描 所有注解
+     false 表示默认不扫描 所有注解 只扫描里面规定的注解
+    在 springMVC 下建议使用 false 因为如果你要在两个配置文件里面都使用的话
+        会将 service、dao层的bean重新加载，从而造成新加载的bean覆盖了老的bean，但事务的AOP代理没有配置在spring-mvc.xml配置文件中，造成事务失效。
+    
+    include-filter  白名单方式  表示 扫描里面的注解
+    exclude-filter  黑名单方式  表示 不扫描里面的注解
+
+
+
+
+applicationContext.xml 和 dispatch-servlet.xml 形成了两个父子关系的上下文。
+    
+    1. 一个 bean 如果在两个文件中都被定义了(比如两个文件中都定义了 component scan 扫描相同的 package ), spring 会在 application context
+        和 servlet context 中都生成一个实例，他们初一不同的上下文空间中，他们的行为方式是可以不一样的。
+    
+    2. 如果在 application context 和 servlet context 中都存在同一个 @Service 的实例， controller （在 servlet context 中）
+        通过 @Resource 引用时，会优先选择 servlet context 中的实例。
+
+    不过最好的办法是 ：在 applicationContext 和 dispatcher-servlet 定义的 bean 最好不要重复， dispatcher-servlet 最好只是定义
+        controller 类型的 bean .
+
+   ApplicationContext.xml  是spring 全局配置文件，用来控制spring 特性的
+
+　　dispatcher-servlet.xml 是spring mvc里面的，控制器、拦截uri转发view
+
+　　使用applicationContext.xml文件时是需要在web.xml中添加listener的：
+
+
+
+Spring父容器对SpringMVC子容器中的bean是不可见的，而子容器对父容器的中bean却是可见的
+
+
+对于有些在 Spring 里面继承了某一个类要实现某一种功能的时候，如果没有用。那么你就来进行实现其接口就有用了。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

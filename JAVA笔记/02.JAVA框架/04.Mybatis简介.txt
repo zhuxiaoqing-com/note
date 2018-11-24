@@ -1,0 +1,430 @@
+MyBatis
+
+    首先需要 核心配置文件 名称是不是固定的 sqlMapConfig.xml
+    然后需要 pojo 的映射文件 名称为 pojo类的名称.xml 
+
+           <?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration></configuration>
+
+
+映射文件 约束
+    <!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 写Sql语句   -->
+<mapper namespace="test"></mapper>
+
+    
+
+    加载
+
+         // 加载核心配置文件
+        String resource = "sqlMapConfig.xml";
+        InputStream in = Resources.getResourceAsStream(resource);
+        // 创建 SqlSessionFactory
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(in);
+        // 创建 SqlSession
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        // 执行Sql 语句
+        User user = sqlSession.selectOne("findObjectById", 1);
+
+
+    单行查询  sqlSession.selectOne("id", 参数);
+    等等就不介绍了 ... 老师太坑
+
+    Mapper 动态代理模式
+        开发规范
+        Mapper 接口方法只需要程序员编写 Mapper 接口(相当于 Dao 接口), 由 Mybatis 框架根据接口定义创建接口的动态代理对象，代理对象
+        的方法同上 Dao 接口实现类方法。
+
+       Mapper 接口开发需要遵循以下规范：
+       1. Mapper.xml 文件中的 namespace 与 mapper 接口的类路径相同。
+       2. Mapper 接口方法名和 Mapper.xml 中定义的每个 statement 的 id 相同
+       3. Mapper 接口方法的输入参数类型和 mapper.xml 中定义的每个 sql 的 parameterType 的类型相同
+       4. Mapper 接口方法的输出类型和 mapper.xml 中定义的每个 sql 的 resultType 的类型相同
+
+    // sqlSession 自动生成实现类 将接口传递过去
+    UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+
+
+#{}  防 sql  注入  相当于自带 '#{}'   "%"#{}"%"
+${}  不妨 sql 注入  相当于自带  + ${} +  '%${}%'  
+
+
+
+jdbc 的问题
+    1. 数据库连接，使用时就创建，不使用立即释放，对数据库进行频繁连接开启和关闭，造成数据库资源浪费，影响数据库性能。
+        使用数据库连接池管理数据库连接
+
+    2. 将 sql 语句硬编码到 java 代码中，如果 sql 语句修改，需要重新编译 java 代码，不利于系统维护。
+        将 sql 语句配置在 xml 配置文件中，即使 sql 变化，不需要对 java 代码进行重新编译。
+    
+    3. 向 preparedStatement 中设置参数，对占位符位置和设置参数值，硬编码在 java 代码中，不利于系统维护。
+        将 sql 语句及占位符号和参数全部配置在 xml 中。
+    
+    4. 从 resultSet 中遍历结果集数据时，存在硬编码，将获取表的字段进行硬编码，不利于系统维护。
+        将查询的结果集，自动映射成 java 对象
+
+
+
+MyBatis 架构
+    首先是  SqlMapConfig.xml (是 mybatis 的全局配置文件，名称不固定的)
+            配置了数据源、事务等 mybatis 运行环境
+            配置了映射文件(配置 sql 语句)
+
+            SqlSessionFactory (会话工厂)，根据配置文件创建工厂
+            作用: 创建 sqlSession
+
+            SqlSession (会话)，是一个接口，面向 程序员 的接口
+            作用: 操作数据库(发出 sql 增、删、改、查)
+
+            Executor(执行器)，是一个接口(基本执行器、缓存执行器)
+            作用: SqlSession 内部通过执行器操作数据库
+
+
+
+Mapper.xml 映射文件的属性介绍
+    namespace 命名空间，作用就是对 sql 进行分类化管理，理解 sql 隔离
+    注意：使用 mapper 代理开发，namespace 有特殊重要的作用
+
+    id：标识映射文件中的 sql 
+    将 sql 语句封装到 mappedStatement 对象中，所以将 id 称为 statement 的 id
+    parameterType：指定输入参数的类型
+    #{} 标识一个占位符号
+    resultType 指定 sql 输出结果的单挑记录所映射的 java 对象类型，select 指定 resultType 表示将单条记录映射成的 java 对象
+
+
+ Object result = sqlSession.selectOne(String id, Object param);
+    第一个参数：映射文件中 statement 的 id, 等于 = namespace + "." + statement 的 id
+    第二个参数：指定和映射文件中锁匹配的 parameterType 类型的参数
+    result 是与 映射文件中所匹配的 resultType 类型的对象
+
+
+mybatis 和 hibernate 的不同
+    mybatis 和 hibernate 不同，它不完全是一个 ORM 框架，因为 MyBatis 需要程序员自己来编写 SQL 语句。
+
+    Mybatis 学习门槛低，简单易学，程序员直接编写原生态 sql,可严格控制 sql 执行性能，灵活性高。
+
+    hibernate 对象关系映射能力强，数据库无关性好
+
+    按照用户的需求在有限的资源环境下只要能做出维护性、扩展性良好的软件框架都是好框架，所以框架只有适合才是最好的
+
+
+sqlMapConfig.xml 的常用标签
+   sqlMapConfig.xml 中的配置的内容和顺序如下：
+   properties 属性
+   typeAliases 类型别名
+   objectFactory 对象工厂
+   plugins 插件
+   environments  环境集合属性对象
+        environemt  环境子属性对象
+            transactionManager 事务管理
+            dataSource 数据源
+   mappers 映射器
+
+
+    顺序不能错！
+
+
+    <properties resource="jdbc.properties"/>
+    可以读取别的配置文件的内容  使用 ${key} 来读取。 key 为 别的文件的 键
+    引入的配置文件后就可在标签的别的地方使用  ${} 来获取其 配置文件的值
+    
+       你也可以在 properties 内部写
+        <properties resource="db.properties">
+            <!-- 在properties内部用property定义属性 -->
+            <!-- 如果外部配置文件有该属性，则内部定义属性被外部属性覆盖 -->
+            <property name="jdbc.username" value="root123" />
+            <property name="jdbc.password" value="root123" />
+        </properties>
+
+        在 properties 元素体内定义的属性首先被读取。 
+        然后会读取properties 元素中resource或 url 加载的属性，它会覆盖已读取的同名属性。 
+
+
+
+<typeAliases> 别名标签  别名大小写不敏感
+    <typeAliases>
+		<!-- 单个别名定义 -->
+		<typeAlias alias="user" type="cn.itcast.mybatis.pojo.User" />
+		<!-- 批量别名定义，扫描整个包下的类，别名为类名（大小写不敏感） -->
+		<package name="cn.itcast.mybatis.pojo" />
+		<package name="其它包" />
+	</typeAliases>
+
+引入 mapper.xml 映射文件  开发中一般都是用这种的
+<package name=""/>
+    注册指定包下的所有 mapper 接口
+    如：<package name="cn.itcast.mybatis.mapper"/>
+    注意：此种方法要求mapper接口名称和mapper映射文件名称相同，且放在同一个目录中。
+
+
+
+输入参数：
+
+    pojo 包装类
+        开发中通过可以使用 pojo 传递查询条件
+        查询条件可能是综合的查询条件，不仅包括用户的查询条件还包括其他的查询条件(比如查询用户信息的时候，将用户购买商品信息也作为查询条件)，
+        这时可以使用包装对象传递输入参数。
+        包装对象 pojo 类中的一个属性是另外一个 Pojo
+
+输出参数
+    <!-- type 为 要映射的 类型 -->
+	<resultMap type="user" id="user">
+		<!-- id 映射 -->
+		<id/>
+		<!-- 其他属性映射 一般都用这个  这个也可以映射 id  -->
+		<result column="uid" property="id"/>
+		<!-- 一对一映射 暂时不知道干嘛 -->
+		<association property=""></association>
+		<!-- 一对多映射 暂时不知道干嘛 -->
+		<collection property="" ></collection>
+	</resultMap>
+    
+
+
+动态 sql 
+    if 标签
+    where 标签
+
+        <!-- 动态 sql -->
+        <select id="findUserByCondition" resultMap="user">
+            select * from t_user
+            <!-- where标签可以自动添加where，同时处理sql语句中第一个and关键字  这样就不用写 where 1=1 了  -->
+            <where>
+                <!-- if 标签可以对传递进来的参数进行判断 -->
+                <if test="username != null and username !=''">
+                    and username = #{username}
+                </if>
+                <if test="password != null and password != ''">
+                    and password = #{password}
+                </if>
+            </where>
+        </select>
+
+
+sql 片段
+
+        <!-- sql 片段 -->
+        <sql id="haha">
+            select * from
+        </sql>
+            
+    在语句里面引入 
+        <include refid="haha"/> t_user
+
+    如果要使用别的 Mapper.xml 配置的 sql 片段，可以在 refid 前面加上对应的 Mapper.xml 的 namespace
+
+
+    foreach
+        <!-- foreach标签，进行遍历 -->
+		<!-- collection：遍历的集合，这里是QueryVo的ids属性 -->
+		<!-- item：遍历的项目，可以随便写，，但是和后面的#{}里面要一致 -->
+		<!-- open：在前面添加的sql片段 -->
+		<!-- close：在结尾处添加的sql片段 -->
+		<!-- separator：指定遍历的元素之间使用的分隔符 -->
+		<foreach collection="ids" item="item" open="id IN (" close=")"
+			separator=",">
+			#{item}
+		</foreach>
+
+ 映射文件的本质是 将传递进去的 对象变成 Map 然后 你 #{value} 就相当于 Map 的键
+    
+    你也可以直接传递 数组  List 进去。但是如果你想遍历 List 数组 Map 的话。默认的名称为 
+    数组 array,   List list,
+    你可以传递 和 parameterType 没有关系的参数 
+
+
+    mybatis中SQL接受的参数分为：（1）基本类型（2）对象（3）List（4）数组（5）Map
+
+    无论传哪种参数给mybatis，他都会将参数放在一个Map中：
+
+    如果传入基本类型：变量名作为key，变量值作为value 此时生成的map只有一个元素。
+
+    如果传入对象： 对象的属性名作为key，属性值作为value，
+
+    如果传入List： "list"作为key，这个List是value （这类参数可以迭代，利用标签实现循环）
+
+    如果传入数组： "array"作为key，数组作为value（同上）如果传入Map： 键值不变。
+
+    parameterType 在不知道写什么时，写成"map"肯定不会出错
+
+
+
+MyBatis 还提供了一个使用注解来参入多个参数的方式。这种方式需要在接口的参数上添加 @Param 注解
+
+    public List<Teacher> selectTeacher(@Param(value="id") String id,@Param(value="sex") String sex);
+
+         <select id="selectTeacher"  resultType="com.myapp.domain.Teacher"> 
+            select * from Teacher where c_id=#{id} and sex=#{sex} 
+        </select>
+
+
+你还可以不写 parameterType 不写的话
+    使用 #{0} #{1} #{2}  来访问参数 不过应该只能是基本参数
+    
+    那么应该也可以 
+        <where>
+			<foreach collection="idList" index="i" item="id" separator="," open="uid in(" close=")">
+				#{i}
+			</foreach>
+		</where>
+        index = i  i 表示当前循环的的下标 0 开始
+
+
+
+
+一对一映射  记得使用 left join  or  right join
+
+    <resultMap type="cn.zhu.mybatis.onetoone.pojo.PathTwo" id="FindAllResult">
+		<id property="path_two_id" column="path_two_id"/>
+		<result property="path_two_name" column="path_two_name"/>
+		<result property="path_two_time" column="path_two_time"/>
+		<!-- 一对一映射 -->
+		<association property="pathOne" javaType="cn.zhu.mybatis.onetoone.pojo.PathOne">
+			<result property="path_one_name" column="path_one_name"/>
+		</association>
+	</resultMap>
+
+    使用 一对一映射的时候必须将 所有要映射到类上的 column 和属性 之间的映射全部写全
+        没写的 并不会帮你自动映射
+
+
+
+一对多映射  记得使用 left join  or  right join
+
+    <resultMap type="PathOne" id="FindAllListResult">
+		<id property="path_one_id" column="path_one_id"/>
+		<result property="path_one_name" column="path_one_name"/>
+		<result property="path_one_time" column="path_one_time"/>
+		<!-- 一对多映射 -->
+		<!-- ofType 指每一个 集合里面的 属性 -->
+		<collection property="pathTwoList" ofType="cn.zhu.mybatis.onetoone.pojo.PathTwo">
+			<id property="path_two_id" column="path_two_id"/>
+			<result property="path_two_name" column="path_two_name"/>
+			<result property="path_two_time" column="path_two_time"/>
+		</collection>
+	</resultMap>
+
+
+
+
+
+
+${} 可以用来引入 properties 文件的 value
+
+
+
+逆向工程
+    mybaits 需要程序员自己编写 sql 语句，mybatis 官方提供逆向工程 可以针对担保自动生成 mybatis 执行
+    所需要的代码
+        
+
+设置项      描述        允许值      默认值
+
+lazyLoadingEnabled      全局性设置懒加载。如果设为‘false’，       true | false         false
+                        则所有相关联的都会被初始化加载。      
+aggressiveLazyLoading   当设置为‘true’的时候，懒加载的对象可能被任何  true | false      true
+                        懒属性全部加载。否则，每个属性都按需加载。
+
+
+
+spring 整合了mybatis 之后，是不能使用一级缓存的，上面说了，要想获得一级缓存中的数据，
+必须在session 没有被commit 或者close 之前，而整合了spring 之后，每次读写完毕session 会自动commit.
+
+
+Mybaits 映射是按照别名映射的，也就是说你别名写错了，那么就没法映射了，不会自动判断先拿表名，再拿别名 而是直接拿的别名
+
+对于多对多，其实和多对多没有关系 ，在 mybatis 你只是把查询出来的数据库记录映射进去就好了，所以你只管映射记录就好了，因为查询的时候是
+三表联查的，但是你查询出来的额记录其实只有两张表的记录，因为第三张表是关系表。所以你就和映射一对多一样映射就好了。
+    mybatis 的本质是帮你把数据库查询出来的记录映射成 java 对象，所以几对几不重要，重要的是你查询出来的记录
+    <!-- 下面是多对多的语句 -->
+    <resultMap type="cn.zhu.mybatis.many.model.SRole" id="SRoleResultMap">
+		<id column="r_id" property="rId"/>
+		<result column="r_name" property="rName"/>
+		<result column="r_description" property="rDescription"/>
+		<result column="r_dept" property="rDept"/>
+		<result column="r_state" property="rState"/>
+		<result column="r_level" property="rLevel"/>
+	</resultMap>
+	<resultMap type="cn.zhu.mybatis.many.model.SRole" id="SRoleManyResultMap" extends="SRoleResultMap">
+		<collection property="smenuOne" ofType="cn.zhu.mybatis.many.model.SMenuOne" >
+			<id column="m_one_id" property="mOneId"/>
+			<id column="m_one_name" property="mOneName"/>
+			<id column="m_one_jid" property="mOneJid"/>
+			<id column="m_one_url" property="mOneUrl"/>
+		</collection>
+	</resultMap>
+ 	<select id="findAll" resultMap="SRoleManyResultMap">
+		SELECT sr.*, smo.*, sro.m_one_jid m, sro.r_role 
+		FROM  estore.s_role sr LEFT JOIN estore.s_menu_one smo  ON  sro.r_role = sr.r_id 
+        LEFT JOIN estore.s_role_onemenu sro ON sro.m_one_jid = smo.m_one_id
+		
+	</select>
+    可以先left join 查询中间表和 A 表的数据，ON 中间表.id = A.id
+    然后 left join B 表 ON 中间表.id = B.id
+       这样就可以了
+
+
+
+
+
+
+
+
+
+
+安装 myBatis 插件
+    Location:https://dl.bintray.com/mybatis/mybatis-generator
+在Work with 选择mybatis - https://dl.bintray.com/mybatis/mybatis-generator 或者自己选择的本地路径
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

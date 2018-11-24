@@ -1,0 +1,199 @@
+删除数据
+    实际业务中真正意义上的数据删除操作比较少见，多数情况是在数据中设置标记，通过标记的值来区分
+    该数据是否可以用，而不是将数据真正的删除。
+
+    根据业务需求，为数据添加标记位，同时对数据的维护中添加启用/停用切换按钮，用于替换删除业务。所有的查询操作默认携带条件
+    值为标记为可以的数据。除特殊业务外，标记为不可用的数据将不参与日常数据操作。
+
+
+javaScript 数值数据操作
+    x = x*1;利用了js的弱类型的特点，只进行了算术运算，实现了字符串到数字的类型转换
+    javascript中如果需要对页面组件获取的值进行数字加操作，必须保障两个操作数据都是数字，否则将进行字符串连接运算
+    此处使用*1操作，将字符串快速转换为数字格式
+
+
+拦截器捕获异常
+    一般地，我们都是Dao、servcie层都把异常抛出，最后由Action来进行捕获。如果所有的Action都要捕获异常的话，那么就多了很多的重复代码。
+    因此，我们可以使用拦截器来进行统一捕获。
+
+
+修改角色权限无法同步的问题
+    如果用户已经登录，此时修改登录用户的角色信息或角色对应的资源信息。由于用户的数据已经存在于Session中，无法及时进行数据同步。
+    当管理员维护这个角色的可以将其角色的 所属的 用户 id,放入 ServletContext 里面设置集合变量 changeEmp。 然后每次有操作时，使用过滤器将其拦截。先获取 session 用户信息
+    然后获取 servletContext changeEmp 的 里面的数据，判断 其用户的角色信息是否在 changeEmp 集合里面，在的话就将其注销。然后将其 用户 id 从 changeEmp 删除。
+    然后在登录的时候也会寻找 changeEmp 里面的数据
+    。。。。难 如果是多个地方登录了账号的话就不行了。得控制账号只能一个地方登录。或一个人登录。但是你没法控制。你不知道浏览器
+    窗口是否关闭了。 你可以将其 账号的每次登陆的时候将其  url 放在 servletContext 里面，如果有第二个相同的登陆，将其 serveltContext 
+    里面的 url 代替。除了登陆的时候会重置 serveltContext 里面的 url 不比较url  ，其他时候每次访问都要查询 servletContext 里面登陆的 url  否相同。
+    如果不同强制注销 然后提示 账号已经在别处登陆过了。 在当前的 url 里面注销就会将其 servletContext 里面的 url 注销，
+    别的 url 注销，也会注销，但是不会 清空 servletContext 里面的数据。
+        这样就能保证 用户登录的唯一，但是还有一个问题，如果用户直接关闭 浏览器的话就没办法了。
+        设置一个过期时间。过期后自动注销，或者每过30分钟系统自动清理 servletContext ，根据其 session 来确认，session 死了，
+        那么就注销。 所以你需要每一个 session 生命周期 清理一次 servletContext 里面的信息
+           ip 控制 util
+          用户登录的时候将其 ip 放入 servletContext 里面， 然后每次操作数据库都要获取当前用户的 ip 地址，如果 ip 和 servlet 里面的地址不对，将其注销，跳转到登录页面。
+                 你需要 定时清理 servletContext  使用 Timer   
+
+            menu 控制 util
+        权限的话，先获取所有的权限，然后放在一个 bean 里面， Bean 专门用来处理权限的，queryoneByRid retMap onloadMenu  还是你给予一个 关联表的 set 我来查询吧，
+        首先需要将 servletContext 注入进去
+
+    只能一直动态的获取权限。
+
+    怎么维护第三张表， 获取 其中一边表的 bean 将其之前关联全部删除，然后 再映射进去嘛 
+
+
+SSH json
+    主要是 hibernate 的问题
+    其解决方法就是不配置多表关联 当然 多对多的话比较麻烦可以关联
+    struts 提供了一个注解 
+        如果不希望某属性被添加到json里面，可以通过 @JSON(serialize=false) 在它的get方法上注解一下就好了
+
+    你可以使用 hibrnate 的 迫切左外连接 或者直接 左外连接 来查询。
+    这个也可以用 jdbc 原生sql 来实现
+
+
+
+session 登录了两个账号怎么办，你可以在session 定义一个唯一 map，然后存入 session。再创建 map 之前先判断一下 session
+    有没有 有的话就取出，将其 user 信息存入，将旧的信息覆盖。
+
+
+hibernate 报错，先看语句输出，没有语句输出看 dao, 自动生成的 dao 层的 model 的名称很有可能是错的
+
+
+请适当的使用子查询 非常好用 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<th class="active td_th">序号</th>
+
+<th class="warning td_th">用户登录名</th>
+<th class="danger td_th">用户姓名</th>
+<th class="info td_th">归属部门</th>
+<th class="active td_th">用户性别</th>
+<th class="active td_th">用户密码</th>
+<th class="warning td_th">用户状态</th>
+<th class="success td_th">用户职务</th>
+<th class="active td_th">手机号码</th>
+<th class="warning td_th">用户邮箱</th>
+<th class="info td_th">访问IP段</th>
+<th class="active td_th">角色</th>
+<th class="danger td_th">上次修改密码时间</th>
+<th class="info td_th">口令最大有效期</th>
+
+
+user.UId  不能更改  修改的时候 添加的时候为空也是不能更改
+user.ULoginname 
+user.UUsername 
+user.DId   部门 下拉框   1 后勤部  2 信息化部   3  电子商务部
+user.UGender 
+user.UPassword  
+
+user.UState  下拉框  1 已激活  0 未激活
+user.JId      下拉框   1 员工 2 经理  3  主管
+user.UPhone  
+user.UEmail  
+user.UIp   
+user.RId   需要异步查询 在加载的时候就异步查询所有 role 
+user.RTime
+user.RValid
+user.
+
+
+
+
+
+
+
+先查询本角色的 权限，在 session 里面就有，然后 循环 遍历出，再页面上，然后修改其下边的角色 只能给予或取消其 你有的权限              
+	角色 你可以查询所有角色 但是你想修改的话就要在服务端判断，权限是否够，不够不给修改
+
+
+	添加角色的时候 你为角色设置的等级只能 比 你自己的等级 低，否则不生效
+	修改也只能修改比你等级低的角色，查询可以查询所有角色 但是修改的时候会判断其角色的等级，将 session 里面的角色取出判断必须小于才可以修改。
+	查看权限的话，拟态框将权限打印出，修改权限的话就要跳新页面了。
+
+
+	查询的话将 role 全部查询出来然后将其 保存起来，保存在 js 里面
+
+
+
+private Set<SMenuOne> smenuOneSet;
+	private Set<SMenuTwo> smenuTwoSet;
+	private Set<SMenuThree> smenuThreeSet;
+	private SDept dept;
+
+
+
+
+
+ 
+        <!-- 配置多对多关系 -->
+        <!-- 对一级菜单 -->
+        <set name="smenuOneSet" table="s_role_onemenu">
+        	<!-- 配置 key 标签第三张表的外键 -->
+        	<key column="r_role"></key>
+        	<!-- class: 其set 里面的对象在实体类的全路径
+        		column 其 set 里面的对象在第三张表里面的 列名  -->
+        	
+        	 <many-to-many class="com.javasm.system.menu.model.SMenuOne" column="m_one_jid"></many-to-many>
+        </set>
+        
+        <!-- 对二级菜单 -->
+        <set name="smenuTwoSet" table="s_role_twomenu">
+        	
+        	<key column="r_role"></key>
+        	 <many-to-many class="com.javasm.system.menu.model.SMenuTwo" column="m_two_jid"></many-to-many>
+        </set>
+        
+        <!-- 对三级菜单 -->
+        <set name="smenuThreeSet" table="s_role_threemenu">
+        	<key column="r_role"></key>
+        	 <many-to-many class="com.javasm.system.menu.model.SMenuThree" column="m_three_jid"></many-to-many>
+        </set>
+
+role.RId     序号
+   
+role.RName   角色名称
+
+role.RDescription  详细信息
+
+role.RDept 部门 下拉框
+
+role.RState    状态  激活 1  未激活 0 超级管理员  -1
+
+role.RLevel    等级
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

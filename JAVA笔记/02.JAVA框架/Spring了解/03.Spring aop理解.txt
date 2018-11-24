@@ -1,0 +1,337 @@
+使用Spring AOP 需要注意的问题
+    
+       如果是使用 jdk 动态代理实现 spring aop , Spring 容器的 getBean 方法获得的对象是不能转型成该 bean 定义的 Class 类型。
+
+            因为 proxy 是实现了其 被代理的类的接口而创建的类。
+            这是因为使用Jdk动态代理实现Spring AOP，getBean获得的对象是Jdk动态代理生成的代理类的对象，这个代理类只是实现了 被代理类的 接口，
+            而没有继承 其代理类。 使用CGLib动态代理不会有这个问题，因为CGLib动态代理生成的代理类是继承我们的目标类的，而不是实现目标接口。
+       
+       如果使用CGLib动态代理实现Spring AOP，通过Spring容器的getBean方法获得的对象不能直接引用目标类的公有属性，读取或者修改公有属性。
+            
+            使用 Spring 容器的 getBean 方法是转型成 CalculatorServiceImpl 类的对象 service，但我们不能调用service.type来获得或者修改type属性。
+
+            这是因为使用CGLib动态代理实现的Spring AOP，调用 proxy对象.属性 是引用CGLib代理类对象的属性，而不是目标对象的type属性。
+            因为 cglib 帮你重新组成了一个方法
+            这是在你是引用接口的情况下，如果你自己使用类来接收引用类的话是完全可以引用 公有属性的，因为 CGLIB 是其代理对象的子类
+
+
+SpringMVC 的 dispatcherServlet 可以配置多个
+    不同的 dispatcherServlet 之间的容器互相不影响
+
+
+Spring AOP默认使用标准的JDK动态代理来实现AOP代理。这能使任何借口(或者一组接口)被代理。
+
+    Spring AOP也使用CGLIB代理。对于代理classes而非接口这是必要的。如果一个业务对象没有实现任何接口，那么默认会使用CGLIB。
+    由于面向接口而非面向classes编程是一个良好的实践；业务对象通常都会实现一个或者多个业务接口。强制使用CGLIB也是可能的(希望这种情况很少)，
+    此时你需要advise的方法没有被定义在接口中，或者你需要向方法中传入一个具体的对象作为代理对象。
+
+    如果 spring AOP 使用了 cglib
+
+
+在一个类上使用 @EnableAspectJAutoProxy(proxyTargetClass = true)
+    可以使其强制使用 CGLIB 来代理对象
+
+容器
+    Spring整体框架核心概念中，容器是核心思想，但在一个项目，容器不一定只有一个，Spring中可以包括多个容器，且容器间存在上下层框架。
+        最常见的使用场景就是同时使用Spring和SpringMVC两个框架，Srping为父（根）容器，SpringMVC作为子容器。通常的使用过程中，
+        Spring父容器对SpringMVC子容器中的bean是不可见的，而子容器对父容器的中bean却是可见的，这是这两种容器的默认规则。但是：
+
+        子容器对父容器中内容可见，不是默认规则
+
+Spring 容器加载过程
+    
+  Web 容器
+    对于一个 web 应用,需要将其部署在 web 容器中, web 容器为其提供一个全局的 ServletContext, 并作为之后 Spring 容器提供宿主环境
+      
+    Spring根容器
+        <context-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>classpath:applicationContext.xml</param-value>
+        </context-param>
+        <listener>
+            <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+        </listener>
+
+    1. web.xml 中的 contextLoaderListener 在 web 容器启动时,会监听到 web 容器的初始化事件,起 contextInitialized 方法会被调用，
+        在这个方法中，spring 会初始化一个启动上下文作为根上下文，即 WebApplicationContext. WebApplicationContext 只是借口类，
+        其实际的实现类是 XmlWebApplicationContext.
+    
+    2. 此上下文即作为 Spring 根容器，其对应的 bean 定义的配置由 web.xml 中的 context-param 中的 contextConfigLocation 指定。
+        根据容器初始化完毕后，Spring 以 WebApplicationContext.ROOTWEBAPPLICATIONCONTEXTATTRIBUTE 为属性 key,将其存储到 ServletContext
+        中，便于获取。                                        ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE
+    
+
+SpringMVC 子容器
+    
+    <servlet>
+        <servlet-name>XXXX</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>classpath:spring-mvc.xml</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    1. contextLoaderListener 监听器初始化完毕后，开始初始化 web.xml 中配置的 servlet,servlet 可以配置多个，加载顺序按照 load-on-startup 来执行。
+        以最常见的 DispatcherServlet 为例，该 servlet 实际上是一个标准的前端控制器，用以转发、匹配、处理每个 servlet 请求。DispatcherServlet 
+        上下文在初始化的时候会建立自己的上下文，用以持有 SpringMVC 每个相关的 bean.
+    
+    2. 之后先通过 WebApplicationContext.ROOTWEBAPPLICATIONCONTEXTATTRIBUTE 先从 ServletContext 中获取之前的根上下文（即WebApplicationContext）
+          作为自己上下文的父上下文，然后建立 DispatcherServlet 自己的上下文。这个 DispatcherServlet 初始化自己上下文的工作在其 initStrategies 方法中可以
+          看到，内容包括初始化处理器映射、视图解析等。该 servlet 自己持有的上下文默认实现类也是 WebApplicationContext.
+
+    3. 初始化完毕后，spring 与 servlet 的名字相关(此处并非简单以 servlet 名为 key, 通过转换码生存)的属性为属性 key,也将其存到 servletContext 中，
+        以便后续使用。这样每个 servlet 就持有自己的上下文, 即拥有自己独立的 bean 空间，同时各个 servlet 共享相同的根上下文中持有的 bean.
+
+        当然，在根容器创建与子容器创建之间，还会创建监听器、过滤器等，完整的加载顺序为
+        ServletContext -> context-param -> listener-> filter -> servlet
+
+    由以上过程，即确定了一个 bean 的适用范围(该使用范围，是比 bean 的 scope 定义的 singleton、、prototype、request、session、global-session 
+        的五种作用域更上层的内容）。 即容器之间的范围
+
+
+    Spring&SpringMVC容器布局
+        容器布局的根本是确定 bean 的使用范围。就 spring 与 springMVC 布局，也大致分为了两种方向:
+            
+          传统型
+              父容器：保存数据源、服务层、DAO层、事务的 bean 
+              子容器：保存 MVC 相关的 controller 的 bean
+          
+              概述：事务控制在服务层。由于父容器不能访问子容器中的内容,事务的 bean 在父容器中,无法访问子容器中的内容，就无法对子容器中 controller 进行
+                AOP 事务, 不过做为传统型方案,也没有必要这样做。
+
+         激进型：
+            父容器: 不管我事...
+            子容器: 管理所有 bean.
+            概述： 不使用 listener 监听器来加载 spring 的配置文件,只使用 DispatcherServlet 来加载 Spring 的配置，不使用父容器,只使用一个 DispatcherServlet,抛弃层次概念。
+        
+            场景： 在增删改查为主业务的系统里, Dao 层接口,Dao层实现类,Service 层接口，Service层实现类，Action父类，Action。再加上众多的
+                O(vo\po\bo)和jsp页面，在满足分层的前提下，做一些相对较小功能时会变得非常冗余，所以“激进型”方案就出现了，没有接口、
+                没有Service层、可以没有众多的O(vo\po\bo)，所有事务控制上升到controller层。
+                                
+             关于布局选择吗，引用一句很合景的总结：大项目求稳，小项目求快
+
+
+    AOP 其核心思想是将应用程序中的商业逻辑同对其提供支持的通用服务进行分离。
+    AOP抽象的是相同的行为而非关联的行为，用于提供通用服务支持，而非业务逻辑处理
+
+    Java动态代理是利用反射机制生成一个实现代理接口的匿名类，在调用具体方法前调用InvokeHandler来处理。
+    而CGLib动态代理是利用asm开源包，对代理对象类的class文件加载进来，通过修改其字节码生成子类来处理。
+    
+
+
+
+============================================================================================
+
+
+
+Spring AOP与AspectJ区别
+
+    Spring Aop采用的动态植入，而Aspectj是静态植入。
+        
+        我们已初步掌握了AspectJ的一些语法和概念，但这样仍然是不够的，我们仍需要了解AspectJ应用到java代码的过程（这个过程称为织入），对于织入这个概念，
+        可以简单理解为aspect(切面)应用到目标函数(类)的过程。对于这个过程，一般分为动态织入和静态织入，动态织入的方式是在运行时动态将要增强的代码织入到目标类中，
+        这样往往是通过动态代理技术完成的，如Java JDK的动态代理(Proxy，底层通过反射实现)或者CGLIB的动态代理(底层通过继承实现)，Spring AOP采用的就是基于运行时增强的
+        代理技术，这点后面会分析，这里主要重点分析一下静态织入，ApectJ采用的就是静态织入的方式。ApectJ主要采用的是编译期织入，在这个期间使用AspectJ的acj编
+        译器(类似javac)把aspect类编译成class字节码后，在java目标类编译时织入，即先编译aspect类再编译目标类。
+
+
+        关于ajc编译器，是一种能够识别aspect语法的编译器，它是采用java语言编写的，由于javac并不能识别aspect语法，便有了ajc编译器，注意ajc编译器也可编译java文件。
+        为了更直观了解aspect的织入方式
+        当然除了编译期织入，还存在链接期(编译后)织入，即将aspect类和java目标类同时编译成字节码文件后，再进行织入处理，这种方式比较有助于已编译好的第三方jar和Class文件进行织入操作
+    
+    
+
+    基于Aspect Spring AOP 开发
+
+        Spring AOP 与ApectJ 的目的一致，都是为了统一处理横切业务，但与AspectJ不同的是，Spring AOP 并不尝试提供完整的AOP功能(即使它完全可以实现)，
+        Spring AOP 更注重的是与Spring IOC容器的结合，并结合该优势来解决横切业务的问题，因此在AOP的功能完善方面，相对来说AspectJ具有更大的优势，
+        同时,Spring注意到AspectJ在AOP的实现方式上依赖于特殊编译器(ajc编译器)，因此Spring很机智回避了这点，转向采用动态代理技术的实现原理来构建
+        Spring AOP的内部机制（动态织入），这是与AspectJ（静态织入）最根本的区别。在AspectJ 1.5后，引入 @Aspect 形式的注解风格的开发，Spring也非常快地跟进
+        了这种方式，因此Spring 2.0后便使用了与AspectJ一样的注解。请注意，Spring 只是使用了与 AspectJ 5 一样的注解，但仍然没有使用 AspectJ 的编译器，
+        底层依是动态代理技术的实现，因此并不依赖于 AspectJ 的编译器。
+
+       Spring AOP 的实现是遵循AOP规范的，特别是以AspectJ（与java无缝整合）为参考，因此在AOP的术语概念上与前面分析的AspectJ的AOP术语是一样的，如切点(pointcut)定义
+       需要应用通知的目标函数，通知则是那些需要应用到目标函数而编写的函数体，切面(Aspect)则是通知与切点的结合。织入(weaving)，将aspect类应用到目标函数(类)的过程，
+       只不过Spring AOP底层是通过动态代理技术实现罢了。
+
+        代理的对象和被代理的对象的hashcode 是一样的，因为toString 也是调用的 被代理对象
+
+        toString 方法并不会调用 增强方法
+
+
+
+
+在 filter 获取 spring Bean 的两种方法
+    第一种
+    WebApplicationContext beanFatory = request.getServletContext().getAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE);
+
+
+    第二种
+       ServletContext servletContext = filterConfig.getServletContext();  
+    WebApplicationContext wac = WebApplicationContextUtils.getRequiredWebApplicationContext(servletContext); 
+	       需要一个 servletContext 
+           你可以将其放在 filter init 的方法里面获取，然后用成员变量保存。
+           因为 spring 是在 Listener 里面初始化的， 而 filter 初始化在 Listener 之后。
+
+
+
+
+Listener 的加载是在应用一开始启动的时候，多个listener之间是没有顺序的，如果有多个listener需要顺序加载，可以考虑把多个listener合并成一个
+。Filter的加载是按照在web.xml中的先后顺序的，其中的init方法，按照的是filter的顺序，doFilter方法是按照filter-mapping的顺序，
+如果多个filter被一次请求匹配到，则是按照一个filter栈的逻辑进行调用。Servlet的加载顺序则没有前后之别，是请求匹配到哪个就进行哪个
+的加载。 它们3个之间的顺序关系是，可以看这个
+    启动-->listener-->filter-->servlet--->访问-->filter-->servlet-->关闭-->servlet--->filter-->listener。
+
+
+
+那么spring bean是否可以在filter中加载到?
+
+从上面的启动顺序可以看出，filter调用的时候，Spring是通过listener进行加载的，肯定是已经启动了。那么为什么我直接把 Filter
+添加Spring的 @Component 注解，通过 @Autowired 却加载不到呢？这是由于，在spring对对应的bean进行扫描的时候，filter还没有执
+行初始化，filter的加载是在listener之后的，那么想要在filter中加载到spring的环境，那么可以通过init方法进行注入
+
+
+
+
+
+
+filter init 不能注入注解 Bean
+
+    web 应用启动的顺序是 listener --> filter --> servlet , 而因为项目应用了 springmvc , 所以我们会有两个配置文件
+    (applicationContext.xml 和 springMVC-servlet.xml), 我们在配置 spring 的时候会用到 spring 的 listener,
+    它读取application.xml里的配置对spring context进行初始化；而springMVC-servlet.xml则是在spring mvc的dispathServlet启动的时候读取进行配置。
+    而如果项目里用到了注解，则需要在springMVC-servlet.xml中加上 扫描注解。
+
+
+问题就是项目启动时，先初始化listener，因此配置在applicationContext.xml里的bean会被初始化和注入；然后再来就filter的初始化，再接着才到我们的dispathServlet的初始化，
+因此，当我们需要在filter里注入一个注解的bean时，就会注入失败，因为filter初始化时，注解的bean还没初始化，没法注入。所以，如果想要在filter里注入注解bean的话，
+就要在applicationContext.xml里配置context，也就是上面说的那句配置。在这里配置时需要注意的是，需要把tx和aop的配置放在最下面，否则也会导致spring的context初始化失败。
+把配置弄好之后，我们就在filter的init方法里，通过获取webApplicationContext的getBean方法对需要的bean进行注入。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

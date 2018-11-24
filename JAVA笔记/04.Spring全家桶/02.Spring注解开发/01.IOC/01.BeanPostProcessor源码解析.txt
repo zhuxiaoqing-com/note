@@ -1,0 +1,484 @@
+1. 首先是
+     ApplicationContext annotationConfigApplicationContext = 
+                new AnnotationConfigApplicationContext(MainConfigOfLifeCycle.class);
+     create 初始化 IOC 容器
+
+    public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
+		this();
+		register(annotatedClasses);
+		refresh();
+	}
+
+    到了 refresh();
+    进入 AbstractApplicationContext 类
+    初始化各种
+public void refresh() throws BeansException, IllegalStateException {
+    // Instantiate all remaining (non-lazy-init) singletons.  
+    // 实例化所有剩下的(不是 lazy-init) 的单实例对象
+				finishBeanFactoryInitialization(beanFactory);
+    }
+
+    protected void finishBeanFactoryInitialization(ConfigurableListableBeanFactory beanFactory) {
+        // Instantiate all remaining (non-lazy-init) singletons.
+		beanFactory.preInstantiateSingletons();
+    }
+    
+    进入 DefaultListableBeanFactory 类
+
+    public void preInstantiateSingletons() throws BeansException { 
+        // 获取所有的 bean 名称进行循环 
+        List<String> beanNames = new ArrayList<String>(this.beanDefinitionNames);
+ 
+		// Trigger initialization of all non-lazy singleton beans...
+		for (String beanName : beanNames) {
+			
+				else {
+					getBean(beanName); // 通过 beanName 获取 bean
+				}
+			}
+		}
+
+    }
+    进入 AbstractBeanFactory 类
+    public Object getBean(String name) throws BeansException {
+		return doGetBean(name, null, null, false);
+	}
+
+    protected <T> T doGetBean(
+			final String name, final Class<T> requiredType, final Object[] args, boolean typeCheckOnly)
+			throws BeansException { 
+                // 通过 beanName 获取 bean 的所有信息
+                final RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
+                
+                if (mbd.isSingleton()) { // 判断 mbd  是否为 singleton
+                    // 调用 getSingleton 传入一个 匿名类 
+					sharedInstance = getSingleton(beanName, new ObjectFactory<Object>() {
+						@Override
+						public Object getObject() throws BeansException {
+							try {
+								return createBean(beanName, mbd, args);
+							}
+            }
+
+    进入了 DefaultSingletonBeanRegistry 类
+        
+
+    	public Object getSingleton(String beanName, ObjectFactory<?> singletonFactory) { 
+            try {
+                    // 调用传进来的匿名类重写的 getObject();
+					singletonObject = singletonFactory.getObject();
+					newSingleton = true;
+                    return (singletonObject != NULL_OBJECT ? singletonObject : null);
+				}
+        }
+    
+    // 调用传进来的匿名类重写的 getObject();
+    sharedInstance = getSingleton(beanName, new ObjectFactory<Object>() {
+						@Override
+						public Object getObject() throws BeansException {
+							try {
+								return createBean(beanName, mbd, args);
+							}
+
+        进入 AbstractAutowireCapableBeanFactory 是 AbstractBeanFactory 的子类，因为匿名类直接调用了
+            AbstractBeanFactory 类的抽象方法 createBean();
+        
+        protected Object createBean(String beanName, RootBeanDefinition mbd, Object[] args) throws BeanCreationException {
+                Object beanInstance = doCreateBean(beanName, mbdToUse, args); // 这里创建了 bean 的实例
+                return beanInstance;
+        }
+
+        进入 Object beanInstance = doCreateBean(beanName, mbdToUse, args);
+        protected Object doCreateBean(final String beanName, final RootBeanDefinition mbd, final Object[] args)
+			throws BeanCreationException {
+                Object exposedObject = bean;
+		try {
+			populateBean(beanName, mbd, instanceWrapper);// 对 bean 的属性进行填充
+			if (exposedObject != null) {
+				exposedObject = initializeBean(beanName, exposedObject, mbd);// 初始化 Bean
+			}
+		}
+                
+            }
+
+    进入 exposedObject = initializeBean(beanName, exposedObject, mbd);
+
+        protected Object initializeBean(final String beanName, final Object bean, RootBeanDefinition mbd) {
+            if (mbd == null || !mbd.isSynthetic()) {
+			wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);// 进入 initializeBean 前置处理器
+		}
+
+		try {
+			invokeInitMethods(beanName, wrappedBean, mbd);// 进行初始化
+		}
+		catch (Throwable ex) {
+			throw new BeanCreationException(
+					(mbd != null ? mbd.getResourceDescription() : null),
+					beanName, "Invocation of init method failed", ex);
+		}
+
+		if (mbd == null || !mbd.isSynthetic()) {
+			wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);// 进入 initializeBean 后置处理器
+		}
+		return wrappedBean;
+        
+        }
+
+    // 进入 applyBeanPostProcessorsBeforeInitialization
+    public Object applyBeanPostProcessorsBeforeInitialization(Object existingBean, String beanName)
+			throws BeansException {
+                Object result = existingBean;
+                    // 进行循环所有的 getBeanPostProcessors;
+                    for (BeanPostProcessor beanProcessor : getBeanPostProcessors()) { 
+                        result = beanProcessor.postProcessBeforeInitialization(result, beanName);
+                        if (result == null) {
+                            // 如果 返回的结果为 null.就直接将 null 返回
+                            // 返回 null 以后会在 invokeInitMethods() 方法里面抛出异常
+                            // 是直接使用了 null 调用了方法
+                            return result; 
+                        }
+                    }
+                    return result;
+                }
+            }
+
+
+
+Spring 底层对 BeanPostProcessor 的使用
+        ApplicationContextAwareProcessor
+    比如   ApplicationContextAwareProcessor  可以帮我们的组件里面注入 IOC 容器
+        我们需要实现 ApplicationContextAware 接口。
+        实现一个 setApplicationContext 方法。
+             public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        
+            }
+        会帮你吧 ApplicationContext 传入进来
+
+     是怎么注入的呢？
+      public Object postProcessBeforeInitialization(final Object bean, String beanName) throws BeansException {
+		AccessControlContext acc = null;
+        // 判断是不是属于下面这些类型的
+		if (System.getSecurityManager() != null &&
+				(bean instanceof EnvironmentAware || bean instanceof EmbeddedValueResolverAware ||
+						bean instanceof ResourceLoaderAware || bean instanceof ApplicationEventPublisherAware ||
+						bean instanceof MessageSourceAware || bean instanceof ApplicationContextAware)) {
+			acc = this.applicationContext.getBeanFactory().getAccessControlContext();
+		}
+
+		if (acc != null) {
+			AccessController.doPrivileged(new PrivilegedAction<Object>() {
+				@Override
+				public Object run() {
+					invokeAwareInterfaces(bean);// 执行 赋值
+					return null;
+				}
+			}, acc);
+		}
+		else {
+			invokeAwareInterfaces(bean);// 执行 赋值 因为 System.getSecurityManager()== null;至于为什么我也不知道
+		}
+
+		return bean;
+	}
+    
+    private void invokeAwareInterfaces(Object bean) {
+		if (bean instanceof Aware) {
+			if (bean instanceof EnvironmentAware) {
+				((EnvironmentAware) bean).setEnvironment(this.applicationContext.getEnvironment());
+			}
+			if (bean instanceof EmbeddedValueResolverAware) {
+				((EmbeddedValueResolverAware) bean).setEmbeddedValueResolver(this.embeddedValueResolver);
+			}
+			if (bean instanceof ResourceLoaderAware) {
+				((ResourceLoaderAware) bean).setResourceLoader(this.applicationContext);
+			}
+			if (bean instanceof ApplicationEventPublisherAware) {
+				((ApplicationEventPublisherAware) bean).setApplicationEventPublisher(this.applicationContext);
+			}
+			if (bean instanceof MessageSourceAware) {
+				((MessageSourceAware) bean).setMessageSource(this.applicationContext);
+			}
+			if (bean instanceof ApplicationContextAware) {
+                // 将 applicationContext 传入
+				((ApplicationContextAware) bean).setApplicationContext(this.applicationContext);
+			}
+		}
+	}
+        根据类型传入不同的 bean 
+
+
+
+------------------------------------
+
+
+BeanValidationPostProcessor
+        做数据校验
+    
+InitDestroyAnnotationBeanPostProcessor
+    处理 supports the JSR-250 {@link javax.annotation.PostConstruct} and 
+    {@link javax.annotation.PreDestroy} 注解
+
+    为什么注解会工作就是 PostProcessor 帮我们 处理的
+ 
+ bean 赋值 注入其他组件,@Autowired，生命周期注解,@Async xx 都是使用 BeanPostProcessor 来进行处理的
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+

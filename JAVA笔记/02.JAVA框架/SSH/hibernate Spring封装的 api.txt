@@ -1,0 +1,72 @@
+HibernateTemplate 常用 API
+ 
+ Serializable save(Object entity);
+ void update(Object entity)
+ void delete(Object entity)
+ <T> T get(Class<T> entityClass, Serializable id);
+ <T> T load(Class<T> entityClass, Serializable id)
+ List findS(String queryString, Object... values )
+    查询语句 是 Query 对象 语句
+
+
+
+分页查询  使用 hibernateTemplate 获取 session
+          hibernateTemplate.execute(new HibernateCallback(){
+            @Override
+            public Object doInHibernate(Session session) throws HibernateException {
+                // TODO Auto-generated method stub
+                return null;
+            }
+            
+        });
+
+hibernateTemplate 里面有 两个方法  executeWithNativeSession和 execute
+    应该没有什么区别 都是获取 session 的方法
+    里面有一个接口参数，直接写匿名类实现就好，
+     里面的方法就有 session 。
+     其实 spring 的其他方法就是封装了 doInHibernate() 实现的方法，本质都是调用 doInHibernate();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

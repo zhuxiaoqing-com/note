@@ -1,0 +1,78 @@
+将 ip 转换成 无符号整型  
+    
+    mysql> SELECT INET_ATON('192.168.0.1');
+    +--------------------------+
+    | INET_ATON('192.168.0.1') |
+    +--------------------------+
+    |               3232235521 |
+    +--------------------------+
+    row in set (0.00 sec)
+
+    mysql>
+
+
+然后把int类型转换为ip地址：
+    mysql> SELECT INET_NTOA(3232235521);  
+    +-----------------------+
+    | INET_NTOA(3232235521) |
+    +-----------------------+
+    | 192.168.0.1           |
+    +-----------------------+
+    row in set (0.00 sec)
+
+    mysql>
+
+
+MySQLl取出时：SELECT INET_ATON(ip) FROM table ...
+
+   
+ 那么以前就是varchar类型，那么如何转换呢？   
+
+1. 把以前的varchar()数据转换为int型的SQL语句如下。
+    因为 是 varchar 类型的，所以可以存储 int ，所以你要现将 varchar 的数据转换成 int 类型的
+    如果是 int() 转换成 varchar 就要先改表的类型，在改字段
+
+    UPDATE t1 SET ip =  INET_ATON(ip) WHERE INET_ATON(ip) is NOT NULL ;
+
+
+2. 把字段改为INT类型。
+
+    ALTER TABLE `t1` modify ip INT UNSIGNED NOT NULL;
+    ALTER TABLE 表名 modify 字段名 INT UNSIGNED NOT NULL;
+
+
+MySQL存储这个值是字段需要用int UNSIGNED。不用UNSIGNED的话，128以上的IP段就存储不了。当然可以使用bigint，但是请记住，能抠门就要抠门。省一点是一点，哈哈。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

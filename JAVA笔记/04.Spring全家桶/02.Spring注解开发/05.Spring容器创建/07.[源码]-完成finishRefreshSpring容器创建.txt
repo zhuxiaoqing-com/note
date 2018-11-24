@@ -1,0 +1,173 @@
+07.[源码]-完成finishRefreshSpring容器创建.txt
+
+
+// Last step: publish corresponding event.
+				finishRefresh();
+
+
+	protected void finishRefresh() {
+		// Initialize lifecycle processor for this context.
+        // 初始化 lifecycleProcessor bean
+		initLifecycleProcessor();
+
+		// Propagate refresh to lifecycle processor first.
+        // 执行 lifecycleProcessor bean 的 onRefresh() 方法 LifecycleProcessor.class
+		getLifecycleProcessor().onRefresh();
+
+		// Publish the final event.
+        // 发布事件
+		publishEvent(new ContextRefreshedEvent(this));
+
+		// Participate in LiveBeansView MBean, if active.
+        // 激活什么 LiveBeansView MBean 不懂，先不看
+		LiveBeansView.registerApplicationContext(this);
+	}
+
+
+    protected void initLifecycleProcessor() {
+		ConfigurableListableBeanFactory beanFactory = getBeanFactory();
+        // public static final String LIFECYCLE_PROCESSOR_BEAN_NAME = "lifecycleProcessor";
+        // 查看容器有没有 id 为 lifecycleProcessor 的 bean 的定义 我们没有 LifecycleProcessor.class
+		if (beanFactory.containsLocalBean(LIFECYCLE_PROCESSOR_BEAN_NAME)) {
+			this.lifecycleProcessor =
+					beanFactory.getBean(LIFECYCLE_PROCESSOR_BEAN_NAME, LifecycleProcessor.class);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Using LifecycleProcessor [" + this.lifecycleProcessor + "]");
+			}
+		}
+		else {
+            // 那就创建一个默认的 DefaultLifecycleProcessor
+			DefaultLifecycleProcessor defaultProcessor = new DefaultLifecycleProcessor();
+			defaultProcessor.setBeanFactory(beanFactory);
+            // 将其创建的 bean 保存到 this.lifecycleProcessor  里面
+			this.lifecycleProcessor = defaultProcessor;
+            // 并将其 注册到 beanFactory 里面
+			beanFactory.registerSingleton(LIFECYCLE_PROCESSOR_BEAN_NAME, this.lifecycleProcessor);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Unable to locate LifecycleProcessor with name '" +
+						LIFECYCLE_PROCESSOR_BEAN_NAME +
+						"': using default [" + this.lifecycleProcessor + "]");
+			}
+		}
+	}
+
+
+
+
+
+
+
+
+
+ *
+public interface LifecycleProcessor extends Lifecycle {
+
+
+	void onRefresh();
+	void onClose();
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

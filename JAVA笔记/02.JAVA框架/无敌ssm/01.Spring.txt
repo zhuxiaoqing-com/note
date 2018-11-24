@@ -1,0 +1,198 @@
+`Spring 处理特殊字符
+    <![CDATA[...]]>  将字符使用 特殊字符处理的格式 包裹起来
+
+<null/> 就是一个 null 
+
+<construtor-arg><null/></construtor-arg>
+
+bean 的 属性的级联赋值
+    如果 bean 的 属性是 类
+    可以使用级联赋值
+        <property name="user.name" value="ddd">
+    为级联属性赋值，属性需要先初始化才可以为级联属性赋值，否则还有异常，和 Struts2 不同
+    
+
+使用 utility schema 定义集合
+    可以使用 util schema  里的集合标签定义独立的集合 Bean 需要注意的是，必须在 <beans> 根元素里添加 util schema 定义
+    <util:list></util:list>
+
+
+xml 配置里的 bean 自动装配
+    spring IOC 容器可以自动装配 Bean 需要做的仅仅是在 <bean> 的 autowire 属性里指定自动装配的模式
+    byType (根据类型自动装配) 若 IOC 容器中有多个与目标 Bean 类型一致的 Bean 在这种情况下，Spring 将无法判定
+         哪个 Bean 最适合该属性，所以不能执行自动装配
+    byName (根据名称自动装配)：必须将目标 Bean 的名称和属性设置的完全相同
+
+    constructor (通过构造器自动装配)： 当 Bean 中存在多构造器时，此种自动装配方式将会很复杂，不推荐使用
+
+继承 Bean 配置
+    Spring 允许继承 bean 的配置，被继承的 bean 称为父 Bean. 继承这个父 bean 的 Bean 称为子 Bean 
+    子 bean 从父 bean 中继承配置，包括 bean 的属性配置
+    子 bean 也可以 覆盖从父 bean 继承过来的配置
+    父 bean 可以作为配置模板，也可以作为 bean 实例。若只想把父 bean 作为模板，可以设置 <bean> 的 abstract 为 true,
+        这样 spring 将不会实例化这个 Bean
+    并不是 <bean> 元素里的所有属性都会被继承 比如：autowire , abstract 等 不会被继承
+    也可以忽略父 bean 的 class 属性，让子 bean 指定自己的类，而共享相同的属性配置。但此时 abstract 必须设为 true 
+
+
+必须要有的属性
+    你可以在 创建bean 的时候指定必须要有这个属性没有的话就会报错
+        depends-on="car"  <bean class="..." depends-on="car" ></bean>
+    依赖 bean 配置
+    Spring 允许用户通过 depends-on  属性设定 bean 前置依赖的 Bean , 前置依赖的 bean 会在本 bean 实例化之前创建好
+    如果前置依赖于多个 bean , 则可以通过逗号，空格或的方法配置 bena 名称
+
+
+使用外部属性文件
+    在配置文件里配置 bean 时，有时需要在 bean 的配置里混入 系统部署的细节信息 (例如：文件路径，数据源配置信息等)。
+    而这些部署细节实际上需要和 bean 配置相分离
+
+    spring 提供了一个 PropertyPlaceholderConfigurer 的 beanFactory 后置处理器，这个处理器允许用户将 bean 配置的部分
+    内容外移到 属性文件 中，可以在 bean 配置文件里使用形式为 ${var} 的变量，PropertyPlaceholderConfigurer 从属性文件
+    里加载属性，并使用这些属性来替换变量。
+
+    spring 还允许在属性文件中使用 ${propName} ，以实现属性之间的互相引用
+    <property..... location="..."></property>
+
+
+spEL 
+    spEL 使用 #{...} 作为定界符，所有在大括号中的字符都将被认为是 spEL
+    spEL
+        通过 bean 的 id 对 bean 进行引用
+        调用方法以及引用对象中的属性
+        计算表达式的值
+        正则表达式的匹配
+        可以在 xml 里面运算
+
+
+初始化 先调用  Constructor  set   init  
+
+
+创建 bean 后置处理器 
+    bean 后置处理器允许在调用初始化方法前后对 bean 进行额外的处理
+    bean 后置处理器对 IOC 容器里的所有 bean 实例逐一处理，而非单一实例，
+    其典型应用是：检查 Bean 属性的正确性或根据特定的标准改变 Bean 的属性
+
+    对 bean 后置处理器而言，需要实现 interface BeanPostProcessor 接口，
+    在初始化方法被调用前后，Spring 将把每个 bean 实例分别传递给上述接口的以下两个方法
+
+
+  1.  添加 bean 后置处理器后 bean 的生命周期
+  2.  spring IOC 容器对 bean 的生命周期进行管理的过程：
+  3.  通过构造器过工厂创建 bean 实例
+  4.  为 bean 属性设置值和 对其他 bean 的引用
+  5.  将 bean 实例传递给 Bean 后置处理器的  postProcessBeforeInitiazation 方法
+  6. 调用 bean 的 init 方法
+  7.  将 bean 实例传递给 Bean 后置处理器的 postProcessAfterInitialization 方法
+  8.  bean 可以使用了
+  9.  当容器关闭时，调用 Bean 的销毁方法
+    
+        自己创建一个 Bean 后置处理器，然后 实现 BeanPostProcessor  
+        还需要在 IOC 里面配置 <bean class="...";
+    
+    方法的参数
+        bean : 实例本身
+        beanName: IOC 容器配置的 bean 的名字
+        返回值 ： 是实际上返回给用户的那个 bean . 注意可以在方法中，修改返回的bean. 甚至返回一个 新的 bean 
+        配置bean 后置处理器。不需要配置 id IOC 容器会自动识别
+
+
+
+注解装配 bean
+    @Autowired 注解自动装配具有兼容类型的单个 bean 属性
+       构造器，普通方法，一切具有参数的方法都可以应用
+
+    默认情况下，所有使用 @Authwired 注解的属性都 需要被设置。当 spring 找不到匹配的 bean 的装配属性时，会抛出异常，
+    若某一属性允许不被设置，可以设置 @Authwired 注解的 required 属性为 false
+
+    默认情况下 当 IOC 容器里存在多个类型兼容的 Bean 时，通过类型的自动装配将无法工作，此时可以在 @Qualifier 注解里提供
+    bean 的名称。 spring 允许对方法的入参标注 @qualifiter 已指定注入 bean 的名称
+
+    @Authwired 注解也可以应用在数组类型的属性上，此时 spring 将会把所有匹配的 bean 进行自动装配
+    @Authwired 注解也可以应用在 集合属性上，此时 spring 读取该集合的类型信息，然后自动装配所有与之兼容的 Bean
+    @Authwired 注解也可以应用在 Map 属性上，若该 map 的键为 String ，那么 Spring 将自动装配与之 Map 值类型兼容的 bean，
+        此时 Bean 的名称作为键值
+
+
+
+Spring 4.2新特性-使用 @Order调整配置类加载顺序
+
+@Configuration
+@Order(2)
+public class Demo1Config {
+    @Bean
+    public Demo1Service demo1Service(){
+        System.out.println("demo1config 加载了");
+        return new Demo1Service();
+    }
+
+}
+package com.wisely.spring4_2.order;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+
+@Configuration
+@Order(1)
+public class Demo2Config {
+
+    @Bean
+    public Demo2Service demo2Service(){
+        System.out.println("demo2config 加载了");
+        return new Demo2Service();
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
