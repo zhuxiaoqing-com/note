@@ -1,0 +1,591 @@
+数据库
+
+    
+
+
+	1.数据库的概念
+	 
+	 什么是数据库
+
+	 数据库就是用来存储和管理数据的仓库！
+	 数据库存储数据的优点
+	   * 可存储大量数据;
+	   * 方便检索;
+	   * 保持数据的一致性、完整性；
+	   * 安全，可共享；
+	   * 通过组合分析，可产生新数据
+	
+	2.数据库的发展历程
+	   * 没有数据库，使用磁盘文件存储数据；
+	   * 层次结构模型数据库
+	   * 网状结构模型数据库
+	   * 关系结构模型数据库：使用二维表格来存储数据
+	   * 关系对象模型数据库   
+	   
+	   MySQL就是关系型数据库！
+
+	3.常见的数据库
+	   * Oracle:甲骨文
+	   * DB2:IBM
+	   * SQL Server:微软
+	   * Sybase：赛文斯
+	   * MySQL:甲骨文
+		
+	4.理解数据库
+		
+	    我们现在所说的数据库泛指"关系型数据库管理系统"(RDBMS- Relational database management
+	    system)",即"数据库服务器。"
+
+	    * RDBMS = 管理员(manager)+仓库(database)
+	    * database = N个table
+	    * table:
+		    > 表结构：定义表的列名和列类型！
+		    > 表记录：一行一行的记录！
+
+2.服务器和客户端的操作
+   
+    服务器的操作
+	
+	1.开启服务器(必须保证mysql为windows服务)：net start mysql
+	  > 查看进程表中是否存在：mysqld.exe进程(存在)这是服务器进程，说明服务器运行正常
+	2.关闭服务器(必须保证mysql为windows服务)：net stop mtsql
+	  > 查看进程表中是否存在：mysqld.exe进程(不存在)
+    
+    客户端的操作
+        cmd
+        1.登录服务器：mysql -uroot -p123 -hlocalhost
+	  > -u:后面跟随用户名
+	  > -p:后面跟随密码
+	  > -h:后面跟随IP
+	2.退出服务器：exit或quit
+	 
+SQL
+
+    1.什么是SQL：结构化查询语言
+    2.SQL的作用：客户端使用SQL来操作服务器。
+      > 启动mysql.exe，连接服务器后，就可以使用sql来操作服务器了。
+      > 将来会使用Java程序连接服务器，然后使用sql来操作服务器
+    3.SQL标准(例如SQL99，即1999年制定的标准)：
+      > 由国际标准化组织(ISO)制定的，对DSMS的统一操作方式
+    4.SQL方言
+      > 某种DBMS不止会支持SQL标准，而且还会有一些自己独有的语法，这就称之为方言！
+
+    SQL语法
+
+    1.SQL语句可以在单行或多行书写，以分号结尾
+    2.可以使用空格和缩进来增强语句的可读性
+    3.MySQL不区分大小写，建议使用大写
+
+SQL语句分类
+
+    1.DDL：数据定义语言，用来定义数据库对象：库、表、列等；
+      > 创建、删除、修改：库表、表结构！！
+    2.DML：数据操作语言，用来定义数据库记录(数据)；
+      > 增、删、改:表记录
+    3.DCL：数据控制语言，用来定义访问权限和安全级别；
+    4.DQL:数据查询语言，用来查询记录(数据)；
+ 
+    ddl:数据库或表的结构操作
+    dml:对表的记录进行更新(增、删、改)
+    dql:对表的记录的查询
+    dcl:对用户的创建，及授权！
+
+DDL(数据库或表的结构操作)
+
+    1.数据库
+     * 查看所有数据库：SHOW DATABASES;
+     * 切换(选择要操作的)数据库：USE 数据库;
+     * 创建数据库：CERATE DATABASE [IF NOT EXISTS] 数据库名称 [CHARSET=UTF8];
+     * 删除数据库：DROP DATABASE [IF EXISTS] mydb1
+     * 修改数据库编码：ALTER DATABASE mydb1 CHARACTER SET utf8
+
+     2.数据类型(列类型)
+
+      int:整型
+      double：浮点型 例如double(5,2)表示最多为5位，其中必须有2位小数，即最大为999.99；
+      decimal：浮点型，在表单钱方面使用该类型，因为不会出现精度缺失问题;
+      char:固定长度字符串类型：char(255),以字节为单位，数据的长度不足指定长度，补足到指定长度！
+      varchar:可变长度字符串类型：varchar(65536),以字节为单位
+      text(clob):字符串类型：
+
+        > 很小 tinytext  2的8次方-1B
+	> 小   text	 2的16次方-1B
+	> 中   mediumtext2的24次方-1B
+	> 大   longtext  2的32次方-1B
+      blob:字节类型：
+        > 很小 tinyblob  2的8次方-1B   255B
+	> 小   blob	 2的16次方-1B  64K
+	> 中   mediumblob2的24次方-1B  16MB
+	> 大   longblob  2的32次方-1B  4G
+      date:日期类型，格式为：yyyy-MM-dd;
+      time:时间类型，格式为：hh:mm:ss;
+      timestamp:时间戳类型;日期和时间类型
+
+     3.表
+
+     * 创建表：
+       CREATE TABLE tab_stu1(
+         列名称 列类型,
+	 列名称 列类型,
+	 列名称 列类型,
+	 .....
+	 );
+     * 查看当前数据库中所有表名称：SHOW TABLES
+     * 查看指定表的创建语句：SHOW CERATE TABLE 表名(了解);
+     * 查看表结构：DESC 表名称 
+     * 删除表：DROP TABLE 表名称
+     * 修改表：前缀ALTER TABLE 表名称
+         > 修改表之添加列:
+	   ALTER TABLE 表名称 ADD(
+	     列名称 列类型,
+	     列名称 列类型,
+	     ...
+	     );
+	 > 修改之修改列类型(如果被修改的列以存在数据，新的类型可能会影响到已存在数据)
+	     ALTER TABLE 表名称 MODIFY 列名称  列类型
+	 > 修改之修改列名：ALTER TABLE 表名称 CHANGE 原列名 新列名 列类型;
+	 > 修改之删除列：ALTER TABLE 表名称 DROP 列名;
+	 > 修改表名称：ALTER TABLE 表名称 RENAME TO 新表名称;
+
+DML(数据操作语言，它是对表记录的操作(增、删、改)！)
+
+  DQL：SELECT * FROM 表名称 查询表里面的数据
+
+     1.插入数据
+      * INSERT INTO 表名(列名1,列名2,...)VALUES(列值1,列值2,列值3,...);
+         > 在表名后给出要插入的列名，其他没有指定的列等同于插入null值。所以插入的记录总是插入一行，不可能是半行。
+	 > 在VALUES后给出列值，值的顺序和个数必须与前面指定的列对应
+      * INSERT INTO 表名 VALUES(列值1,列值2,列值3,...)
+         > 没有给出要插入的列，那么表示插入所有列
+	 > 值的个数必须是该列表的个数
+	 > 值的顺序，必须与表创建时给的列的顺序相同。
+
+     2.修改数据
+       * UPDATE 表名 SET 列名1=列值1,列名2=列值2,...[WHERE 条件]
+       * 条件(条件可选的)：
+         >条件必须是一个boolean类型的值或表达式:UPDATE tab_stu SET name='男', age=age+1 WHERE sid='1';
+	 >运算符: = 、!= 、<>、<、>、>=、BETWEEN...AND、IN(...)、IS NULL、NOT、OR、AND    is ont null 不为null
+        <>是不等于的意思和!= 一样
+     3.删除数据
+       * DELETE FROM 表名字 [WHRER 条件]；
+       * TRUNCATE TABLE 表名: TRUNCATE是DLL语句，它是先删除drop该表，再create该表，而且无法回滚！！！
+
+
+   在数据库中所有的字符串类型，必须使用单引号，不能使用双引号！
+   日期类型也要使用单引号！
+
+--------------------------------------------------
+
+DCL(理解)
+
+  修改密码  
+    格式：mysql> set password for 用户名@localhost = password('新密码');  
+    例子：mysql> set password for root@localhost = password('123');  
+
+
+  1.创建用户
+    * CREATE USER 用户名@IP地址 IDENTIFIED BY '密码';
+      >用户只能在指定的IP地址上登录
+    * CREATE USER 用户名@'%' IDENTIFIED BY '密码';
+      >用户可以在任意的IP地址上登录
+
+  2.给用户授权
+    * GRANT 限权1,...,限权n ON 数据库.* TO 用户@IP地址
+      >限权、要后用户、数据库
+      >给用户分派在指定的数据库上的指定的限权
+      >例如：GRANT CREATE,ALTER,DELETE,UPDATE,SELECT ON mydb1.* TO user1@localhost;
+         *给user1用户分派在mydb1数据库上的create、alter、drop、insert、update、delete、select权限
+         * GRANT ALL ON mydb1.* TO user1@localhost; 将全部限权给user1;
+  
+  3.撤销授权
+    * REVOKE 限权1,,...限权n ON 数据库.*FROM 用户@IP地址;
+      >撤销指定用户在指定数据库上的指定限权
+      >例如：REVOKE CREATE,ALTER,DELETE ON mydb1.*FROM user1@localhost;
+        * 撤销user1用户在mydb1数据库上的 create、alter、drop限权
+
+  4.查看限权
+    * SHOW GRANTS FOR 用户名@IP地址;
+      >查看用户的限权
+
+  5.删除用户
+    * DROP USER 用户名@IP地址;
+
+--------------------------------------------------
+
+DQL--数据查询语言
+   查询不会修改数据库的记录！
+
+  一、基本查询
+
+   1.字段(列)控制
+    1) 查询所有列
+       SELECT * FROM 表名;
+         其中"*"表示查询所有列;
+
+    2) 查询指定列
+       SELECT 列名1,列名2,列名3,...列N FROM 表名;
+      
+    3) 完全重复的记录只查询一次(必须写在select后面)(*也必须写在列名的前面)
+
+       当查询结果中的多行记录一模一样时,只显示一行.一般查询所有列时很少会有这种情况，但只查询一列或几列时，这种可能性就大了！
+       SELECT DISTINCT * FROM 表名;
+       SELECT DISTINCT ename FROM 表名;
+       -->查询员工表的工资，如果存在相同的工资只显示一次！
+
+    4) 列运算
+      I 数量类型的列可以做加、减、乘、除运算
+        SELECT name*1.5 FROM emp;
+      II 处理NULL值(提成有些员工有有些员工没有，没有提成的就是NULL，NULL与任何值进行其加减乘除运算时，结果都会是NULL)
+        SELECT IFNULL(员工,0) FROM 表名; 将员工里面值为NULL的设置成0;
+	SELECT IFNULL(员工,'已离职') FROM 表名; 将员工里面值为NULL的设置成已离职;
+      III 连接字符串,(字符串相加运算，字符串与任何数据相加,本身都会被当成0,)例如：‘我们’+10 = 10;
+        CONCAT用来字符串之间的连接;
+	SELECT CONCAT('我的名字是',name) FROM 表名;
+      IV 给列起别名
+       AS;在要起别名的后面空格，然后跟上别名。其中AS可以省略;
+       SELECT name AS 我们,age FROM 表名;
+
+   2.条件控制
+    1) 条件查询
+       与前面介绍的UPDATE和DELETE语句一样，SELECE语句也可以使用WHERE子句来控制记录.
+       不能使用 WHERE 列名=null  这样写说明条件永远是false;
+
+    2) 模糊查询
+       当你想查询姓张，并且姓名为两个字的时候
+        *SELECT * FROM 表名 WHERE ename LIKE  'zhang_';
+       当你想查询名字中有小字的人时;
+	*SELECT * FROM 表名 WHERE ename LIKE '%xiao%';
+	"_"下划线表示一个字节。
+	"%"百分号表示0-N个字节。
+
+  二、排序
+    1)升序
+      SELECT * FROM 表名  ORDER BY 列名 ASC;
+       按列名排序，升序
+       其中ASC是可以省略的
+    2)降序
+      SELECT * FROM 表名  ORDER BY 列名 DESC;
+       按列名排序，降序
+       其中DESC是可以省略的
+    3)使用多列作为排序条件
+      SELECT *FROM 表名 WHERE ORDER BY 列名1 ASC ,列名2 DESC ,列名3 DESC;
+	按列1升序排序，如果列1里面有相同的再按列2降序排序，如果列2有相同的再按列3降序排序;
+
+  三、聚合函数(NULL会被自动当做0来计算;)
+        聚合函数用来做某列的纵向运算
+    1)COUNT
+      SELECT COUNT(*) FROM emp;
+        计算emp表中所有列都不为NULL的记录的行数;
+    2)MAX
+      SELECT MAX(sal) FROM emp;
+        计算emp表中sal行中的最大值
+    3)MIN
+      SELECT MIN(sal) FROM emp;
+        计算emp表中sal行中的最小值
+    4)SUM
+      SELECT SUM(sal) FROM emp;
+        计算emp表中sal行中的数据全部相加的总和
+    5)AVG
+      SELECT AVG(sal) FROM emp;
+        计算emp表中sal的平均工资;
+    
+  四、分组查询 GROUP BY
+     分组查询是把记录使用某一列进行分组，然后查询组信息
+      就是把聚合函数从统计列名变成统计指定分组;
+      分组就是把重复的放在一组。然后把每一组都当做一个列。
+       SELECT 列名1,COUNT(*) FROM emp GROUP BY 列名1;
+        使用列名以进行分组，查询每个部门的人数。
+       SELECT job MAX(sal) FROM emp GROUP BY job.
+        使用job分组，查询每种工作的最高工资
+	
+      组条件 用来判断聚合函数的关键字 HAVING
+	以部门分组，查询每组记录数，条件为记录数大于3,并且工资大于15000
+	SELECT deptno ,COUNT(*) WHERE sal>15000 GROUP BY deptno HAVING COUNT(*)>=3;
+
+  五、limit子句(方言)
+     LIMIT用来限定查询结果的起始行，以及总行数。
+       例如：查询启始行为第5行，一共查询3行记录
+       SELECT * FROM emp LIMIT 4,3;  0表示第一行记录
+         其中4表示从第5行开始，其中3表示一共查询3行。即第5、6、7行记录。
+	
+     1.一页的记录数：10行
+     2.查询第3页
+
+     SELECT * FROM emp limit 20,10;
+
+     要查的页数开始的行数 = (当前页-1)*每页记录数
+     要查第5页，每页8行
+    SELECT * FROM emp limit (5-1)*8,8;
+
+****语法执行顺序
+	select
+	from
+	where
+	group by
+	having
+	order by
+
+这个是网上的
+   （1)from 
+    (3) join 
+    (2) on 
+    (4) where 
+    (5)group by(开始使用select中的别名，后面的语句中都可以使用)
+    (6) avg,sum.... 
+    (7)having 
+    (8) select 
+    (9) distinct 
+    (10) order by 
+
+
+SQL编码
+    查看MySQL数据库编码
+      * SHOW VARIABLES LIKE 'char%';
+	
+	character_set_client       utf8  -->mysql把我们客户端传递的数据都当成是utf8！就是申明客户端的数据是utf8
+	character_set_connection   utf8
+	character_set_database     utf8
+	character_set_results      utf8  -->表示发送给客户端的数据上utf8的
+	character_set_system       utf8
+
+  my.ini
+     在总配置文件中进行配置，可以一劳永逸
+
+  [client] 
+   port=3306
+   [mysql]
+   default-character-set=gbk  它可以一劳永逸，修改三个变量：client,results,connection
+  
+  备份与恢复
+
+  数据库导出SQL脚本
+   >mysqlump -u用户名  -p密码  数据库>生成的脚本文件路径
+   >例如：mysqldump -uroot -p123  mydbl>C:\mydb1.sql  (与mysql.exe和mysqld.exe一样都在bin目录下)
+   >注意，不要打分号，不要登录Mysql,直接在cmd下运行
+   >注意，生成的脚本文件中不包含create database语句
+  
+ 导入SQL脚本
+   第一种方式
+    >mysql -u用户名  -p密码  数据库<脚本文件路径
+    >例如：mysql -uroot -p123 mydb1<C:\mydb1.sql
+    >注意：不要打分号，不要登录mysql,直接在cmd下运行
+
+   第二种方式
+    >登录mysql
+    >source SQL脚本路径
+    >例如source c:\mydb1.sql
+
+===========================================
+
+约束
+  *约束是添加在列上的，用来约束列的！
+
+  1.主键约束(唯一标识)
+      非空
+      唯一
+      被引用
+
+    *当表的某一列被指定为主键后，该列就不能为空，不能有重复值出现
+    *创建表时指定主键的两种方式：
+	>  使用PRIMARY KEY关键字
+	CREATE TABLE stu(
+	sid  CHAR(6)  PRIMARY KEY,
+	sname VARCHAR(20),
+	age  INT,
+	gender  VARCHAR(10)
+	);
+	指定sid列为主键列，即为sid列添加主键约束
+	>
+	CREATE TABLE stu(
+	    sid  CHAR(6),
+	    sname VARCHAR(20),
+	    age   INT,
+	    gander  VARCHAR(10),
+	    PRIMARY KEY(sid)
+	);
+	指定sid列为主键列，即为sid列添加主键约束
+      * 修改表时指定主键：ALTER TABLE stu ADD PRIMARY KEY(sid);
+      * 删除主键 :ALTER TABLE stu DROP PRIMARY KEY;
+
+
+  2.主键自增长
+    * 因为主键列的特点是：必须唯一、不能为空，所以我们通常会指定主键为整型，然后设置其自动增长，这样可以保证插入数据时，数据的唯一性和非空性
+    * 创建表时指定主键自增长
+    CREATE TABLE stu(
+	sid INT PRIMARY KEY AUTO_INCREMENT,
+	sname   VARCHAR(20),
+	age     INT,
+	gander VARCHAR(20)
+    );
+    sql server不支持在自增列与非自增列之间进行转换.
+
+
+外键
+     CONSTRAINT 外键名  FOREIGN  KEY(外键列) REFERENCES 要引用的主键的表  (主键名)
+
+修改表时添加外键约束
+     ALTER TABLE 表名 ADD CONSTRAINT 外键名  FOREIGN  KEY(外键列) REFERENCES 要引用的主键的表  (主键名);
+
+修改表时删除外键约束
+     ALTER TABLE 表名 DROP FOREIGN KEY 外键名;
+
+非空约束
+    NOT NULL
+
+唯一约束
+    UNIQUE
+
+数据库一对一关系
+  **从表的主键即是外键
+
+多对多关系
+  **需要中间表 一共要三张表，两种主键表，一张外键表，在外键表上映射两张主键表的多对多
+
+  
+多表查询 
+    使用union all关键字 结果集显示在一起：
+  SELECT *FROM ab 
+  UNION ALL 
+  SELECT *FROM cd;
+  查询ab和cd表
+    **要求被合并的表中，列的类型和列数完全相同
+    **UNION,去除重复行
+    **UNION ALL,不去除重复行
+
+=============================
+  
+  连接查询
+   笛卡尔积
+      1.分类
+        *内连接
+	*外连接
+	   >左外链接
+	   >右外连接
+	   >全外连接(MySQL不支持)
+	*自然连接(属于一种简化方式)自然连接不需要条件，可自行筛选
+
+      2.内连接
+        * 方言：SELECT * FROM  表1 别名1, 表2 别名2 WHERE 别名1.xx=别名2.xx
+	* 标准：SELECT * FROM 表1 别名1 INNER JOIN 表2 别名2 ON 别名1.xx=别名2.xx
+	* 自然：SELECT * FROM 表1 别名1 NATURAL JOIN 表2 别名2
+	* 内连接查询出所有记录都满足条件
+
+      3.外连接
+        * 左外：SELECT * FROM 表1 别名1 LEFT OUTER JOIN 表2 别名2 ON 别名1.xx=别名2.xx
+	  > 左表记录无论是否满足条件都会查询出来，而右表只有满足条件才能出来。左表中不满足条件的记录，右表部分都为NULL
+	* 左外自然 SELECT * FROM 表1 别名1 NATURAL LEFT OUTER 表2 别名2 
+	* 右外：SELECT * FROM 表1 别名1 RIGHT OUTER JOIN 表2 别名2 ON 别名1.xx=别名2.xx
+	* 右外自然 SELECT * FROM 表1 别名1 NATURAL OUTER JOIN 表2 别名2 
+	* 全连接：SELECT * FROM 表1 别名1 FULL OUTER JOIN 表2 别名2 ON 别名1.xx=别名2.xx**(MySQL不支持)
+
+ --------
+ 子查询
+    查询中有查询
+   1.出现的位置：
+      where后作为条件存在
+      from后作为表存在(多行多列)
+      
+   2.条件
+     * 单行单列 可以使用(=,>,<,!=,>=)等运算符，作为条件存在
+     * 多行单列 可以将其当做一个集合，使用IN和ANY表示满足集合里的任意元素即可，使用ALL表示要满足集合里的所有元素
+     * 单行多列 可以将其当做一个对象，(列1,列2) IN (列1,列2)
+     * 多行多列 作为表存在
+
+使用 `  `  可在SQL里面使用关键字
+
+
+from_unixtime(nuix_timestamp,"%Y-%m-%d %H:%i:%S")时间格式转换   将毫秒值转换成 相应的时间格式
+
+
+ 在使用inner join（内连接）没有区别，但是 在使用left jion时，on和where条件的区别如下：
+    1、 on条件是在生成临时表时使用的条件，它不管on中的条件是否为真，都会返回左边表中的记录。(返回左表全部记录)。
+        此时可能会出现与右表不匹配的记录即为空的记录。  on 是用来过滤 临时表的 将不符合条件的过滤掉，以便 和下一个表 连接查询
+    2、where条件是在临时表生成好后，再对临时表进行过滤的条件。
+
+数据库多表查询时请务必记住   FROM emp e1  LEFT OUTER JOIN emp e2 
+                             ON   e1.mgr = e2.empno 
+                             INNER JOIN dept
+ 
+ 多表查询时，两个表之间可以先用on加条件先过滤条件合成一个虚拟表后，再继续与下个表合成
+
+
+  mysql.user表中Host为%的含义
+　　Host列指定了允许用户登录所使用的IP，比如user=root Host=192.168.1.1。这里的意思就是说root用户只能通过192.168.1.1的客户端去访问。
+　　而%是个通配符，如果Host=192.168.1.%，那么就表示只要是IP地址前缀为“192.168.1.”的客户端都可以连接。如果Host=%，表示所有IP都有连接权限。、
+　　这也就是为什么在开启远程连接的时候，大部分人都直接把Host改成%的缘故，为了省事。
+
+
+
+-----------------------------------------
+
+
+删除数据库中的重复记录
+
+DELETE
+FROM
+	`user`
+WHERE
+	id NOT IN (
+		SELECT
+			id
+		FROM
+			(
+				SELECT
+					id
+				FROM
+					`user`
+				GROUP BY
+					username
+			) a
+	)
+
+首先
+    SELECT
+            id
+        FROM
+            `user`
+        GROUP BY
+            username
+
+    通过对 username 分类，来将 username 一样的数据放到一行。然后取出 id 
+    这样就把所有不重复的数据查询出来了
+
+    接下来就可以通过 delete 删除了，但是 Mysql 有语法规定：不能先 select 出同一表中的数据，然后对
+        这个表进行 update 操作。
+    
+    所以我们需要 将其 也就是说将select出的结果再通过中间表select一遍，就可以删除了
+      由于中间表必须需要别名 所以我们加了 别名
+        每一个派生表都必须有自己的别名
+
+
+        对于多对多关联
+      
+        A表 AB表 B表
+       A left join AB
+       ON A.id = AB.id 
+       left join B 
+       ON B.id = AB.id
+        WHERE A.id = 2
+        
+       因为会生出中间表，而中间表已经把 A 中 不符合 AB 的过滤掉了。
+       B 再和中间表 AB 然后又把 B 中 不符合 AB 的过滤掉了
+       最后 再过滤 A.id=2 的，就是符合条件的
+
+
+
+
+group a,b,c  要一行数据里面 a b c 三个字段全部重复才能为一组
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,1019 @@
+jquery为什么要有一个$
+window.jQuery = window.$ = jQuery;
+$代表的应该是jquery对象
+而.val()什么的应该是方法
+
+jquery获取ID的对象
+    Jquery的查找节点的方式，参数中#加上id属性值可以找到一个节点。
+    jquery的方法返回的都是jquery的对象，可以继续在上面执行其他的jqury方法
+    var jqueryObj = $("#userName");返回的是一个jquery对象
+    jquery中用[]包含起来的参数应该是可忽略参数
+
+属性 
+   String,Array jquery对象.val();获取文本框中的值
+    1.html():读取和修改一个元素的HTML内容，详情.html()；包含标签 相当于innerHTML
+    2.text()：读取和修改一个元素的文本内容，详情.text()；不包含标签 相当于innerText
+    3.val()：读取和修改一个表单元素的value字段值，详情.val()。 
+
+
+ajax请求 ：
+    XMLHttpRequest jQuery.get(url, [data], [callback], [type])
+        url:待载入页面的URL地址
+        data:待发送 Key/value 参数。 可以写null，在URL后面使用?拼接
+        callback:载入成功时回调函数。 不要加() 加了也可以运行，不知道为什么不能加
+            为什么不能加().加了()就相当于运行了callback()函数，就是再传参数的时候就运行了callback函数，有返回值就将返回值传入，没有就传入undifined（应该是）
+            没有加().才是将函数传递进去了
+            callback是函数名代表函数
+            callback()代表运行函数
+        type:返回内容格式，xml, html, script, json, text, _default。
+
+            
+------------------------------------------------------------
+尚马教育的Jquery
+    
+      jQuery  本质就是 DOM 对象数组
+    
+    jquery里面调用函数，函数里面的 this指的是当前的DOM元素。  而不是window
+
+   jquer的优势
+        
+        轻量级 (Lightweight)
+        强大的选择器
+        出色的DOM操作封装
+        可靠的事件处理机制
+        出色的浏览器兼容性
+        丰富的插件支持
+        体积小
+
+
+$ (selector).xxx();
+    函数$()：将 DOM 对象转化成 jQuery 对象
+    选择器 selector ：获取需要操作的 DOM 元素
+    方法 action() : jQuery 中提供的方法，包括绑定事件处理的方法
+
+
+    $ 相当于 jQuery 
+    $(document).ready() 等同于
+    jQuery(document).ready()
+
+
+$(document).ready() 与 window.onload
+
+执行时机        window.onload                $(document).ready(function(){})
+
+                    必须等待网页中所有内容       网页中DOM文档结构绘制完
+                     加载完 包括 图片 视屏         不需要等 图片 视频
+
+
+ 编写个数          同一个页面不能同时          同一个页面可以编写多个
+                       编写多个                     
+
+简化写法                  无                               $(function(){
+                                                                    // 执行代码
+                                                                    }); 简写的代码不需要等待页面DOM加载完成就可以运行
+
+使用 jQuery 的工厂函数$(): $(html); 会根据传入的html 标记字符串创建一个DOM 对象, 并把这个DOM 对象包装成一个jQuery对象返回.
+
+--------------------------------------------------------------
+
+jQuery 属性
+
+    css("属性", "属性值")       为元素设置CSS样式的值
+    css({"属性":"属性值", "属性":"属性值", "属性":"属性值"}) 设置多个属性
+
+    addClass("类样式名就是Class属性")    为元素添加类样式
+    removeClass  删除Class属性
+
+    html ("HTML代码")       为元素设置 innerHTML 的值   里面写<h1>html</h1>  会显示 h1标签样式的   html 
+    text ("HTML代码")         为元素设置 textContent 的值    里面写<h1>html</h1> 不会显示标签样式  会将    <h1>html</h1>   原样打印出来
+
+
+筛选  
+
+        .eq(index|-index)   获取当前链式操作中第N个jQuery对象，返回jQuery对象，当参数大于等于0时为正向选取，
+                    比如0代表第一个，1代表第二个。当参数为负数时为反向选取，比如-1为倒数第一个
+        :first()
+        :last()
+        .not(expr|ele|fn)     从匹配元素的集合中删除与指定表达式匹配的元素
+
+
+DOM 当对象转换成 jQuery 对象
+DOM 当对象，只需要用 $() 把 DOM 对象包装起来(jQuery 对象就是通过 jQuery包装 DOM 对象后产生的对象)，就可以获得
+    一个 jQuery 对象。
+    $(document.getElementById("msg"));
+
+------------------------------------------------------
+
+jQuery 选择器分类
+
+    类 CSS 选择器
+      基本选择器
+      层次选择器
+      属性选择器
+
+    过滤选择器
+      基本过滤选择器
+      可见性过滤选择器
+
+      表单选择器
+      内容选择器
+
+     基本选择器
+
+        标签选择器     element     根据给定的标签名匹配元素           $("h2") 选取所有 h2 元素
+        类选择器        .class         根据给定的 class 匹配元素           $(".title")选取所有 class 我 title 的元素
+        ID 选择器       #id            根据给定的 id 匹配元素
+       
+        并集选择器      selector1,selector2..        将每一个选择器匹配的元素合并到一起返回
+        元素之间使用 , 分割                       $("div,p,.title") 选取所有 div、p 和拥有 class 为 title 的元素  只要有一个满足就拿过来
+
+        交集选择器       element.class 或 element#id  匹配指定 class 或 id 的某元素或元素集合
+         元素之间使用紧靠在一起                     $("h2.title") 选取所有拥有 class 为 title 的 h2 元素
+
+         全局选择器        *      匹配所有元素      $("*")  选取所有元素
+        
+          jQuery(expression, [context])   在context 范围内查找 expression       context 一般是一个返回 DOM   比如 documen.forms;  js原生代码  获取页面中的所有表单集合;
+            默认情况下, 如果没有指定context参数，$()将在当前的 HTML document中查找 DOM 元素；如果指定了 context 参数，
+            如一个 DOM 元素集或 jQuery 对象，那就会在这个 context 中查找。
+
+层次选择器
+            
+    jquery 选择器，模糊匹配
+        ^ 表示以什么开头
+        $ 表示以什么结尾
+        * 表示包含
+    $("input[id^='code']");//id属性以code开始的所有input标签
+    $("input[id$='code']");//id属性以code结束的所有input标签
+    $("input[id*='code']");//id属性包含code的所有input标签
+    $("input[name^='code']");//name属性以code开始的所有input标签
+    $("input[name$='code']");//name属性以code结束的所有input标签
+    $("input[name*='code']");//name属性包含code的所有input标签
+ 
+
+
+    后代指定的 多层标签
+    子 指的是   往下一层标签
+    后代选择器  A 空格 B      选取A元素里的所有B（后代）元素   $("#menu  span") 选取 #menu 下的 <span> 元素
+    子选择器     A > B         选取 A 元素下的 B（子）元素          $("#menu>span") 选取 #menu 下的 <span> 元素
+    
+    相邻元素选择器   A + B   选取相邻 A 元素之后的 B 元素         $("h2+dl") 选取紧邻<h2>元素之后的同辈<dl>标签 只选取一个标签 选取里h2最近的一个同辈 dl 元素
+    同辈元素选择器   A ~ B   选取 A 元素之后的所有 B 元素          $("h2~dl") 选取紧邻<h2>元素之后的所有同辈的 dl 标签
+    
+
+
+属性选择器
+       和 attr()  只能取显式写在标签上面的属性，比如 <input name="love"  checked=true value="球"> 是可以取到checked的
+                                                                 但是<input name="love"  value="球">  这样就取不到了
+            
+            可以使用prop 和表单选择器获取
+                                                 
+        prop 和 attr   获取匹配的元素集中第一个元素的属性（property）值或设置每一个匹配元素的一个或多个属性
+
+        prop是属性     值会因为复选框的状态而改变    只能获取标签里面种初始化定义的属性。  
+        attr 是特性     值不会因为复选框的状态而改变 可以获取复选框里面中初始化未定义的属性。 特性就是标签源代码里面写了什么就是什么
+
+        •对于HTML元素本身就带有的固有属性，在处理时，使用prop方法。
+        •对于HTML元素我们自己自定义的DOM属性，在处理时，使用attr方法。
+
+
+
+        对于jquery是一个数组对象 ，如果你使用jquery[i] 来获取的话，获取的是document。必须将document 转换为jquery，推荐使用 .eq()来获取。
+           或者直接在选择器里面使用 :eq()来获取
+
+       [attribute]                  选取包含给定属性的元素       $("[href]") 选取含有 hrer 属性的元素
+       [attribute = value]      选取等于给定属性是某个特定值的元素    $("[href='#']") 选取 href 属性值为 '#' 的元素
+       [attribute != value]     选取不等于给定属性是某个特定值的元素  $("[href!='#']") 选取 href 属性值不为 '#' 的元素
+
+
+基本过滤选择器
+        :nth-of-type(n|even|odd|formula)    选择同属于一个父元素之下，并且标签名相同的子元素中的第n个 从1开始计数
+        :first-of-type      匹配与选择器元素相同类型的的第一个子元素  :nth-of-type(1)
+        :first-child    匹配选择器的父元素的第一个子元素
+        :nth-child(index)      
+                    匹配其父元素下的第N个子或奇偶元素
+                    $("ul li:nth-child(2)")  在每个 ul 查找第 2 个li  :eq(index) 匹配选择器指定序列的元素，而这个将为每一个父元素匹配子元素
+        :nth-last-child(index)  匹配其父元素下的第N个子或奇偶元素  计数从最后一个元素开始到第一个。  参数可以是 odd 和 even
+        :first       选取第一个元素 
+        :last       选取最后一个元素
+        :even     选取索引是偶数的所有元素(index从0开始)    
+        :odd       选取索引是奇数的所有元素(index从0开始)  $("li:odd") 选取索引是奇数的所有 <li> 元素
+ 
+        :eq(index)          选取索引等于 index 的元素 (index从0开始)    $("li:eq(1)")选取索引等于1的<li>元素         选择器里面的东西 必须和选择器共存 必须放在""里面
+        .eq(index)  取jquery 下标的东西
+        :gt(index)          选取索引大于 index 的元素 (index从0开始)    $("li:gt(1)")选取索引大于1的<li>元素  大于1 不包括 1
+        :lt(index)           选取索引小于 index 的元素 (index从0开始)    $("li:lt(1)") 选取索引小于1的<li》元素  小于1 不包括1
+
+
+可见性过滤选择器
+        :visible       选取所有可见的元素       $(":visible") 选取所有可见的元素
+        :hidden       选取所有隐藏的元素       $(":hidden") 选取所有隐藏的元素
+                $('p:hidden').show()  将元素显示
+                 $('p:visible').hide()   将元素隐藏
+                toggle()  如果元素是 visible 将其 hide() . 如果元素是 hidden 将其 show() 
+        :not("")      去除所有与给定选择器匹配的元素   用于筛选的选择器
+        . not("")      删除指定的元素
+        :header   匹配标题元素
+
+
+内容过滤器
+        :contains(text)       选取所有包含 text 文本的元素
+        :empty                  选取所有不含子元素或文本的空元素
+        :has( selector )      选取包含选择器所匹配的元素的元素  selector 选择器  给所有包含 p 元素的 div 元素添加一个 text 类  $("div:has(p)").addClass("test");
+        :parent                  匹配含有子元素或者文本的元素
+
+
+表单选择器
+        :input       选取所有的表单元素
+        :text          选取所有 type 为 text 的元素
+        :password
+        :radio
+        :checkbox
+        :submit
+        :image
+        :buttom
+        :checked    匹配所有被选中的元素 (包括复选框和单选框等，不包括 <select> 元素)
+        :selected    multiple ：可以使下拉框可以选中     匹配所有选中的 <option>  元素
+        :enabled   选取所有可用元素        只能获取表单元素  因为只有表单元素有 enbaled 和 disabled 元素
+        :disabled   选取所有不可用元素
+         表单选择器类似  prop 可以获取 标签初始化时候未定义的属性  就是获取的是属性   不是特性  
+            
+          获取的只是 选中的 true 没选中的不获取
+
+
+==================================
+
+DOM 操作分类  都是 jQuery 方法
+
+    jQuery 中的 DOM 操作可分为：
+
+        样式操作
+        内容及 value 属性值操作
+        节点操作
+        节点属性操作
+        节点遍历
+        CSS-DOM 操作
+        
+    JSON    
+
+
+插入子节点
+    
+    元素内部插入子节点
+       父类插入子节点
+         插入子节点放在最后面
+        append( content )        $(A).append(B) 将B的内容 添加到A的标签的文本最的后面中   就是如果是文本插入的是后面
+              如果追加的内容是当前页面中的某些元素，那么这些元素将从原位置上消失。简而言之，这相当于一个移动操作，而不是复制操作。
+        appendTo( content )     $(A).appendTo(B) 将A添加到B中 
+        插入子节点放在最前面
+        prepend(content)         $(A).prepend(B)表示将B前置插入到A中如   就是如果是文本插入的是前面
+        prependTo(content)      $(A).prepend(B)表示将A前置插入到B中如   就是如果是文本插入的是前面
+
+
+    同辈节点之间操作
+        after(content)              $(A).after(B)           将 B 插入到 A 之后
+        insertAfter(content)      $(A).insertAfter(B)   将 A 插入到 B 之后
+
+        before(content)            $(A).before(B)   将B插入到 A之前
+        insertBefore(content)    $(A).insertBefore(B)   将A插入到B之前
+        
+
+替换节点  
+        replaceWith    $(A).replaceWith(B)     将所有匹配的元素替换成指定的HTML或DOM元素。
+        replaceAll              
+                            
+            A.replaceWith(B)，用B替换A    直接将B把A这个jquery 对象代替了  B 会将A ul 直接替换掉
+            A.replaceAll(B)，用A替换B中的所有节点   比如 b 是 $("ul li")   A 会将 B 中所有 li 的节点都替换成 A 
+
+复制节点
+    $(A).clone(true).appendTo(B);
+
+
+删除节点
+
+    remove(): 删除整个节点   删除的元素会以jquery的形式返回下来，即再次将jquery添加进去以后 比如点击事件 就无效了
+    detach():  删除整个节点，保留元素的绑定事件、附加的数据   删除的元素会以jquery的形式返回下来，即再次将jquery添加进去以后 比如点击事件 仍然有效
+    empty():  清空节点内容   删除匹配的元素集合中所有的子节点。
+
+        var a=$("p").remove()    a即是删除的p元素的jquery对象， 当重新将保留下来的p元素塞回到body中$("body").html(a[0]),
+        当再点击p元素的时候并没有触发click事件，即事件已经被remove事件移除掉。
+
+        var b=$("p").detach()   a即是删除的p元素的jquery对象， 当重新将保留下来的p元素塞回到body中$("body").html(a[0]),
+        当再点击p元素的时候触发click事件，即事件依然保留在元素上，detach事件并没有移除掉p元素的事件。
+        
+    
+    attr() 获取或设置匹配元素的属性值
+    attr 处理用户自定义的 DOM 属性 如果标签初始化没有定义过该属性就无法获取   返回 undfined
+    prop 处理标签自带的固有的属性  无法获取标签自定义的属性  返回 undifned
+
+    removeAttr() 匹配元素中删除一个属性。只能删除标签初始化就带的标签  从每一个匹配的元素中删除一个属性
+    removeProp() 匹配元素中删除一个属性。只能删除标签固有的属性  用来删除由设置的.prop()方法
+    $(selector).removeAttr("属性名称");
+        window对象或DOM元素的一些内置属性是不允许删除的，如果试图删除这些属性，将会导致浏览器产生一个错误。
+        jQuery首先会将该属性的值赋为undefined，并忽略掉浏览器生成的任何错误信息。
+
+遍历子元素
+      children() 方法  和 $("A   B") 获取 A 中所有的后代 B 元素。  $(A > B)  获取 A 中 所有的 B 子元素
+        可以用来获取元素的所有子元素
+        $('body').children();
+
+遍历同辈元素
+    Jquery 可以获取紧邻其后、紧邻其前和位于该元素前后的所有同辈元素
+
+    next([expr])    和 $("A + B")层次选择器一样
+                取得一个包含匹配的元素集合中每一个元素紧邻的后面同辈元素的元素集合。
+                这个函数只返回后面那个紧邻的同辈元素，而不是后面所有的同辈元素（可以使用nextAll  和层次选择器$("A ~ B")）。可以用一个可选的表达式进行筛选。
+                    
+    
+                   用于获取紧邻匹配元素之后的元素，如：$("li.eq(1)").next()
+
+                    找到每个段落的后面紧邻的同辈元素中类名为selected的元素。
+                    $("p").next(".selected")
+
+    prev([expr])  用于获取紧邻匹配元素之前的元素   只有紧邻的同辈元素会被匹配到，而不是前面所有的同辈元素。  想获取所有使用 prevall()
+
+     siblings([expr])      取得一个包含匹配的元素集合中每一个元素的所有唯一同辈元素的元素集合。可以用可选的表达式进行筛选。
+                                不包含自己   
+                                用于获取位于匹配元素前面和后面的所有同辈元素
+                                如: $("li:eq(1)").siblings().css("background-color","red");
+                 $("p").siblings("[type=text]").css("background", "yellow");
+                   siblings 可以放各种选择器
+                    
+遍历前辈元素
+
+        parent(): 获取元素的父级元素           
+        parents(): 获取元素的祖先元素  参数 : 获取匹配参数的祖先元素   var $tr = $(a).parents("tr");
+        和 children() 获取所有的子类元素 类似  还有 层次选择器里面的 $(A   B)  获取A中所有的后代B   $(A > B) 获取A中的所有子代 B
+
+
+其他方法
+    jQuery 遍历  each()
+        以每一个匹配的元素作为上下文来执行一个函数
+        迭代
+        $("img").each(function(i,item)) {    item  和 this 一样
+            this.src = "test" + i + ".jpg";
+        }
+            会将jquery里面所有的 元素都使用方法运行一次
+
+         参数 i  相当于匹配的元素在 jquery里面的 下标，从 0 开始
+         如果 callback() 方法里面 返回了 true  跳至下一个循环(就像在普通的循环中使用'continue')。
+                                            返回 'false' 将停止循环 (就像在普通的循环中使用 'break')。
+
+
+            函数中的this关键字都指向一个不同的DOM元素（每次都是一个不同的匹配元素）。而且，在每次执行函数时，
+            都会给函数传递一个表示作为执行环境的元素在匹配的元素集合中所处位置的数字值作为参数（从零开始的整型）。 
+
+    each 第二种用法
+         $.each(json,function(index, item) {}
+            json 为 json  对象，如果 json 为 list 就能为其遍历， index 为下标， item 为当前 json index 下标的元素。
+            json 可以是数组、DOM、json等
+
+
+      查找方法  ---  find()  只查找 调用这个方法的 jquery  的后代元素
+            搜索所有与指定表达式匹配的元素。这个函数是找出正在处理的元素的后代元素的好方法。
+            返回所有与制定表达式匹配的元素
+
+            find()方法是获得在当前结果集中每个元素的后代。
+
+            $("p").find("span"); // 查找所有 p 元素的后代节点中查找 span 元素
+            从所有的段落开始，进一步搜索下面的span元素。与$("p span")相同。
+
+            find() 和 has() 不同
+            find() 是获取当前结果集中所有的后代元素。然后对后代元素进行过滤。返回满足条件的后代元素  find(参数)里面的参数也会作为返回后代元素的类型
+            has() 只起判断作用。 参数只做为条件，符合条件的，它的前代元素加入新的结果集，而不是后代加入新的结果集。
+            filter()方法，条件作用于自身；has()方法条件是作用于它的后代元素中。 返回的都是自身的元素
+
+                
+			has()	 条件用来查询后代，返回的是符合条件的当代元素  :has 和 has 差不多一样
+			find()	条件用来查询后代。返回的是符合条件的后代
+			filter()	过滤自身 条件用来查询选择器。 返回的是符合条件的选择器   :not 过滤器 也是过滤当代 
+					还有 lt 小于   gt 大于  even 偶数  odd 奇数    
+					nth-of-type(index) 返回 选择器的父元素的相同类型的 第N个元素
+					first-of-type()  返回 选择器的父元素的相同类型的第一个元素
+					nth-child(index)  返回 选择器的父元数下的第 index 下和元素
+					nth-last-child(index)返回 选择器的父元数下的第 index 下和元素 从后面数起
+
+
+
+        size()            jQuery 对象中元素的个数。
+
+                    当前匹配的元素个数。与length 将返回相同的值。
+
+        get([index])   取得其中一个匹配的元素。 num表示取得第几个匹配的元素。从0开始，返回的是DOM对象
+                                $(this).get(0)与$(this)[0]  等价
+                
+
+jQuery 事件是对 javascript 事件的封装，常用事件分类如下：
+
+        如果是赋值事件的话 会自动 识别 function 里面的 this 为触发事件的元素
+
+    基础事件 
+        window 事件
+        鼠标事件
+        键盘事件
+        表单事件
+
+    复合事件是多个事件的组合
+        鼠标光标悬停
+        鼠标光标点击
+
+ 鼠标事件
+            $("p").click();    $("p").click( function () { $(this).hide(); });
+        click(fn)                 触发或将函数绑定到指定的元素的 click 事件                     单击鼠标时
+
+        mouseover(fn)       触发或将函数绑定到指定的元素的 mouseover 事件            鼠标移进时
+
+        mouseout(fn)         触发或将函数绑定到指定的元素的 mouseout 事件              鼠标移出时
+
+        dblclick                                                                                                   鼠标双击时
+        
+        scroll                   滚轮事件  滚轮滚动时触发
+        scrollTop(index)              滚轮相对于jquery的顶部的距离 返回 Integer
+            获取匹配元素相对滚动条顶部的偏移。
+            此方法对可见和隐藏元素均有效。
+            简单来说就是 index 对于调用其 jquery 来说，距离顶部 index 的距离的时候就上不去了
+            scrollTop 在到达 顶部的时候会返回 0; 返回的是 距离顶部的距离
+
+
+键盘事件
+    
+    keydown(fn)             触发或将函数绑定到指定的元素的 keydown(fn) 事件              按下键盘时
+    keyup(fn)                 触发或将函数绑定到指定的元素的  keyup(fn) 事件                 释放按键时
+    keypress                  触发或将函数绑定到指定的元素的  keypress(fn) 事件             产生可打印的字符时
+
+
+表单事件
+
+    focus(fn)                   触发或将函数绑定到指定的元素的 focus 事件                     获得焦点
+    blur(fn)                     触发或将函数绑定到指定的元素的 blus  事件                      失去焦点
+    submit(fn)                 触发每一个匹配元素的 submit 事件                                  表单提交时  该事件只适用于表单元素 
+        
+
+---------------------------------------------------
+
+绑定事件  
+
+        bind() 方法     为每个匹配元素的特定事件绑定事件处理函数。
+                             jQuery 3.0中已弃用此方法，请用 on()代替。
+
+        $("#btn").bind("click", fn);
+        $("#btn").bind("click dblclick", fn); 绑定多个事件
+        $("#btn").bind({
+            click:function() {},
+            mouseover:function() {},
+        })'
+    
+
+    unbind() 方法  解除事件绑定
+
+            $("p").unbind()   把所有段落的所有事件取消绑定
+            $("p").unbind( "click" )       将段落的click事件取消绑定
+
+            删除特定函数的绑定，将函数作为第二个参数传入
+            var foo = function () {
+      // 处理某个事件的代码
+    };
+    $("p").bind("click", foo); // ... 当点击段落的时候会触发 foo 
+
+    $("p").unbind("click", foo); // ... 再也不会被触发 foo
+
+-------------------------
+
+     on()  绑定事件
+            on(events,[selector],[data],fn)
+            selector   一个选择器字符串用于过滤器的触发事件的选择器元素的后代。如果选择的< null或省略，当它到达选定的元素，事件总是触发。
+         和 bind() 一样使用
+        2、$.on(events,[selector],[data],fn)
+
+        events：一个或多个用空格风格的事件类型和可选的命名空间。如：click 或keydown.myPlugin
+
+        selector：一个选择器字符串，用于过滤选定的元素。该选择器的后裔元素将调用处理程序。如果为空或被忽略，事件总是触发。
+                就是如果 selector 是该元素的后代才触发点击事件  
+
+        data：事件触发时要传递event.data给事件处理函数
+
+        fn：该事件触发时执行的函数。    false值一个可以做一个函数的简写，返回false。
+
+        $(selector1).on() 的时候，如果selector1 的元素还没有加载到dom中的时候，这段代码就会被忽略不执行，事件就不会绑定。
+        这也就是说，如果我们省略on参数的selector的时候，时间是绑定要selector1上面。如果selector1的元素不存在，绑定事件就失败了。
+         基本上就是用在了 其 还没加载到 dom 的元素上面
+         比如 $("body").on("click","a","function(){}")
+            每次执行的时候都会进行过滤，只有是 a 的标签才会进行 点击事件
+            多次对一个元素绑定事件，事件会触发多次，需要off 解除。
+            **** on方法绑定事件后执行多次 使用 on 进行绑定事件。会在一个元素上面绑定多次相同的点击事件
+            on是绑定多少次就触发多少次的。
+
+            
+
+
+     off()  解除事件绑定
+              $("p").off()   把所有段落的所有事件取消绑定
+            $("p").off( "click" )       将段落的click事件取消绑定
+
+ ----------------------------------------------------
+ 
+ one(type,[data],fn)
+
+        为每一个匹配元素的特定事件（像click）绑定一个一次性的事件处理函数。
+        附加一个事件，只运行一次，然后删除自己。
+    
+
+
+复合事件  
+        鼠标光标悬停事件
+        相当于 mouseover 与 mouseout 事件组合
+        
+        hover(fn1,fn2) 方法
+           fn1:鼠标移到元素上要触发的函数
+           fn2:鼠标移出元素要触发的函数
+
+          经过研究没区别。。。mouseover 和 hover
+
+        mouseover事件与mouseenter事件的区别
+        不论鼠标指针穿过被选元素或其子元素，都会触发 mouseover 事件。对应mouseout
+        只有在鼠标指针穿过被选元素时，才会触发 mouseenter 事件。对应mouseleave
+
+        这样的话，mouseenter子元素不会反复触发事件，否则在IE中经常有闪烁情况发生。
+
+        hover(over, out);
+
+        一个模仿悬停事件（鼠标移动到一个对象上面及移出这个对象）的方法。这是一个自定义的方法，
+        它为频繁使用的任务提供了一种“保持在其中”的状态。
+
+        当鼠标移动到一个匹配的元素上面时，会触发指定的第一个函数。当鼠标移出这个元素时，会触发指定的第二个函数。
+        而且，会伴随着对鼠标是否仍然处在特定元素中的检测（对子类的检测），如果是，则会继续保持“悬停”状态，
+        而不触发移出事件（mouseout）。
+
+        而mouseover 会再鼠标移到元素的子元素时重新触发 事件  ，  再元素的子元素之间移动 会不停的调用方法
+
+
+
+显示及隐藏元素
+
+    show(参数);
+    hide(参数);
+       参数根据显示速度可以取值如下： 毫秒、slow、normal、fast
+
+ toggle() 如果元素是可见的，切换为隐藏的；如果元素是隐藏的，切换为可见的。 
+    hide()  隐藏
+    show()  显示
+
+$(selector).hide(speed,callback);
+
+$(selector).show(speed,callback);
+可选的 speed 参数规定隐藏/显示的速度，可以取以下值："slow"、"fast" 或毫秒。
+可选的 callback 参数是隐藏或显示完成后所执行的函数名称。
+下面的例子演示了带有 speed 参数的 hide() 方法：
+    $("button").click(function(){
+          $("p").hide(1000);
+        });
+
+
+
+
+筛选  
+        .eq(index)  获取当前链式操作中第N个jQuery对象，返回jQuery对象   负数表示从集合中的最后一个元素开始倒数(-1算起)
+        .not(expr|ele|fn)   从匹配元素的集合中删除与指定表达式匹配的元素
+
+        .is(expr|obj|ele|fn)  返回值为Boolean  根据选择器、DOM元素或 jQuery 对象来检测匹配元素集合，如果其中至少有一个元素符合这个给定的表达式就返回true。
+                $("input[type='checkbox']").parent().is("form")   检测checkbox的父元素是否为form  返回true 
+        .filter(expr|obj|ele|fn)  过滤器  返回符合条件的 jquery
+            如果是一个 function 的话，会将返回值是true 的 元素加入要返回的 jquery 集合中
+
+       .each(function(){})  会 jquery 里面有几个元素运行几次
+
+
+
+
+jquery 的 追加样式和删除样式
+        因为 class 元素可以有多个 value 
+        <input class="one two three four" />  这个标签一共有4个 class。  class之间用空格来分割不同的 class
+        addClass() 追加新的class
+        removeClass(..) 删除指定的clas 
+
+        和attr prop  不同的是 attr prop 设置的 class 是将其替换 
+        addClass 是将其 添加新的
+
+
+        removeAttr()
+        removeProp() 删除属性
+
+    添加CSS属性 .css("","");
+    删除CSS属性$('选择器').css('css属性','');  可以将要删除的属性的值，从新设置 设置为空就可以了 
+
+删除文本
+        可以使用 val()  text()   html()  将文本直接设置为空字符串 ""
+     
+  
+ 删除元素
+     remove() 删除元素和子元素
+     empty() 删除元素的所有子元素，不删除元素本身
+     detach() 删除元素和子元素 但是不删除事件 也就是说 可以使用返回的 jquery 重新为其设置回去 其事件不会消失  使用remove() 的话 设置回去事件也消失了
+
+添加元素  $("html代码")   直接再里面写 html 代码   会自动将其转换成 jquery 对象
+
+
+
+
+================================================
+
+jquery 
+            往 DOM 里面存数据
+                $.data()是从Jquery对象中取值，由于对象属性值保存在内存中，因此可能和视图里的属性值不一致的情况。
+                $.data() 只是保存在 DOM 对象中，也就是只会保存在 内存中。
+                $.data() 可以保存任何数据，它仅仅修改的Jquey对象的属性值
+
+                其实再jq源码中使用了一个映射的关系，进行实现的，它并没有直接的将对象挂载到元素的属性上，而只是在元素上
+                加了一个自定义属性，自定义属性的值是一个唯一的id，真正的数据是存储在一个对象上的，这个对象存储的所有
+                的数据，我暂且叫它为cache，且每一个数据都有一个唯一的id，与元素身上自定义的属性的id是对应的，cache
+                在中间起了一个中介的作用，巧妙的联系在了一起，避免了内存泄漏。
+               
+
+
+			处理 css样式
+				添加 css("",""); 可以同时添加多个 ({"":"","":""}). 用 json 的思想添加  就是将其封装成JavaScript对象
+				删除css("",""); 只要将其要删除的样式设置为 空就好了
+				
+			处理class
+				使用 removeAttr 和 removeProp 会将class 属性删除。里面所有的 class 全部没有了
+			 	使用 attr 和 prop 来设置class属性的话 会把之前的 class 的 value 覆盖掉
+			 	所以建议使用 addClass 和 removeClass 只会对 class 属性的值进行操作。
+			 		每次也操作也只会 追加和删除指定的 class 的值
+			 		removeClass() 不给值的话。会默认删除 所有类。 就相当于将class 的值置为空
+                    hasClass() 方法检查被选元素是否包含指定的 class。 判断 是否包含指定的 Class
+               删除添加 class 可以 用空格分割一次添加多个
+               $(ele).parent().removeClass("has-success has-error");
+
+			
+			处理属性和特性
+
+				Attr特性 和 prop 属性
+				attr 用来处理自定义的 DOM 属性的值。只能处理标签初始化就定义的特性
+				不过设置的话没有关系。获取的话，获取标签初始化就定义的属性 就会返回 undifined
+
+                ** attr 只获取用户写的 href 是写在 html 代码上的
+				** prop 获取base + href 的连接 是最终要跳转的连接
+
+				prop 用来处理标签的固有属性。只能处理标签固有的属性。不能处理用户自定义的 DOM 属性
+				设置的话不知道有没有关系  获取用户自定义的 DOM 的属性的时候。会返回 undifined
+                设置的话设置 元素固有属性 用 prop
+                设置不是的元素固有属性，是我们自定义的属性就用 attr
+			处理文本
+				可以使用 val() html() text
+				删除的话将其文本设置为空字符串就好了
+				val() 相当于 value()
+				html() 相当于 innerHTML()  设置进去的文本有标签的话。不会将标签显示出来 而是会将标签的效果显示出来
+                    获取 html() 会将元素的子标签也获取过来
+				text() 相当于 textContent() 设置进去的文本有标签的话。会将标签按照文本的形式显示出来
+                    获取 text() 不会将元素的子标签也获取过来 只会获取 元素里面的文本内容
+			处理元素
+				使用$("html代码")直接将 html代码 转化成相应的 jquery 对象。 再使用 append appendTo prepend 等进行添加
+				使用 remove()
+				empty() 清空元素的后代元素  函数的返回值为jQuery类型，返回当前jQuery对象本身(以便于进行链式风格的编程)。(清空以后的 div)
+				detach() 删除元素 但是不删除事件  删除的元素 会以jquery 的形式返回; 移动元素并保留其 click 事件
+                                                使用 detach() 方法来移动元素，并保留元素的 jQuery 数据。    而remove 没有这个特性 移动后直接将其 事件全部删除
+				来直接删除元素
+				contains(text) 匹配有相应的文本的元素
+				parent 匹配有子元素的元素
+				has() 返回其后代符合条件的元素
+
+attr 和 prop
+    当编写 HTML 源码时，你能在 HTML 元素里定义 attributes.然后一旦浏览器解析你的代码，该HTML 元素相应的 DOM 
+    节点就会被创建。该节点是一个对象，因此它就拥有 properties.
+    因此，我们知道：attributes 是 HTML 元素(标签)的属性，而 properties 是 DOM 对象的属性
+
+
+
+
+index([selector|element]) 返回值:Number
+        搜索匹配的元素，并返回相应元素的索引值，从0开始计数。
+    $('#bar').index(); //1，不传递参数，返回这个元素在同辈中的索引位置。 
+    $('li').index($('#bar')); //1，传递一个jQuery对象
+    $('#bar').index('li'); //1，传递一个选择器，返回#bar在所有li中的索引位置
+        'li' 是一个选择器 可能是 自动将其变成选择器吧
+
+    如果没有指定参数 selector|element ，则返回当前元素在其所有同辈元素中的索引位置。
+
+    如果 selector|element 为String类型，则将其视作选择器，返回当前元素在选择器所匹配的元素中的索引位置。如果该选择器不匹配任何元素或者当前元素不在匹配到的元素内，则返回-1。
+
+    如果 selector|element 为DOM元素或jQuery对象，则返回该元素(或该jQuery对象中的第一个元素)在当前jQuery对象所匹配的元素中的索引位置。
+
+
+
+
+
+
+form 通过 Jquery 来重置表单  没有这样的方法 我们可以使用 document 的方法来调用
+
+    *** ：Java代码 $('#myform')[0].reset()也就是通过调用 DOM 中的reset方法来重置表单。
+
+    reset之后, select如果有 option 带 selected 属性, 那么自动选择该选项, 如果没有, 则自动选中第一个
+        就是 select 里面 代码里面就写的 selected 就初始化这个   处理标签初始化就定义的属性
+           js 等设置的不算
+    
+
+
+对于 val() 一般返回 空。但 select 没有 option 的时候返回 null 
+ 对于禁止点击事件，如果不禁止的话，就会导致你不断的点击，不断地往数据库查询， connection 最终会使连接池的 connection 耗尽，导致连接池 泄露 
+       一旦连接池泄露只能重启服务器
+       对于循环查询也要注意这个问题，因为你用的查询 数据库的工具，很可能是在你查询语句前后自动帮你获取和结束线程的。
+       如果你循环的过多的话就会获取的太多，而还没结束，就会报错
+
+ 会与 .html() 为空一直返回 "" ，只有你的这个元素不存在的时候才会返回 null
+
+ 
+
+
+animate用于创建自定义动画的函数。
+
+jQuery Fading 方法
+通过 jQuery，您可以实现元素的淡入淡出效果。
+jQuery 拥有下面四种 fade 方法：
+fadeIn()
+fadeOut()
+fadeToggle()
+fadeTo()
+    具体请看 api
+
+============================================
+
+JQuery  AJAX
+
+==============================================
+
+jQuery 底层 AJAX 实现。简单易用的高层实现见 $.get, $.post 等。
+    $ajax() 方法 
+
+        $ajax({
+           url:"发送的请求地址",
+           type:"请求方式",
+           data:"要发送的数据", // 使用 sjon 的方式传过去 {type:"xxx", param:"yyy"}  就相当于后面的 ?type=xxx&param:yyy
+           dataType:"服务器返回的数据类型",// xml html script json text;
+           beforeSend:function(data){//发送请求前执行的代码},
+           success:function(data){//发送成功后执行的代码},
+           error:function(){//请求失败后执行的代码}
+        });
+
+
+      resp.setContentType("text/json;charset=utf-8");
+
+$.get(
+    url, 发送的请求地址
+    [data], "要发送的数据", // 使用 sjon 的方式传过去 {type:"xxx", param:"yyy"}  就相当于后面的 ?type=xxx&param:yyy  也可以跟在 url 后面 post 不可以
+    [callback], 回调函数
+    [type],"服务器返回的数据类型",// xml html script json text;
+);
+
+      resp.setContentType("text/json;charset=utf-8");
+ $.post(
+     和上面的一样
+ );
+
+$.getJSON();    和上面的相比 少了 [type] 默认为 JSON 
+$.postJSON();   和上面的相比 少了 [type] 默认为 JSON 
+
+    如果你想要请求失败的代码 请使用 $ajax;
+
+
+
+    对于 data 可以放的数据
+        1.文本："uname=alice&mobileIpt=110&birthday=1983-05-12"
+
+        2.json对象：{uanme:'vic',mobileIpt:'110',birthday:'2013-11-11'}
+
+        3.json数组：
+
+        [
+            {"name":"uname","value":"alice"},
+            {"name":"mobileIpt","value":"110"},   
+            {"name":"birthday","value":"2012-11-11"}
+        ]
+
+        4、JSON字符串，形如 
+
+         {"name": "uname", "age": 18}
+
+        注意，这个地方不是json对象，是json字符串，字符串。这样，在后台就可以直接注入到对象中。
+
+        当你需要向后台提交一组对象时时，json字符串的好处就体现出来了（对象数组）。
+
+        一般都是用post方法传递参数。
+
+
+       5、FormData对象，它可以更灵活方便的发送表单数据，因为可以独立于表单使用。
+                        
+
+       6.其他类型，比如html, 比如XML，只要设置要contentType即可，类似JSON类型
+
+
+    其实提取表单数据的话只需要 serialize()方法直接获取"uname=alice&mobileIpt=110&birthday=1983-05-12"这样的就可以了。
+    from.serializeObject();将其变成 json 参数， 为空的参数 就是 空，不会不显示
+
+    serialize 和 FormData    
+            首先，前者，只能序列化表单中的数据 ，比如文本框等input  select等的数据，但是对于文件，比如文件上传，无法实现，那么这时候，FormData就上场了
+
+
+        FormData 异步上传
+            //方式一 Jquery实现
+        function saveUser2() {
+            var id = $("#id").val().trim();
+            var uname = $("#uname").val().trim();
+            var pwd = $("#pwd").val().trim();
+            var file = document.getElementById("file").files[0];
+            var formData = new FormData();
+            formData.append('id', id);
+            formData.append('uname', uname);
+            formData.append('pwd', pwd);
+            formData.append('file', file);
+
+            $.ajax({
+                url: "/home/about",
+                type: "post",
+                data: formData,
+                contentType: false,
+                processData: false,
+                mimeType: "multipart/form-data",
+                success: function (data) {
+                    console.log(data);
+                },
+                error: function (data) {
+                    console.log(data);
+                }
+            });
+        }
+
+
+
+
+
+============================================
+
+JQuery 表单异步提交
+
+==============================================
+
+    $(function () {
+    $(":submit").click(function () {
+        var options = {
+            url: "indexAjax.aspx",
+            target: "#div2",
+            success: function (data) {
+                alert(data);
+            }
+        };
+        $("#form1").ajaxForm(options);
+           })
+        })
+
+    表单异步提交    需要导入 jquery,form.js
+        核心方法： ajaxForm(）和 ajaxSubmit()
+
+ 具体看 图
+
+    /*
+		测试异步表单提交
+	*/
+	$(function() {
+		$("#but").on("click",function(){
+			var options = {
+				target:'#id_h1',
+				success: function (data) {
+					// data 为servlet 返回的数据
+	                alert(data);
+	            }
+			};
+			$("#a_form").ajaxForm(options);
+		});
+	});
+
+    其实可以使用 jquery 的 ajax 来完成异步表单提交
+        
+
+javascript
+
+获取 json
+    JSON.stringify(value)
+
+JSON.stringify({ x: 5 });   // '{"x":5}'
+
+JSON.stringify 把一个对象转换成json字符串， 
+
+JSON.parse 把一个json字符串解析成对象。
+
+
+
+var Obj = {};
+Obj['...'] = ...;
+赋值javascript 对象 中括号里面应该写 '' 单引号或双引号
+
+对于 hide() show();
+    父元素延迟加载了，子元素不能延迟加载
+    你可以使用
+    setTimeout(menudownload, 1000); 等待下
+
+
+
+jquery 正则表达式速查表
+    
+    /^[a-z0-9_-]{3,16}$/
+     /...$/ 格式  // 相当于 ""  $ 表示正则结 有多个 正则的话就可以用 $ 分割
+
+var regName=/(^[a-zA_Z0-9_-]{6,16}$)|(^[\u2E80-\u9FFF]{2,5})$/;
+	 // 调用 正则的test()方法符合正则规则。就会返回 true 不符合 返回 false
+	 alert(regName.test(empName));
+    
+    
+^ 表示匹配输入字符串的开始位置。如果设置了RegExp对象的Multiline属性，^也匹配“\n”或“\r”之后的位置。
+匹配输入字符串的结束位置。如果设置了RegExp对象的Multiline属性，$也匹配“\n”或“\r”之前的位置。
+
+$
+匹配输入字符串的结束位置。如果设置了RegExp对象的Multiline属性，$也匹配“\n”或“\r”之前的位置。 
+
+^ 正则前面不带 ^ 会忽略前面的 空格。" x" 和 "x" 为 true . 带了 ^ 的话 " x" 和 "x" 为 false
+$ 和 ^ 一样表示的是后面。
+
+多个正则使用 () 来区分
+    正则没有 || 只有 | ， 如果 || 的话 会认为都是 true
+
+
+
+对于 callback 传入自定义数据  你只要将 第一个 变量留给 data 就好了。ele 可以自己传入
+    success:deptCallback(data,ele)
+    是不可以的！！！！！
+
+val() 设置 radio select 里面的值
+    你只要获取 其元素，然后更改元素的 val() 会自动将你传入的 val() 的值选中
+    $("radio").val(["M"]) 会自动选中 value = M , 的值
+// gender
+			 $("#empUpdateModal input[name=gender]").val([empData.gender]);
+			 // select
+			 $("#empUpdateModal [name=dId]").val([empData.dId]);
+			 
+    必须要有 [] 不然没有用
+
+
+ 
+用 ajax 来进行 REST 
+    data:$("#empUpdateModal form").serialize()+"&_method=PUT",
+      直接在数据后面带上，_method 就可以了
+
+对于 $("#check_all").prop("checked",false);
+    false 是字符串的是没有用的 只能是 boolean 的
+
+
+
+
+jQuery 中的 $.validator.setDefaults({ submitHandler: function(form) { form.submit();
+
+
+js.   dom对象.tagName  获取 标签名称
+
+     formField[0].tagName.toLowerCase();  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

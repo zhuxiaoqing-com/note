@@ -1,0 +1,223 @@
+上传(不能使用BaseServlet！)因为BaseServlet的原理要用到Parameter,而上传Parameter没用了！
+
+1.上传对表单限制
+    * method="post"
+    * enctype="multipart/form-data"
+    * 表单中需要添加文件表单项：<input type="file" name="xxx" />
+ 
+2.上传对Servlet限制
+    * request.getParameter("xxx");这个方法在表单为enctype="multipart/form-data"时，它作废了。它永远返回null。
+    * ServletInputStream request.getInputStream();包含整个请求的体！
+
+--------------------------------------
+
+多部件表单的体
+
+1.隔出多个部件，即一个表单项一个部件。
+2.一个部件中自己包含的请求头和空行，以及请求体。
+3.普通表单项：
+    > 1个头：Content-Disposition,包含name="xxxx",即表单项名称
+    > 体就是表单项的值
+4.文件表单项：
+     > 2个头：
+        * Context-Disposition: 包含name="xxxx",即表单项名称
+        * Context-Type:它是上传文件的MIME类型，例如：image/pjpeg，表示上传的是图片，图上中jpg扩展名的图片
+     > 体就是上传的文件的内容。
+
+============================
+
+commons-fileupload
+    * commons-fileupload.jar
+    * commons-io.jar
+
+这个小组件，它会帮我们解析request中的上传数据，解析后的结果是一个表单单项数据封装到了一个FileItem对象中，我们只需要调用FileItem的方法即可！
+
+-------------------------------------
+
+1.上传三步
+    相关类：
+    * 工厂：DiskFileItemFactory factory = new DisFileItemFactory();
+    * 解析器：ServletFileUpload sfu = new ServletFileUpload(factory);
+    * 表单项：FileItem
+
+    1).创建工厂 ：DiskFileItemFactory factory = new DisFileItemFactory();
+    2).创建解析器：ServletFileUpload sfu = new ServletFileUpload(factory);
+    3).使用解析器来解析request,得到FileItem集合：List<FileItem> fileItemList = sfu.parseRequest(request);
+
+2.FileItem
+    * boolean isFormFiled():是否为普通表单项！返回true为普通表单项，如果为false即文件表单项
+    * String getFiledName():返回当前表单项的名称
+    * String getString(String charset):返回表单项的值 传入的是字符集，只有文本文件表才可以使用这个返回
+    * String getName():返回上传的文件名称  白冰.jpg
+    * String getSize():返回上传文件的字节数
+    * InputStream getInputStream():返回上传文件对应的输入流
+    * void write(File destFile):把上传的文件内容保存到指定的文件中。如果文件已经存在，将会替换之，不存在，就将其创建！
+    * String getContentType: 获取文件类型
+
+=======================================
+
+上传的细节：
+
+1.文件必须保存到WEB-INF下！（也可以保存到C盘等非项目的目录下）
+    * 目的是不让浏览器直接访问到！
+    * 如果别人上传的是jsp等可运行文件！那么我们的服务器就完蛋了！jsp里面的<% %> 可以直接写JAVA代码
+    可以使用this.getServletContext().getRealPath("/WEB-INF/");来获取服务器在计算机的绝对路径
+
+2.文件名称相关问题
+    * 有的浏览器上传文件名是绝对路径，这需要切割！C:\files\baibing.jsp   IE6上传的是绝对路径
+          使用String filename = fi2.getName();
+          int index = filename.lastIndexOf("\\"); 第一个反斜杠是对第二个反斜杠转义
+          if (index != -1) {
+            filename = filename.substring(index+1);
+          }
+
+    * 文件名乱码或者普通表单项乱码:request.setCharacterEncoding("utf-8");因为fileupload内部会调用request.getCharacterEncoding();
+        > request.setCharacterEncoding("utf-8") 优先级低
+        > ServletFileUpload.setHanderEncoding("utf-8"); 优先级高
+
+    * 文件同名问题;我们需要为每个文件添加名称前缀，这个前缀要保证不能重复,uuid。因为如果文件重复了的话会造成文件覆盖。
+        > filename = CommonUtits.uuid() + "_" + filename;
+        
+
+
+3.目录打散
+    * 不能在一个目录下存放太多文件。不然打开此目录时会很卡。而且搜索也不方便
+        > 首字符打散：使用文件的首字母作为目录名称，例如：abc.txt,那么我们把文件保存到a目录下。如果a目录不存在，那么创建之
+        > 时间打散：使用当前时间作为目录。
+        > 哈希打散：
+            * 通过文件名称得到int值，即调用hashCode()
+            * 它int值转换成16进制0-9，A-F
+            * 获取16进制的前两位用来生成目录，目录为二层！例如：1B2C3D4E5F,1/B/保存文件。
+            哈希打散的上限，因为int是4字节的就是32位，转换成16进制就是8位的，也就是一共能有8层目录，每层目录里面都可以有16个同级目录！
+                IO流和File一样，当文件目录不存在时！会抛出异常:系统找不到指定的目录！！
+                    所以要使用IO流的时候必须使用File先创建其虚拟目录，以确保目录存在！
+
+4.上传文件的大小限制
+    * 单个文件大小限制
+        > ServletFileUpload.setFileSizeMax(100 * 1024):限制单个文件大小为100KB
+        > 上面的方法调用，必须在解析开始之前调用！
+        > 如果上传的文件超出限制，在praseRequest()方法执行时，会抛出异常！FileUploadBase.FileSizeLimitExceededException
+
+    * 整个请求所有数据大小限制
+        > ServletFileUpload.setSizeMax(1024 * 1024):限制整个表单大小为1M
+        > 这个方法也是必须在parseRequest()方法之前调用
+         > 如果上传的文件超出限制，在praseRequest()方法执行时，会抛出异常！FileUploadBase.SizeLimitExceededException
+
+5.缓存大小与临时目录
+    * 缓存大小：超过多大，才向硬盘中的临时目录 保存！默认为10KB。
+        > 自己认为超出了10KB，然后将这10KB保存到临时目录，来回操作！
+    * 临时目录：向硬盘的什么目录保存，上传结束后，会自动将其删除！
+        > 默认的临时目录是System.getProperty("java.io.tmpdir");
+    设置缓存大小和临时目录：new DiskFileItemFactory(20*1024, new File("F:/temp")); 
+            硬盘里面必须要有这个目录！不然会报错！
+
+        你平时读写文件不是要用个byte来读取,其实这个byte数组也算是个缓冲区,只是你的缓冲区比较少,通常搞个1024
+        这里的意思是,  如果你上传了一个文件,只有5kb,那么他不会生成文件,直接保存在内存中,给你处理
+        但是当你超过了这个缓冲区,它就会生成一个临时文件再处理   
+            需要两个流一个缓存到临时目录，一个再缓存到目标要保存的文件的目录
+
+===================================
+
+下载
+    1.下载就是向客户端响应字节数据！
+        原来我们响应的都html的字符数据
+        把一个文件变成自己数组，使用response.getOutputStream()来响应给浏览器！！！
+
+    2.下载的要求
+        * 两个头一个流！
+            > Content-Type:你传递给客户端的文件是什么MIME类型，例如：image/pjpeg
+                * 通过文件名称调用ServletContext的getMimeType("文件路径和名称(C:/哈哈.jpg)")方法得到MIME类型！
+            > Content-Disposition（处理，性格）:它的默认值为inline,表示在浏览器打开！（当然要是浏览器不支持，也会弹出下载框）
+                attachment(附件);filename=xxx    filename表示弹出下载框的时候的文件名称！  attachment;filename=xxx 表示弹出下载框
+            > 流：要下载的文件数据;
+                使用response.getOutputStream()来响应给浏览器！！！
+
+  ---------------------------------
+
+  下载的细节
+    下载的时候的Content-Disposition attachment;filename=xxx; 
+    这个filename可能是要经过URL编码和解码的，因为这个是直接从响应头响应给浏览器的。在服务器和浏览器里面的非ASCII码都是经过URL编码和解码加密的。
+        有两种可能
+        第一种是将编码转换成ISO-8859-1这样在数据传输时就会直接将其传输，无需进行URL解码。因为系统底层是GBK。所以浏览器会自动用GBK来将其进行解码。
+            new String(filename.getbytes("GBK"), "ISO-8859-1");
+                传递过来 认为是GBK 将其在系统内存里面按照GBK的映射表转换成Unicode 然后存储时又变成GBK；
+                * 这个方法可以转换全中文的名字，但是如果中文里面有韩文等GBK无法显示的字符就不可以了
+
+        
+        暂时不看这个 /*第二种是因为从服务器传到浏览器的时候会自动将其进行URL编码和解码，因为在服务器底层URL编码和解码是自动使用ISO-8859-1的。也就是说你的所有数据
+            都会被先转换成ISO-8859-1，因为Tomcat默认URL编码为ISO-8859-1，因为中文等转换成了ISO-8859-1，所以就变成了乱码。
+            因为中javaUnicode转换成ISO-8859-1中文是没法转换的，所以就是乱码  */ 
+            
+            
+        第二种因为HTTP应用协议规定所有请求头和响应头里面只能使用iso-8859-1编码，所以其他编码会在发送到 - - 在服务器发送出去的时候
+        转变成iso-8859-1,因为iso-8859-1无法显示中文，所以就变成了了乱码，
+            
+            所以我们要对其进行手动URL编码
+            到了浏览器那边，因为我们已经给过响应头Content-type utf-8了。
+	        所以浏览器会自动按照UTF-8来进行URL解码的。
+                    传递过来是URL编码格式的，浏览器现将其进行URL解码。解码的码表看响应头Content-Type的编码。解码以后将其按照响应的解码的码表的映射表变成Unicode放进内存
+                    系统将其变成GBK存储
+                
+        因为不同的浏览器的URL解码可能会不同。比如 Firefox 火狐的就比较特殊。所以我们要进行判断
+                    String agent = request.getHeader("User-Agent"); // 获取浏览器
+	        if (agent.contains("Firefox")) {
+	            BASE64Encoder base64Encoder = new BASE64Encoder();
+	            filename ="=?utf-8?B?" + 
+	                    base64Encoder.encode(filename.getBytes("utf-8"))
+	                    + "?=";
+	            } else if (agent.contains("MSIE")) {
+	                filename = URLEncoder.encode(filename, "utf-8");
+	            } else {
+	                filename = URLEncoder.encode(filename, "utf-8");
+	            }
+	   
+       
+两种方式应该是第一种没有经过浏览器之手，直接系统GBK解码
+    第二种应该是浏览器给其URL或BASE64解码过了内部应默认是UTF-8
+       
+
+
+----------------------------------------------------------------
+
+ // 里面的都是垃圾没有效果  博客里面的垃圾 浪费我时间
+
+
+        Content-Disposition: attachment;filename*=utf-8'''$encoded_fname;
+
+        Content-Disposition: attachment;
+                         filename="$encoded_fname";
+                        filename*=utf-8''$encoded_fname
+    其中，$encoded_fname指的是将 UTF-8 编码的原始文件名按照 RFC 3986 进行百分号 urlencode 后得到的
+            （ PHP 中使用 rawurlencode()函数）。这几行也可以合并为一行，推荐使用一个空格隔开。
+            另外，为了兼容 IE6 ，请保证原始文件名必须包含英文扩展名！
+            filename*=utf-8''$encoded_fname  ''里面是语言环境 zh_CN 可以不写
+
+
+       2005年1月发布的RFC 3986，强制所有新的URI必须对未保留字符不加以百分号编码；其它字符要先转换为UTF-8字节序列, 然后对其字节值使用百分号编码。
+
+       在IE下，filename 必须保留扩展名部分(xxx.doc), 文件名中的中文才能正确解码, 否则可能不识别%20(空格), 甚至在ie6下全部都是未解码的格式(%xx).
+
+    另外原始的空格使用urlEncode 编码后转换为+号(基于历史原因), 而ie解析时会直接作为+号处理, 因此需要手工替换一下这个特殊字符.
+
+    URLEncoder.encode("中文+   en", "UTF-8").replaceAll("\\+", "%20");
+
+    safari相对比较变态, filename部分只能使用utf-8的原始字节，而http header 必须使用单字节编码的字符串, 因此需要将原始内容重新构造为iso-8859-1单字节编码的字符串，
+    即：new String(filename.getBytes("UTF-8"),"ISO8859-1")  ，或者使用safari的BASE64URL编码 
+
+
+----------------------------------------------------------------
+
+enctype="multipart/form-data"
+Content-Disposition/*处理*/ ="attachment/*附件*/; filename="
+Authentication/*验证;证实*/
+Recipients/*收件人*/
+MimeMessage /*消息*/
+MimeMultpart/*多部件*/
+MimeBodyPart /*主体部件*/
+
+
+enctype="mulit"
+
+
+
+

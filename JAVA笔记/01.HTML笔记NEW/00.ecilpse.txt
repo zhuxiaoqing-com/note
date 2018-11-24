@@ -1,0 +1,175 @@
+eclipse在选中一个变量之后，怎样让所有相同的变量都有灰色背景显示
+    Preferences->Java->Editor->Mark Occurrences里面设置
+    打钩就行了
+
+查看本机IP  cmd里面 ipconfig
+
+
+关闭面包屑
+在面包屑工具条上右击，选择hide Breadcrumb,就可以啊
+
+项目目录中和盘符中都没有看见项目，可是就是提示，已存在。
+    你可以点击 window  -->  Navigator  
+    在  Navigator  里面可以找到 那些已消失的项目，应该是 eclipse 缓存了其项目名
+ 
+
+
+自动让 Maven 关联 jar 的源码
+
+      其实 eclipse 的 Maven 插件就提供了这个功能，但是可能有许多开发人员没关注这个功能，所以这个分享给那些不太清楚
+      这个功能的同学，配置很简单，只需要勾选windows-Preferences-Maven-Download Artifact Sources 这个选项就可以了 。
+
+
+
+
+如果出现不编译 class 或 .properties，那么 修改 java build path -> resource -> include 删除 include
+    和 exclude 里面的规则。注意 exclude 里面如果是 * 的话，是所有全部不编译
+
+Ctrl + t 查看子类
+alt + <-- 返回上一步操作
+Ctrl + Shift + t 打开搜索类的框
+
+
+eclipse双击变量高亮显示开关
+    windows->   preferences-> java-> Editor-> Mark   Occurences 
+    alt+shift+o 
+
+
+
+eclipse find 怎么加换行
+
+    你要将 find  regular expressions 钩打上，然后使用 /r/n 就可以替换了
+
+
+
+
+eclipse里让鼠标变成十字架 能框选代码的快捷键是啥？
+    shift+Alt+A
+
+    可以框选代码，框选以后，框内的全部写一样的文字，
+    例如： 你框了 3列。我在打一个 "好" 字，这个 "好" 字，会在三列全部出现
+
+Ctrl + z 撤销  Ctrl + y 取消撤销
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

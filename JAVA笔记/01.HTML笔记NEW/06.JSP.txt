@@ -1,0 +1,719 @@
+1.JSP的作用
+	*Servlet：
+	>缺点：不适合设置html响应体，需要大量的response.getWriter().print("<html>");
+	>优点：动态资源，可以编程
+	*html：
+	>缺点：html是静态页面，不能包含动态信息
+	>优点：不用为输出html标签而发愁
+	*JSP(java server pages):
+	>优点：在原有的html的基础上添加java脚本，构成jsp页面。
+	
+2.JSP和Servlet的分工
+	JSP:
+	>作为请求发起页面，例如显示表单、超链接。
+	>作为请求结束页面，例如显示数据。
+	Srvelet:
+	>作为请求中处理数据的环节
+
+3.jsp的组成
+	*jsp = html + java脚本 + jsp标签(指令)
+	*jsp中无需创建即可使用的对象一共有9个，被称之为9大内置对象。
+	*3种java脚本：(无法嵌套使用)
+        <%...%> 不同的 <%...%> 里面的变量是互通的  <%!...%>:<%=...%>: 三个之间也是互通的
+	><%...%>:java代码片段(常用)，用于定义0-N条Java语句！方法内能写什么，它就可以放什么！
+	><%=...%>:java表达式，用于输出(常用)，用于输出一条表达式(或变量)的结果。response.getWriter().print(...);这里能放什么它就能放什么！
+	><%!...%>:声明，用来创建类的成员变量和成员方法(基本不用，但容易被考到)，就相当于一个class类，类体里面可以放什么。它就可以放什么！
+
+	***<base href="<%=basePath>">,base标签声明了，这个网页所有链接的目标窗口，本网页后面写的超链接都是以该目录为根目录，但是超链接地址以"/"开头无效;
+		以"/"开头相对于URL为根目录;
+
+4.jsp的原理
+	*jsp其实是一种特殊的Servlet
+	>当JSP页面第一次被访问时，服务器会把jsp编译成java文件(这个java文件其实是一个servlet类)
+	>然后再把java编译成.class
+	>然后创建该类对象
+	>最后调用它的service()方法
+	>第二次请求同一jsp时，直接调用service()方法。
+	*在tomcat的work目录下可以找到jsp对应的.java源代码。
+	*查看jsp对应java文件：
+	>java脚本
+	>html
+	
+5.jsp的注释
+	*<%--......--%>:当服务器吧jsp编译成java文件时已经忽略了注释部分！
+	html的注释只是无法在网页上显示，但是还是可以被发送到客户端（浏览器）的。
+                                                                  
+	
+Cookie
+
+
+1.Http协议与Cookie（了解）
+*Cookie是HTTP协议制定的！先由服务器保存到Cookie到浏览器，再下次浏览器请求服务器把上一次请求得到Cookie再归还给服务器
+*由服务器创建保存到客户端浏览器的一个键值对！服务器保存Cookie的响应头：Set-Cookie:aaa=AAA  Set-Cookie:bbb=BBB
+*当浏览器请求服务器时，会把该服务器保存的Cookie随便请求发送给服务器。浏览器归还Cookie的请求头，Cookie：aaa=AAA;bbb=BBB
+*Http协议规定(保证不给浏览器太大压力)：
+>1个Cookie最大4KB
+>1个服务器最多向1个浏览器保存20个Cookie
+>1个浏览器最多可以保存300个Cookie
+*浏览器大战：因为浏览器竞争很激烈，所以很多浏览器都会在一定范围内违反HTTP协议规定，但也不会让一个Cookie为4GB！
+
+
+2.Cookie的用途
+	*服务器使用Cookie来跟踪客户端状态！
+	*保存购物车（购物车中的商品不能使用request保存，因为它是一个用户向服务器发送的多个请求信息）
+	*显示上交登录名（也是一个用户的多个请求）
+
+
+3.JavaWeb中使用Cookie
+*原始方式
+	>使用response发送Set-Cookie响应头
+	>使用request获取Cookie请求头
+*便捷方式（精通）：
+	也可以创建Cookie对象进行存储
+	>使用response.addCookie(Cookie)方法向浏览器保存Cookie
+	>使用Cookies[] request.getCookies()方法获取浏览器归还的Cookie
+	
+
+
+4.Cookie详解
+	*Cookie不止有name和value两个属性还有maxAge和Path属性
+	*Coolie的maxAge:
+	Cookie的最大生命，即Cookie可保存的最大时长，以秒为单位。
+	>maxAge>0:浏览器会把Cookie保存到客户机硬盘上，有效时长为maxAge的值决定；
+	>maxAge<0:Cookie只在浏览器内存中存在，当用户关闭浏览器时，浏览器进程结束，同时Cookie也就死亡饿了。
+	>maxAge=0:浏览器会马上删除这个Cookie!
+
+
+	Cookie的path:
+	>Cookie的path并不是设置这个Cookie在客户端的保存路径！
+	>Cookie的path由服务器创建Cookie时设置
+	>当浏览器访问服务器某个路径时，需要归还哪些Cookie呢？这由Cookie的path决定。
+	>浏览器访问服务器的路径，如果包含某个Cookie的路径，那么就会归还这个Cookie。
+	>Cookie的path的默认值：当前访问路径的父路径。例如在访问/day11_1jsps/a.jsp时，响应的cookie，那么这个
+	Cookie的默认path为/day11_1/jsps/
+
+	Cookie的domian
+	>domain用来指定Cookie的域名！当多个二级域中共享Cookie时才有用
+	>例如：www.baidu.com zhidao.baidu.com tieba.baidu.com之间共享Cookie时可以使用domain
+	>设置domain为：cookie.setDomain(".baidu.com");
+	>设置path为：cookie.setPath("/");以"/"开头
+	
+
+	Cookie类方法：
+	String getName();
+	String getValue();
+	String getPath();
+	
+	void setValue(String newValue);
+	void setPath(String url);
+	void setDomain(String url);
+	
+
+HttpSession
+    什么时候创建的
+        ，注意如果JSP没有显示的使用 <% @page session=”false”%> 关闭session，则JSP文件在编译成Servlet时将会自动加上这样一条语句
+            HttpSession session = HttpServletRequest.getSession(true);这也是JSP中隐含的 session对象的来历。
+        访问 jsp 的时候 因为 jsp 内部已经帮其创建了 session 。所以是再第一次访问 session的时候创建的
+            访问 servlet 的时候。是再第一次 获取 session 的时候 getSession(true) 表示获取 session 如果没有的创建一个新的 session 返回 
+            getSession(false) 没有的话就返回 null 不会为其创建新的 sesstion 对象
+    每当你成功登录时，服务器就在Session池里新添加一个Session对像，这个对像是一个键值对。同时，会自动生成一个SessionID 发回浏览器端（基于cookie)。
+
+    每当我们再来登录呢，你有SessionID，但我们还需要判断你这个SessionID的相对应的Session对像是否存在。Session对像如果不存在，我们跳到登录页面。
+        当然SessionID和我们代码没有任何关系。
+
+    当你退出登录时，Session对像就让清空了。
+    如果你再功能登录，我们就再Session池里再新添加一个Session对像，再自动生成一个SessionID 发回浏览器端。
+1.HttpSession概述
+	*httpSession是由JavaWeb提供的，用来会话跟踪的类，session是服务器端对象，保存在服务器端！
+	*HTTPSession是Servlet三大域对象之一(request、session、application(ServletContext))
+	*HttpSession底层依赖Cookie，或是URL重写！
+
+2.HttpSession的作用
+	*会话范围：会话范围是某个用户以首次访问服务器开始，到该用户关闭浏览器结束！
+	>会话：一个用户对服务器的多次连贯性请求！所谓连贯性请求，就是该用户多次请求中间没有关闭浏览器！
+	*服务器会为每个客户端创建一个session对象，session就好比客户在服务器端的账户，它们被服务器保存到一个Map,这个Map被称之为session缓存！
+	*Servlet中得到session对象：HttpSession session = request.getSession();
+	>Jsp中得到session对象：session是jsp内置对象之下，不用创建就可以直接使用！
+	*session域相关方法：
+	>void setAttribute(String name,Object value);
+	>Object getAttribute(String name);
+	>void removeAttribute(String name);
+
+
+3.HttpSession原理
+	*request.getSesssion()方法：
+	>获取Cookie中的JSEESIONIDId
+	<>如果sessionId不存在，创建seesion，把session保存起来，把新创建sessionId保存Cookie中
+	<>如果sessionId存在，通过seesionId查找session对象，如果没有查找到，创建session，把session保存起来，把新创建的sessionId保存到Cookie中
+	<>如果sessionId存在，通过seesionId查找到了session对象，那么就不会再创建session对象了。
+	>如果创建了新的session，浏览器会得到一个包含了sessionId对象的Cookie,这个Cookie的生命为-1，即只在浏览器内存中存在，如果不关闭浏览器,Cookie就不会死亡。
+	>下次请求时，再次执行request.getSession()方法时，因为可以通过Cookie中的sessionId找到session对象，所以与上一次请求使用的是同一session对象
+
+	*服务器不会马上给你创建 session，在第一次获取 session 时，才会创建！request.getSession().
+	*request.getSeesion(false)、request.getSeesion(true)、request.getSession();
+	>第一个方法，如果session缓存中(如果cookie不存在)，不存在session，那么null，而不会创建session对象。
+	>第二个方法和第三个方法相同如果session缓存中(如果cookie不存在)，则会创建一个新的session.
+
+4.HttpSession其他方法：
+	*String getId():获取sessionId
+	*int getMaxInactiveInterval();获取session可以的最大不活动时间(秒)，默认30分钟。当session在30分钟内没有使用，那么Tomcat就会把session移除
+	*void invalidate():让session失效！调用这个方法会使session失效，当session失效后，客户端再次请求，服务器会给客户端创建一个新的session，并响应给客户端
+	*boolean isNew():查看session是否为新。当客户端第一次请求时，服务器为客户端创建session，但这时服务器还没有响应给客户端sessionId的时候，isNew为true
+
+
+5.web.xml中配置session的最大不活动时间
+	<session-config>
+		<session-timeout>30</session-timeout>
+	</session-config>
+
+6.URL重写
+	*session依赖Cookie,目的是让客户端发出请求时归还sessionId，这样才能找到对应的session;
+	*如果客户端禁用了Cookie，那么就无法得到sessionId,那么session也就无用了
+	*也可以使用URL重写来替代Cookie.
+	>让网站的所有超链接、表单中都添加一个特殊的请求参数，即 sessionId
+	>这样服务器可以通过获取请求参数得到 sessionId ，从而找到 session 对象
+	*response.encodeURL(String url)
+	>该方法会对url进行智能的重写，当请求中没有归还 sessionid 这个 cookie ，那么该方法会重写 url ,否则不重写！当然 url 必须是指向本站的 url.
+
+=======================================
+
+JSP 指令是通知JSP引擎如何处理该JSP页面，不是针对程序员的。
+jsp的三大指令
+	一个jsp页面中，可以有0-n个指令的定义！
+
+1.page最复杂：<%@page language="java" info="xxx"...%>
+	* pageEncoding和contentType:
+	  >pageEncoding:它指定当前jsp页面的编码，当前页面是什么编码的就写什么编码。在服务器要把jsp编译成.java时需要pageEncoding!
+		pageEncoding设置的编码必须和当前页面的编码相同，pageEncoding会在服务器要把jsp编译成.java时告诉服务器使用什么编码编译。
+	  >contentType:它表示添加一个响应头，Content-Type!等同于response.setContentType("text/html;charset=utf-8");表示是html文本，解码使用utf-8
+	  >如果这两个属性只提供一个，那么另外一个的默认值为设置的那一个。
+	  >如果两个属性都没有设置，那么默认为iso-8859-1;
+	* import:导包！可以出现多次
+	* errorPage和isErrorPage
+	  >errorPage:当前页面如果抛出异常，那么要转发到哪一页面，由errorPage来指定
+	  >isErrorPage:它指定当前页面是否为处理错误的页面！当该属性为true时，这个页面会设置状态码为500！而且这个页面可以使用9大内置对象的exception
+
+	*web.xml中配置错误页面
+	不止可以通过jsp的page指令来配置错误页面，还可以在web.xml文件中指定错误页面。
+	这种方式其实与page无关，但想来想去还是在这个位置来讲解比较合适
+
+	web.xml
+		<error-page>
+			<error-code>404</error-code>
+			<location>/error404.jsp</location>
+		</error-page>
+		<error-page>
+			<error-code>500</error-code>
+			<location>/error500.jsp</location>
+		</error-page>
+		<error-page>
+			<exception-type>java.lang.RuntimeException</exception-type>//将500错误分的更细致
+			<location>/error.jsp</location>
+		</error-page>
+
+		<error-page>有两种模式：
+		*<error-code>和<location>子元素
+		*<exception-type>和<location>子元素
+
+	其中<error-code>是指响应码;<location>指定转发页面;<exception-type>是指定抛出的异常类型;
+
+	* autoFlush和buffer
+	  >autoFlush：指定jsp的输出流缓冲区满时，是否自动刷新！默认为true，如果为false，那么在缓冲区满时会抛出异常！
+	  >buffer：指定缓冲区大小，默认为8Kb，通常不需要修改！
+	* isELOgnored:是否忽略el表达式，默认为false，不忽略，即支持！
+	* 基本没用的指令：
+	 >language：指定当前jsp编译后的语言类型，默认值为java
+	 >info:信息
+	 >isThreadSafe:当前的jsp是否支持并发访问！
+	 >session：当前页面是否支持session，如果为false，那么当前页面就没有session这个内置对象！
+	 >extends：让jsp生成servlet去继承该属性指定的类！
+
+2.include-->静态包含
+	*与RequestDispatcher的include()方法的功能相似！
+	*<%@include%>它是在jsp编译成java文件时完成的！他们共同生成一个java(就是一个servlet)文件，然后再生成一个class！
+		很像java的封装，把重复的写一起然后用include静态加载！
+	*RequestDispatcher的include()是一个方法（动态包含），包含和被包含的是两个servlet，即两个class!他们只是把响应的内容在运行时合并了！
+	*作用：把页面分解了，使用包含的方式组合在一起，这样一个页面中不变的部分，就是一个独立的jsp，而我们只需要处理变化的部分！
+	
+	***<%
+		String name = "zhangsan";
+		String pagepath = "lo.jsp";
+	   %>
+	   <%@inclide file="pagepath"%> 
+	   这样写是错误的，静态包含在生成.java文件时就开始合并，而变量是要在.jsp文件运行时才变（在生成.class文件并运行以后才变）
+	
+3.taglib-->导入标签库
+	*两个属性：
+	 >prefix:指定标签库在本页面中的前缀！由我们自己来起名称！
+	 >url:指定标签库的位置！
+	 ><%@taglib prefix="s" url="/struts-tags" %> <s:text>
+
+
+JSP九大内置对象
+	
+	1.out-->jsp的输出流，用来向客户端响应
+	2.page-->当前jsp对象！它的引用类型是Object,即真身中有如下代码：Object page = this;
+		>page是jsp的内置对象，指的是当前的页面，而且作用范围也是当前页面。
+	3.config-->它对真身中的ServletConfig对象！
+	4.pageContext-->一个顶9个！
+	5.request-->HttpRequest
+	6.response-->HttpResponse
+	7.exception-->Throwable
+	8.session-->HttpSession
+	9.application-->ServletContext
+
+	1.pageContext
+	*一个顶九个！
+	*Servlet中有三大域，而JSP中有四大域，它就是最后一个域对象！
+	>ServletContext：整个应用程序
+	>session：整个会话(一个会话中只有一个用户)
+	>request：一个请求链！
+	>pageContext:一个jsp页面！这个域是在当前jsp页面和当前jsp页面中使用的标签之间共享数据！
+		>域对象
+		>代理其他域：pageContext.setAttribute("name","value",PageContext.SESSION_SCOPE);
+		>全域查找：pageContext.findAttribute(String name);从小到大，依赖查找
+		>获取其他8个内置对象：
+
+=============================================================
+
+JSP动作标签
+	这些jsp的动作标签，与html提供的标签有本质的区别
+	*动作标签是由tomcat(服务器)来解释执行！它与java代码一样，都是在服务器端执行的！(在jsp编译成.java文件时执行)
+	*html由浏览器来执行！
+	*<jsp:forward>:转发与RequestDispather的forward方法是一样的，一个是在Servlet中使用的，一个是在jsp中使用的
+	*<jsp:include>:包含！它与RequestDispatcher的include方法是一样的，一个是在Servlet中使用的，一个是在jsp中使用的
+	*<jsp:param>:它用来作为forward和include的子标签！用来转发或包含的页面传递参数！(就是表单提交的那种参数，一个类型用getParameter()获取！)
+
+
+javaBean的规范：
+	一种规范，表达实体和信息的规范，便于封装重用
+
+	1.必须要有一个默认构造器
+	2.提供get/set方法，如果只有get方法，那么这个属性是只读属性，只有set方法就是只写属性
+	3.属性：有get/set方法的成员，还可以没有成员，只有get/set/is(boolean的get方法的另一种写法)，属性名称由get/set方法来决定,而不是成员名称。
+		属性的名称的规范：
+			if(s == null || s.length() == 0) 
+            //空处理 
+            return s; 
+        if(s.length() > 1 && Character.isUpperCase(s.charAt(1)) && Character.isUpperCase(s.charAt(0))){ 
+            //长度大于1，并且前两个字符大写时，返回原字符串 
+            return s; 
+        } else{ 
+            //其他情况下，把原字符串的首个字符小写处理后返回 
+            char ac[] = s.toCharArray(); 
+            ac[0] = Character.toLowerCase(ac[0]); 
+            return new String(ac); 
+
+	内省：
+		内省类-->Bean信息-->属性描述符-->属性的get/set对应的Method!-->可以反射了！
+
+	commons-beanutils,它是依赖内省完成的！
+
+	*导包：
+		>commons-beantils.jar
+		>commons-longging.jar
+
+JSP中与javaBean相关的标签！
+
+*<jsp:useBean>-->创建或查询bean
+  *<jsp:useBean id="use1" class="cn.domain.User" scope="session"/>在session域中查找名为user1的bean，如果不存在，创建之
+	<jsp:useBean id="use1" class="cn.domain.User"/>
+		转化成java代码：
+		<%
+		cn.domain.User user1 = new cn.domain.Uesr();
+		pageContext.setAttribute("user1",user1);
+		%>
+
+
+
+
+*<jsp:setProperty>
+  *<jsp:setProperty property="username" name="user1" value="admin"/>设置名为user的这个javabean的username属性值为admin
+
+*<jsp:getProperty>
+  *<jsp:setProperty property="username" name="user1" />获取名为user1的javabean的名为username属性值
+
+
+=============================================================
+
+EL表达式
+	如果没效果就加入 <%@page isELIgnored="false" %>
+1.EL是JSP内置的表达式语言！
+  * jsp2.0开始，不让再使用java脚本，而是使用el表达式和动态标签来替代java脚本！
+  * EL替代的是<%=....%>,也就是说EL只能做输出！
+
+2.EL表达式来读取四大域
+  * ${xxx},全域查找名为xxx的属性，如果不存在，输出空字符串，而不是null.
+  *  ${pageScope.xxx}、 ${requestScope.xxx}、 ${sessionScope.xxx}、 ${applicationScope.xxx},指定域获取属性！
+
+关闭EL
+	如果希望整个JSP忽略EL表达式，需要在page指令中指定isELIgnored="true".
+	如果希望忽略某个EL表达式，可以在EL表达式之前添加“/”，例如：/${1+2}
+
+javabean导航
+	在EL${}表达式里面直接.一个属性就等于get属性方法。例如：EL${requestScope.person.age}等同于<%  request.getAttribute("person").getAge()  %>
+								也可以这么写&{requestScope['person']['age']}
+
+=============================================
+
+EL11个内置对象
+4.EL可以输出的东西都在11个内置对象中！11个内置对象，其中10个是Map! pageContext不是map，它就是pageContext类型，1个顶9个！
+  * 我们已经学习了四个
+  * param:对应参数，它是一个map，其中key参数名，value是参数值，适用于单值的参数
+  * paramValues:对应参数,它是一个map，其中key参数名，value是多个参数值String[]，适用于多值的参数
+  * header:对应请求头,它是一个map，其中key头名称，value是单个头值，适用于单值的请求头
+  * headerValues:对应请求头,它是一个map，其中key头名称，value是多个个头值，适用于多值的请求头
+  * initPatam:对应<init-param></init-param>它是一个map，其中key为param-name，value是param-value
+  * Cookie:它是一个map，其中key为Cookie的key，value是Cookie对象
+  * pageContext:它是PageContext类型  指的是pageContext对象${pageContext.}
+       
+        通过pageContext对象。可以直接获取jsp中的一些内置对象，
+        比如：
+        request对象，
+        session对象，
+        Servletconfig对象，
+        ServletContext对象，
+        然后获取一些需要的信息。
+        常用的功能获取
+        协议：
+        服务器ip：
+        服务器端口：
+        获取工程路径：
+        获取请求方法：
+        获取客户端ip地址：
+        获取会话的id编号：
+
+  * requestScope：指的是request域，不指定对象
+  * pageScope：指的是pageContext域，不指定对象
+  * sessionScope：指的是session域，不指定对象
+  * applicationScope：指的是ServletContext域，不指定对象
+
+
+EL函数库（由JSTL提供）
+        JSTL表达式需要jstl.jar  和 standard.jar 两个jar包，
+        jstl.jar1.2版本以后就不需要 standard.jar jar包了
+  function标签
+
+  * 导入标签库：<%@taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+	String toUpperCase(String input):把参数转换成大写
+	String toLowerCase(String input):吧参数转换成小写
+	int indexOf(String input ,String subString):查找子串在大串里面的角标
+	boolean contains(String input, String subString):查看大串是否包含小串 也可以查看数组和集合
+	boolean containsIgnoreCase(String input, String subString):忽略大小写查看大串是否包含小串 也可以查看数组和集合
+	boolean startsWirh(String input ,String subString):查看是否以子串为前缀
+	boolean endsWith(String input , String subString):查看是否以子串为后缀
+	String substring(String input ,int beginIndex , int endIndex):截取子串
+	String substringBefore(String input , String subString):获取大串中，子串所在位置的前面
+	String substringAfter(String input , String subString):获取大串中，子串所在位置的后面
+	String escapeXml(String input):把input中"<",">","&","'",""",进行转义
+	String trim(String input):去除前后空格
+	String replace(String input,String subStringBefore, String subStringAfter )，替换吧input里面的subStringBefore替换成subStringAfter;
+	String[] split(String input ,String delimiters):分割字符串，得到字符串数组，
+	int length(Object obj):可以获取字符串，数组，各种集合的长度
+	String join(String array[], String separator):使用separator连接字符串数组！
+	
+	${fn:substring("0123456789" , 5 ,-1)}  <!--  56789   -->
+	-1代表倒着数第一个
+
+
+=============================================================
+
+自定义函数库
+ * 写一个java类，类中的可以定义0-N个方法，但必须是static，而且有返回值的！
+ * 在WEB-INF目录下创建一个tld文件
+   <function>
+   
+    <name>fun</name> 函数名字
+    <function-class>cn.el.fn.MyFunction</function-class> 类的位置
+    <function-signature>java.lang.String domain()</function-signature> 函数的修饰 返回值 函数名 参数类型
+   
+  </function>
+
+  *在jsp页面中导入标签库
+     <%@taglib prefix="fn" uri="/WEB-INF/tlds/test1.tld" %>uri里面写.tld文件所在位置的真实路径
+
+     *在jsp页面中使用自定义的函数：${fn:fun()}
+
+---------------------------------
+JSTL (JSP Standard Tag Library ，JSP标准标签库)
+JSTL(JSP Standard Tag Library,JSP标准标签库)是一个不断完善的开放源代码的JSP标签库，是由apache的jakarta小组来维护的。
+    JSTL1.0 由四个定制标记库(core、format、xml 和 sql)和一对通用标记库验证器组成。core 标记库提供了定制操作，通过限制了作用域的变量管理数据，
+    以及执行页面内容的迭代和条件操作。它还提供了用来生成和操作 URL 的标记。format 标记库定义了用来格式化数据(尤其是数字和日期)的操作。
+    它还支持使用本地化资源束进行JSP页面的国际化。xml 库包含一些标记，这些标记用来操作通过XML表示的数据，而 sql 库定义了用来查询关系数据库的操作。
+    两个 JSTL 标记库验证器允许开发人员在其 JSP 应用程序中强制使用编码标准。
+
+JSP中变量的定义范围实际有5种：本地范围，页面范围（ page ），请求范围（ request ），会话范围（ session ）和应用程序范围（ application ）。
+JSTL 默认将变量存储在了 page 中
+所以使用 JSTL 的变量要使用 ${i} 
+
+core-->c标签
+
+  var:指属性key，一般放变量，指要操作这个属性，remove或set
+  value:指vaule，常量或要存入属性的数据，一般放value值
+
+1.out和set
+ * <c:out>:输出
+    * value:可以是字符串常量，也可以是EL表达式
+    * default:当要输出的内容为null时，会输出default指定的值
+    * escapeXml:默认值为true,表示转义！
+
+ * <c:set>:设置（创建域的属性）
+    * var:变量名
+    * value:变量值，可以是EL表达式
+    * scope:域，默认域是 page，可选值：page;request;sesssion;application;
+
+	<c:set>还可以设置MAP或bean里面的属性
+	   <c:set target="${petMap}" property="dogName" value="name"/>
+	  * target:是一个Map或bean
+	  * property:指定的是该bean的一个成员字段或MAP得键
+	  * value:指定要存进去的值或属性;
+
+2.remove
+  <c:remove>删除所有域中的该名称的属性;如果指定了域，那么只删除该域中的变量。
+   * var: 属性
+   * scope: 指定删除哪个域中的变量，如果不指定删除所有域中的该名称的属性;
+
+3.url
+  * value:指定一个路径！它会在路径前面自动添加项目名。
+      ><c:url value="/index.jsp"/>,它会输出/day_12/index.jsp
+  * 子标签：<c:param>,用来给url后面添加参数，例如：
+      ><c:url value="/index.jsp">
+	<c:param name="username=" vaule="张三"/>  <!--  可以对参数进行url编码	-->
+      <c:url/>
+      结果为：/day_12/index.jsp?username=%ED%2F%5F%ED%2F%5F
+  * var:指定变量名，一旦添加了变量名，那么url标签就不会再输出到页面，而是把生成的url保存到域中;
+  * scope:它与var一起使用，用来保存url;
+
+4.if: 对应java中的if/else
+  <c:if test="boolean">...</c:if>，当test为true时，执行标签体内容
+
+5.choose：它对应java中的if/else if/.../else
+  * 例如：
+     <c:choose>
+	<c:when test="">...</c:when>
+	<c:when test="">...</c:when>
+	<c:when test="">...</c:when>
+	...
+	<c:otherwise>...</c:otherwise> otherwise:否则
+     </c:choose>
+
+     等同于
+     if(...){
+     }else if(...){
+     }else if(...){
+     }else if(...){
+     }...
+     else(...)
+
+6.forEach
+   它用来循环遍历数组、集合！
+   它还可以用来计数方式来循环！
+
+   计数方式：
+
+   for(int x=0; x<=10; i++){
+   ...
+   }
+
+   <c:forEach var="i" begin="1" end="10" step="2">
+      ${i}
+   </c:forEach>
+
+属性：
+  * var：循环变量,//在page域里面,离开了forEach作用域以后，再用${ i}来获取就为空！
+  * begin：设置循环变量从几开始
+  * end：设置循环变量到几结束
+  * step：设置步长！等同于java中的i++，或i+=2.step默认为1
+
+-------------------------------
+
+用来输出数组、集合！
+
+<c:forEath items="${strs }" var="str">
+${strs }<br/>
+</c:fotEath>
+
+等同于
+
+for(String str: strs){
+...
+}
+
+属性：
+  * items:指定要循环谁，它可以是一个数组或一个集合。
+  * var：吧数组或集合中的每个元素赋值给var指定的变量。
+
+---------
+
+循环状态
+
+可以使用varStatus来创建循环变量！
+
+循环状态变量有如下属性：
+  * count:循环元素的个数  从 1开始
+  * index:循环元素的下标  从 0 开始
+  * first:是否为第一个元素
+  * last:是否为最后一个元素
+  * current(当前的):当前元素
+
+  <c:forEach item="${list}" var="ele" varStatus="vs">
+	${vs.index} ${vs.count} ${vs.first} ${vs.last} ${vs.current}
+  </c:forEach>
+
+****注意
+	  item="${list}这里"
+	：item="${list}这里不能有空格否则会出错！！！"
+	item="${list}  "是错的	
+	item="${list }"这样是对的
+	item="${list}"对的
+
+-------------------
+fmt库
+   它是格式化库
+
+   <fmt:formatDate value="" pattern="">
+
+   value:指定一个Date类型的变量
+   pattern:用来指定输出的模板！例如：yyyy-MM-dd HH:mm:ss
+
+----------
+
+<fmt:formatNumber value="${num}" pattern="0.00">
+保留小数点后2位，它会四舍五入！如果不足2位，以0补位！
+
+<fmt:formatNumber value="${num}" pattern="#.##">
+保留小数点后2位，它会四舍五入！如果不足2位，不补位！
+
+
+=======================================================
+
+自定义标签库
+
+1.步骤
+  * 标签处理类(标签也是一个对象，那么需要先有类！)(它是单例模式的)
+  * tld文件，它是一个xml
+  * 页面中使用<%@taglib%>来指定tld文件位置
+
+2.标签处理类
+  SimpleTag接口：
+   * void doTag():每次执行这个标签时Tomcat都会自动调用这个方法（生命周期方法）
+   * JspTag getParent():返回父标签（非生命周期方法）
+   * void setParent(JspTag): 设置父标签（生命周期方法）
+   * void setJspBody(JspFragment):设置标签体（生命周期方法）
+   * void setJspContext(JspCOntext):设置jsp上下文对象，它儿子是PageContext（生命周期方法）
+   
+	其中doTag()会在其他三个方法之后被tomcat调用。
+
+3.配置tld文件
+
+tld文件一般都放到WEB-INF之下，这样保证客户端访问不到！
+   <tag>
+  	<name>test1</name>指定当前标签的名称
+  	<tag-class>cn.Tag.MyTag1</tag-class>指定当前标签的标签处理类！
+  	<body-content>empty</body-content>指定标签体的类型，我们这里使用的是空标签！
+  </tag>
+
+4.页面中指定tld文件位置
+
+<%@ taglib prefix="it" uri="/WBE-INF/tlds/itcast-tag.tld"%>
+导标签库，就是为了页面指定tld文件的位置！
+
+------------------------------------------------
+
+进阶
+
+标签体的内容
+   * empty:无标签体！
+   * JSP：jsp2.0已经不再支持这个类型了！表示标签体内容可以是：java脚本，可以是标签，也可以el表达式
+   * scriptless：只能是EL表达式，也可以是其他的标签！
+   * tagdependent：标签体内容不会被执行，而是直接赋值给标签处理类(就是我们在标签体里面不管写什么都直接当做字符串传给处理类)
+
+不在执行标签下面内容的标签！
+
+在标签处理类中的doTag()中使用SkipPageException来结束！
+    Tomcat会调用标签处理类的doTag()方法，然后Tomcat会得到SkipPageException，它会跳过本页面的其他内容！
+
+        本质就是在JSP转换成JAVA类的时候，把所有的标签try catch住，当抛出的异常是SkipPageException时，将其捕捉，不给抛出。
+
+---------
+
+标签属性
+
+步骤：
+1.给你的标签处理类添加属性！
+    为标签处理类添加属性，，属性至少要且一个set方法!这个set方法会在doTag()方法之前被tomcat执行！所以在doTag()方法里面就可以使用属性了。
+
+2.在tld文件中对属性进行配置
+
+	<attribute>
+  		<name>tab</name>指定属性名
+  		<required>true</required>指定属性是否为必需的
+  		<rtexprvalue>true</rtexprvalue><!-- 是否可以使用EL表达式 -->
+  	</attribute>
+
+标签处理类是一个单例模式;
+
+=============================================
+
+MVC
+   它不是java独有的，所有的B/S结构都在使用它！
+
+  M -- model 模型(自己写代码)
+  V -- View 视图（jsp）
+  C -- Cotroller控制器（Servlet）
+
+============================================
+
+JavaWeb三层框架
+
+Web层 --> 与Web相关的内容(Servlet,JSP,Servlet相关的API)
+业务层 --> 业务对象(Service)
+数据层 --> 操作数据库(DAO Data Access Object)(所有对数据库的操作，不能跳出DAO之外)
+
+使用EL表达式获取各种目录什么的
+${pageContext.request.contextPath}
+
+****HTML的注释方式对JSP的JSTL不管用
+    在EL标签里面STL标签库中<c:choose></c:choose>不能放JSP页面<!-- -->注释
+    在<c:choose></c:choose>中并不是不能放<!-- -->注释，而是不能直接放在该<c:choose></c:choose>标签体内。
+    如果<c:choose></c:choose>中还有其他标签（例如<c:when></c:when>），把<!-- -->注释放在其中还是可以的。
+    或者如果要在<c:choose></c:choose>注解，可以使用<%-- --%>注释。
+
+    其实：是EL标签里面不能放html的代码的地方就不能放HTML注释<!-- -->,EL标签里面可以放html的标签的地方可以放标签注释；
+    如果在EL标签上面加了html标签，服务器在吧JSP编译成Servlet的时候，是这样编译的
+        out.write(" \t\t\t<!-- ");
+          if (_jspx_meth_c_005fset_005f0(_jspx_th_c_005fwhen_005f0, _jspx_page_context))
+            return true;
+          out.write(" -->\r\n");
+          简单的说就是，会分开打印 out.write(" <!-- ");和out.write(" -->\r\n");
+          然后中间注释的EL表达式，如识别出来了是EL代码就会将其变成Servlet代码，并不会将其原本发送到客户端。
+
+          out.write("\r\n");
+          out.write(" \t\t<h1>ddddddd</h1>\r\n");
+          out.write(" \t\t<!-- <h1>ddddddd</h1> -->\r\n");
+          out.write(" \t\t<!-- 我是 -->\r\n");
+          out.write(" \t\t<!-- <t var=\"begin\" value=\"1\"/> -->\r\n");
+          out.write(" \t\t\t<!-- ");
+          如果服务器无法识别是EL表达式的话，而EL表达式里面本身允许，类似HTML的代码存在的话就会将其直接打印到浏览器
+          如果EL表达式里面本身不允许，类似HTML的代码存在的话就会报错，JSP编译成Servlet的时候，编译不通过！
+          简而言之;就是HTML标签注释的内容服务器在将JSP编译成Servlet的时候，会识别里面的内容，将其当做如果无法识别会将其使用
+          out.write打印到浏览器，如果可以识别就会将其编译成servlet代码。然后在两边扩上HTML注释，
+            因为HTML注释并无法注释java里面的代码，所以就会运行，而并不会将其注释。
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

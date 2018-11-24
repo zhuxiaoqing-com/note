@@ -1,0 +1,31 @@
+Integer
+
+Integer的valueOf会先判断Integer的值是否大于127
+    如果大于-128小于127的话直接返回IntegerCache数组里面的元素 -128 -- 127
+        如果不在此之间的话就返回一个  new Integer(i);
+
+intValue 源代码就是返回其int或其他类型的强转类型
+    public long longValue() {
+        return (long)value;
+    }   就是将包装类里面存储的基本类型直接转换或不转换 直接返回
+        将一个Integer对象转换成其他基本类型的变量
+
+equals  public boolean equals(Object obj) {
+        if (obj instanceof Integer) {
+            return value == ((Integer)obj).intValue();
+        } 
+        return false;
+        就是将先判断是否为本类型的包装对象，不是的话就直接返回false，是的话就将其两者变成int类型 然后比较值； 
+        vaule就是包装类里面的存储的Int基本类型的变量
+        在比较的时候因为编译器已经帮你做了优化，帮你自动拆装箱了
+
+基本类型和包装类比较时，会自动拆箱！
+
+
+StringBuffer默认保留16个字节的缓冲空间
+
+
+有多种类型的数据混合运算时，系统首先自动的将所有数据转换成容量最大的那一种数据类型，然后再进行计算。
+
+
+

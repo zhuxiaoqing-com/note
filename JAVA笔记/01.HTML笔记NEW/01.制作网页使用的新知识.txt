@@ -1,0 +1,158 @@
+box-shadow  向框添加一个或多个阴影。
+box-shadow: 0px 1px 3px rgba(34, 25, 25, 0.2); /*X轴位移，Y轴位移，阴影模糊半径，颜色*/
+        rgba 的 a 表示不透明指数
+
+transition
+
+  
+jquery
+            //获取元素顶部对于 document 顶部的偏移量
+				var offset = $(".bar").offset().top;
+                
+             //获取 window 的高度
+				var windowHeight = $(window).height();
+
+              //获取 window 的top 的位置 就是可视化窗口相对于 document 的 top 位置
+				var scollTop = $(window).scrollTop();
+        
+            // 获取document 的 height
+				var documentHeight = $(document).height();
+                
+             /*获取元素的 height 包含 padding 和 border*/
+                var itemOuterHeight = $(this).outerHeight();
+
+     对于transition 动画不支持 display 属性的延迟动画
+     对于 visibility 来说 也一样 但是其实是支持的 就是没有动画效果 想要实现淡入淡出效果的话
+     要通过 opacity 来实现  
+        $(this).css("opacity","1");  1说明显示完全
+        $(this).css("opacity","0");  0说明完全隐藏
+
+
+  opacity 属性设置元素的不透明级别。
+    value	规定不透明度。从 0.0 （完全透明）到 1.0（完全不透明）。	测试
+    inherit	应该从父元素继承 opacity 属性的值。	
+
+
+    对于网页的标题栏的 li 不能一样高
+    可以通过 以下方式来完成
+
+            var $text = $(".header_li");
+			var maxHeight = 0;
+			/*遍历获取 li max height*/
+			$text.each(function() {
+			   var height = parseInt($(this).css("height")); /*得到 22px 使用 parseInt 会自动将其 px去掉变成 22*/
+			   if(height > maxHeight) {
+				   maxHeight = height;
+			   }
+			}); 
+			/*再次遍历比较 li 的 height 与 maxHeight 的差距 将差距变为 padding top 和 padding bottom 对半*/
+			$text.each(function() {
+				var height = parseInt($(this).css("height"));
+				$(this).css("padding-top", (maxHeight - height)/2);
+				$(this).css("padding-bottom", (maxHeight - height)/2);
+			});
+
+            先获取其 li 最高的元素  去 maxli 。然后将 mdaxli 减去每一个 li 的高度  将高度变成 padding 来使每个 li 的高度相同
+            
+    具体请看代码
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  
+
+
+  

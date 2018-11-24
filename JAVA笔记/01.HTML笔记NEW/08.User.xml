@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+name:指定的资源名称
+factory：资源由谁来负责创建
+type：资源的类型
+其他东西都是资源的参数
+-->
+<Context>
+	<Resource name="jdbc/dataSource"
+			  factory="org.apache.naming.factory.BeanFactory"
+			  type="com.mchange.v2.c3p0.ComboPooledDataSource"
+			  driverClass="com.mysql.jdbc.Driver"
+			  jdbcUrl="jdbc:mysql://localhost:3306/mydb1?rewriteBatchedStatements=true"
+			  user="root"
+			  password="123"
+			  acquireIncrement="5"
+			  initialPoolSize="10"
+			  />
+	
+</Context>

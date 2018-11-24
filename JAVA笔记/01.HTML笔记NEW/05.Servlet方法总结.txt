@@ -1,0 +1,169 @@
+Referer(引用页)	请求来自哪个页面
+Content-Type	内容属性
+Content-Length	请求体的长度
+Last-Modified	最后修改时间
+Expires(有效期)	过期时间（网页缓存时间）
+Location(位置)	重定向
+Refresh(刷新)	几秒后跳转	Refresh:3;url=http://www.baidu.com;
+
+<meta http-equiv="" content="">HTML中设置响应头
+
+ServletConfing接口
+	Init里面的参数
+	String getServletName();获取的是<servlet-name>中的内容
+	ServletContext getSrvletContext();获取Servlet上下文对象
+	String getInitParameter(String name);通过名称获取在指定初始化参数的值;
+	Enumeration getInitParameterNames();获取所有初始化参数;
+
+
+<load-on-startup></load-on-startup>使服务器在启动时就会加载Servlet
+
+域：ServletContext，request
+	所有的域都有下面四个方法
+	String getAttribute(String name);通过名称获取域属性的值
+	void setAttribute(String name , Object value);向域中存储数据
+	void removeAttribute(String name);通过名称来删除域中的值
+	Eunmeration getAttributeNames();获取所有域属性的名称
+
+
+ServletContext初始化参数
+	ServletContext可以通过<Context-param>标签来设置初始化参数
+	可以通过ServletContext.getInitParameter(String name)来获取初始化参数的值
+
+
+通过ServletContext来获取资源 "/"指的是项目根目录
+	获取真实路径
+		String ServletContext.getRealPath(String path);	
+			要以"/"开头，否则会找不到路径，导致NullPointerException
+
+	获取资源流
+		InputStream ServletContext.getResourceAsStream(/day0_1/AServlet);
+			把指定的资源用流加载进内存;
+	
+	获取指定目录下的所有文件名称
+		
+		Set<String> ServletContext.getResourcePaths(String path);
+
+使用Class和ClassLoader来获取文件流
+	Class加"/"指的是以classes为根目录;不加"/"指的是相对当前.class目录的相对路径;
+	InputStram Class.getResourceAsStream();
+	
+	Class.getClassLoader().getResourceAsStream();
+	相当于classes为根目录，加不加"/"都一样
+
+
+response
+	sendError(int sc);
+	sendError(int sc,String msg);
+	setStatus(int sc),发送成功的状态码
+	sendRedirect(String Location)发送重定向
+	
+	setHeader()
+	addHeader()
+	setIntHeader()
+	addIntHeader()
+	setDateHeader()
+	addDateHeader()
+
+response两个流
+	response.getWriter().print();
+	response.getOutputStream();
+	两个流不能同时使用否则会抛IllegalStateException异常
+
+
+request
+	获取请求方式
+		request.getMothod();
+	
+	获取请求头
+		String getHeader(String name);
+		int getIntHeader(String name);
+		long getDateHeader(String name);
+		Enumeration<String> getHeaders(String name);
+		Eunmeration<String> Eunmeration getHeaders();
+
+	获取IP
+		request.getRemoteAddr();
+
+	获取请求URL
+		String getScheme();获取协议
+		String getServerName();获取服务器名
+		String getServerPort();获取服务器端口号
+		String getContextPath();获取项目路径
+		String getServletPath();获取Servlet的url路径
+		String getQueryString();获取参数部分
+		String getRequestURL();
+		String getRequestURI();项目名加Servlet名称
+
+	获取请求参数
+		String getParameter(String name);
+		String[] getParameterValues(String name);
+		Eunmeration<String> getParameterNames();
+		Map<String ,String[]>getParameterMap();
+
+	请求转发和包含
+		RequestDispatcher rd = request.getRequestDispatcher();
+		rd.forward("/AServlet");
+		rd.include("/AServlet");
+
+
+URl编码	
+	URL编码：String username = URLEncoder.encode(username , "utf-8");
+	URL解码：String username = URLDecoder.decode(username , "utf-8");
+	
+=============================================	
+
+Servlet:项目中的各个地方的路径问题
+
+
+* web.xml中<url-pattern>路径，（叫它Servlet路径！）
+　　　　> 要么以“*”开关，要么为“/”开头
+　　* 转发和包含路径
+　　　　> *****以“/”开头：相对当前项目路径，例如：http://localhost:8080/项目名/　request.getRequestdispacher("/BServlet").for...();
+　　　　> 不以“/”开头：相对当前Servlet路径。 request.getRequestdispacher("/BServlet").for...();，
+	假如当前Servlet是：http://localhost:8080/项目名/servlet/AServlet，　就是http://localhost:8080/项目名/servlet/BServlet
+　　* 重定向路径（客户端路径）
+　　　　> 以“/”开头：相对当前主机，例如：http://localhost:8080/，　所以需要自己手动添加项目名，例如；response.sendRedirect("/day10_1/Bservlet");
+　　* 页面中超链接和表单路径
+　　　　> 与重定向相同，都是客户端路径！需要添加项目名
+    > <form action="/day10_1/AServlet">
+    > <a href="/day10_/AServlet">
+    > <a href="AServlet">，如果不以“/”开头，那么相对当前页面所在路径。如果是http://localhost:8080/day10_1/html/form.html。　即：http://localhost:8080/day10_1/html/ASevlet
+    > *****建议使用以“/”开头的路径，即绝对路径！
+　　* ServletContext获取资源路径
+　　　　> 相对当前项目目录，即当然index.jsp所在目录
+　　* ClassLoader获取资源路径
+　　　　> 相对classes目录
+        > 不以“/”开头相对classes目录
+        > 以“/”开头相对null 无法获得目录！
+　　* Class获取资源路径
+　　　　> 以“/”开头相对classes目录
+　　　　> 不以“/”开头相对当前.class文件所在目录。
+    ****classes就是src目录
+
+重定向和转发一样，并不会立即执行，都是会把Servlet中所有代码都执行完之后，才会发生跳转。
+
+JSP作为特殊的Servlet，也遵循以上规则。
+重定向和转发不能以执行，就是一个方法里面执行重定向以后不能再执行转发，执行转发以后不能再执行重定向
+
+
+/和\的区别   /是在linux下表示路径 ,\的话是在windows下表示路径，对于windows来说，/和\都可以表示路径，/表示两个\\，
+            但是对于linux来说/才能是路径,所以最好用/.
+
+静态页面在Servlet里面设置编码没用：
+    web服务器接收到静态请求后（如对html页面的请求），web服务器仅仅是从目录结构中搜索到它，并将它以流的形式返回，而它的编码类型在保存文件时已经确定了，
+    而上面的meta标签就是告诉浏览器以何种字符编码去解码，所以保存文件时的编码选项必须得与html页面中的content- Type中的配置的字符编码一致。 
+
+ page标签中的contentType用来设置tomcat往浏览器发送HTML内容所使用的编码。这个编码会在HTTP响应头中指定以通知浏览器。
+
+    因为是静态页面web服务器仅仅是从目录结构中搜索到它，并将它以流的形式返回，而jsp页面的话是以out.write的形式将数据打印到浏览器的，是可控的可以在打印的时候将其响应头
+        content-type也打印进页面，    所以静态的html页面要想不乱码必须要将其设置<meta http-equiv="content-Type" content="text/html;charset=字符编码"> 
+        这个设置我们可以写进jsp里面，因为Jsp里面的东西都会被打印进html页面
+
+
+
+
+
+
+
+

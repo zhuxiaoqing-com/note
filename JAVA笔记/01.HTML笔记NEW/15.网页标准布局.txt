@@ -1,0 +1,69 @@
+将html css js 等放在 WebContent 里面 
+    新建一个文件夹  resource 里面再分类 js文件夹  css 文件夹等等
+
+   
+将 jsp 放在 WEB-INF 文件夹下面 
+        新建 content 里面放 jsp
+
+        使用 servlet 转发就可以访问 WEB-INF 文件夹下面的 jsp
+         request.getRequestDispatcher("WEB-INF/content/index.jsp").forward(request, response);
+
+         关于 WEB-INF 文件夹下面的 jsp 无法 加载 外面的 css 等 
+            因为    <script type="text/javascript" src="/resource/js/jquery.js"></script>
+                    GET http://localhost:8080/resource/js/jquery.js net::ERR_ABORTED 
+                      是这样的 没有带 项目名  所以需要将其 加上项目名
+
+             额 使用  <script type="text/javascript" src="resource/js/jquery.js"></script>
+                    将斜杠去掉就好了。 但是还是建议使用 绝对路径
+                    <script type="text/javascript" src="<%=request.getContextPath() %>/resource/js/jquery.js"></script>
+
+                    或使用 c 标签
+                
+                其实只要正常用导入就好了 前面都是废话
+
+
+
+
+
+    
+BeanUtils 转换器将Long ,Integer等字段的默认值设置为null
+    static {  
+    ConvertUtils.register(new LongConverter(null), Long.class);  
+    ConvertUtils.register(new ShortConverter(null), Short.class);  
+    ConvertUtils.register(new IntegerConverter(null), Integer.class);  
+    ConvertUtils.register(new DoubleConverter(null), Double.class);  
+    ConvertUtils.register(new BigDecimalConverter(null), BigDecimal.class);  
+}  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

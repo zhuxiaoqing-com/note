@@ -1,0 +1,639 @@
+1.软件系统体系结构
+	常见的软件体系结构 B/S;C/S;
+
+	C/S：
+		1.C/S结构即客户端/服务器(Client/Server),例如QQ;
+		2.需要编写服务器端程序，以及客户端程序，例如我们安装的就是QQ的客户端程序;
+		3.缺点：软件更新时需要同时更新客户端和服务器端两端，比较麻烦;
+		4.优点：安全性比较好;
+
+	B/S：
+		1.B/S结构即浏览器/服务器(Browser/Server);
+		2.优点：只需要编写服务器端程序;
+		3.缺点：安全性差。
+
+2.静态资源和动态资源区别
+	html:静态资源;//浏览器可以看得懂得
+	JSP/Servlet:动态资源//需要先由服务器转换成html,在发送给浏览器
+	当然，除了就JavaWeb程序，还有其他Web程序，例如ASP、PHP等；
+
+	怎么运行的？
+		客户端请求的页面如果是静态网页，那么服务器会直接把静态网页的内容响应给客户端。
+		如果客户端请求的是动态网页，服务器需要先把动态网页转换成静态网页，额庵后
+		再把转换后的静态网页响应给客户端
+
+	访问Web资源
+		打开浏览器，输入URL;
+		协议名://域名:端口/路径,例如：http://www.baidu.com:80/index.html
+			**默认端口是80，一般打开网页什么我们都不需要输入端口，是因为
+			直接帮我们默认端口了;
+
+3.Web服务器
+	Web服务器的作用就是接受客户端的请求，给客户端作出相应。
+	对于javaWeb程序而言，还需要有JSP/Servlet容器，JSP/Servlet容器的基本功能是把动态资源
+	转换成静态资源，当然JSP/Servlet容器不只这些功能，我们会在后面一点一点学习。
+	
+	我们需要使用的是Web服务器和JSP/Servlet容器，通常这两者会集于一身。下面是一些javaWeb
+	服务器：
+		*Tomcat(Apache):当前应用最广的javaWeb服务器
+		*jBoss(Redhat红帽)：支持javaEE,应用比较广；
+		*GlassFish(Orcale):Orcale开发JavaWeb服务器，应用不是很广;
+		*Resin(Caucho):支持javaEE，应用越来越广;
+		*Weblogic(Orcale):要钱的！支持javaEE,适合大型项目;
+		*Websphere(IBM):要钱的！支持javaEE，适合大型项目；
+
+		EJB容器：指的是支持javaEE；企业级的服务器；
+
+4.HTTP协议
+	浏览器(Browser)发送给服务器(Server)端
+		*请求行// GET/hello3/index.jsp HTTP/1.1
+		*多个请求头信息;头名称:头值
+		*空行
+		*请求体
+
+	服务器(Server)响应给浏览器(Browser)
+		*响应行(协议/版本 状态码 状态码的解析)// HTTP/1.1 200 OK
+		*响应头(key/value格式)
+		*空行
+		*响应体
+
+	状态码（响应行的）以2开头全算成功  以3开头的全部要转接  以4开头的全部是客户端的错误   以5开头全都是服务器的错误
+
+get请求参数的方式
+    Request URL:http://localhost:8080/test1/CustomerServlet?method=add&cname=wwww
+        使用& 分隔不同的参数
+
+	post和get的请求方式的区别
+	　Http定义了与服务器交互的不同方法，最基本的方法有4种，分别是GET，POST，PUT，DELETE。
+	URL全称是资源描述符，我们可以这样认为：一个URL地址，它用于描述一个网络上的资源，
+	而HTTP中的GET，POST，PUT，DELETE就对应着对这个资源的查，改，增，删4个操作。
+	到这里，大家应该有个大概的了解了，GET一般用于获取/查询资源信息，而POST一般用于更新资源信息。
+
+	***GET请求没有请求体，POST请求有请求体
+
+	 URL编码
+
+		*一般来说，URL只能使用英文字母、阿拉伯数字和某些标点符号，不能使用其他文字和符号。
+
+		这意味着，如果URL中有汉字，就必须编码后使用。但是麻烦的是，RFC 1738没有规定具体的编码方法，
+		而是交给应用程序（浏览器）自己决定。这导致“URL编码”成为了一个混乱的领域。
+
+5.post请求头
+	Referer
+		Referer:http//localhost:8080/hello/index.jsp;
+		请求来自哪个页面，例如你在百度上点击链接到了这里，那么Referer:http://www.baidu.com;
+		如果你是在浏览器的地址栏中直接输入的地址，那么就没有Referer这个请求头了
+		可以用来做 统计工作和防盗链
+
+	Content-Type
+		Content-Type:application/x-www-from-urlencoded;
+		表单的数据类型，urlencoded表示会使用URL格式编码数据;
+	
+	Content-Length:13;
+		请求体的长度，这里表示13字符
+
+	请求体：keyword=hello;使用key=vaule方式传输。hello是在表单中输入的数据，keyword是表单字段的名字;
+		
+6.响应码
+	**200：请求成功，浏览器会把响应体内容（通常是html）显示在浏览器中
+	**404：请求的资源没有找到，说明客户端错误的请求了不存在的资源
+	**500：请求的资源找到了，但服务器内部出现了错误
+	**302：重定向，当响应码为302时，表示服务器要求浏览器重新再发一个请求，服务器会发送一个响应头
+		Location,它指定了新请求的URL地址;
+	***304：当用户第一次请求index.html时，服务器会添加一个名为Last-Modified响应头，这个头说明了
+		index.html最后修改时间，浏览器会把index.html内容，以及最后的响应时间缓存下来。当用户第二次
+		请求index.html时，在请求体中包含一个名为If-Modified-Since请求头，它的值就是第一次请求时
+		服务器通过Last-Modified响应头发送给浏览器的值，即index.html最后的修改时间，If-Modified-Since
+		请求头就是在考诉服务器，我这里浏览器缓存的index.html最后的修改时间是这个，您看看现在的index.html
+		最后修改时间是不是这个，如果还是，那么您就不用再响应这个index.html内容了，我会把缓存的内容直接显示
+		出来。而服务器端会获取If-Modified-Since值，与index.html的当前最后修改时间比对，如果相同，服务器
+		会发响应码304，表示index.html与浏览器上次的缓存相同，无需再次发送，浏览器可以显示自己的缓存页面，
+		如果对比不同，那么说明index.html已经做了修改，服务器会响应200.
+
+	***304（简单解释）：表示If-Modified-Since的时间与文件真实的最后修改时间一致,会响应304，而且不会有响应正文，
+			   表示浏览器缓存的就是最新版本！
+
+	html（静态页面）页面请求才会缓存，jsp（动态页面）是不会缓存网页的，因为jsp是动态的每一次访问Server都会
+		有不一样的内容
+
+7.常用响应头请求头
+	响应头：Last-Modified:最后修改时间;
+	请求头：If-Modified-Since:把上次请求的index.html的最后修改时间还给服务器
+
+	告诉浏览器不要缓存的响应头
+		Expires:-1;
+		Cache-Control:no-cache;
+		Pragma:no-cache;
+	自动刷新响应头，浏览器会在3秒之后请求http://www.baidu.com;
+		*Refresh:3;url=http://www.baidu.com
+
+	***HTML中指定响应头
+		在HTML页面中可以使用<meta http-equiv="" content="">(不用加结束斜杠)；来指定响应头，例如在
+		index.html页面中给出<meta http-equiv="Refresh" content="3;url=http://www.baidu.com">,表示
+		浏览器会在3秒之后请求http://www.baidu.com;
+
+8.Servlet
+	Servlet是javaWeb的三大组件之一，它属于动态资源。Servlet的作用是处理请求，服务器会把接收到的
+	请求交给Servlet来处理，在Servlet中通常需要：
+		service
+		接收请求数据；
+		处理请求;
+		完成响应;
+	请求都由Servlet来处理；
+
+9.实现Servlet的三种方式
+	实现javax.servlet.Servlet接口;
+	继承javax.servlet.GenericServlet抽象类;
+	继承javax.servlet.http.HttpServlet抽象类;
+	
+	ServletConfig接口
+	是Servlet的init和getInitParameter里面的参数
+	一共有4个接口方法API：
+		String getServletName();获取的是<servlet-name>中的内容
+		ServletContext getServletContext();获取Servlet上下文对象;
+		String getInitParameter(String name);通过名称获取在指定初始化参数的值;
+		Enumeration getInitParameterNames();获取所有初始化参数的名称；
+		
+	HttpServlet里面的处理请求方式的方法deGet和doPost由我们自己来覆盖！！！
+	如果你没有覆盖doGet或doPost，并且它们被调用了，那么会出现404
+
+10.servlet在xml的配置
+	<servlet>  :配置信息都写在servlet里面
+		<servlet-name>Servlet</servlet-name>:这个可以随便写，给servlet取一个名字
+		<servlet-class>hello1.MyHttpServlet</servlet-class>:里面写servlet的路径，项目名称.servlet的类名
+		<init-param>:里面写servlet的配置信息
+			<param-name>aaaa<param-name>
+			<param-value>123456<param-value>
+		<init-param>
+		<load-on-startup>0<load-on-startup>
+	</servlet>
+
+	<servlet-mapping>
+		<servlet-name>aaaa</servlet-name>
+		<url-pattern>/Servlet<url-pattern>
+	<servlet-mapping>
+
+
+	**<servlet>用来声明一个Servlet
+	**<servlet>必须含有<servlet-name>和<servlet-class>或者<servlet-name>和<jsp-file>
+		**<servlet-name>用来定义servlet的名称，该名称在整个应用中必须是惟一的
+		**<servlet-class>用来指定servlet的完全限定的名称。里面写servlet的路径，项目名称.servlet的类名
+		**<jsp-file>用来指定应用中JSP文件的完整路径。这个完整路径必须由/开始。
+
+	**<init-param>:里面写servlet的配置信息
+
+	**<load-on-startup>
+            当值为0或者大于0时，表示容器在应用启动时就加载这个servlet；
+
+            当是一个负数时或者没有指定时，则指示容器在该 servlet 被选择时才加载。
+
+            正数的值越小，启动该servlet的优先级越高。
+
+		如果load-on-startup元素存在，而且也指定了jsp-file元素，则JSP文件会被重新编译成Servlet，
+		同时产生的Servlet也被载入内存。<load-on-startup>的内容可以为空，或者是一个整数。
+		这个值表示由Web容器载入内存的顺序。
+		
+		**如果有两个Servlet元素都含有<load-on-startup>子元素，则<load-on-startup>子元素值较小的Servlet将先被加载。
+		**如果<load-on-startup>子元素值为空或负值，则由Web容器决定什么时候加载Servlet。
+		**如果两个Servlet的<load-on-startup>子元素值相同，则由Web容器决定先加载哪一个Servlet。
+		**<load-on-startup>1</load-on-startup>表示启动容器时，初始化Servlet。 0 也可以
+			默认情况下，服务器会在某个servlet第一次收到请求时创建它。也可以在web.xml中对Servlet
+			进行配置，使服务器启动时就创建Servlet;
+
+	**<servlet-mapping>
+		<servlet-mapping>含有<servlet-name>和<url-pattern>
+		**<servlet-name>：Servlet的名字，唯一性和一致性，与<servlet>元素中声明的名字一致。
+		**<url-pattern>：它必须是以"/"开头！指定相对于Servlet的URL的路径。该路径相对于web应用程序上下文的根路径。就是项目根目录
+		<servlet-mapping>将URL模式映射到某个Servlet，即该Servlet处理的URL。
+	
+
+	**加载Servlet的过程 
+		容器的Context对象对请求路径(URL)做出处理，去掉请求URL的上下文路径后，按路径映射规则
+		和Servlet映射路径（<url- pattern>）做匹配，如果匹配成功，则调用这个Servlet处理请求。
+
+
+	**<url-parrern>它必须是以"/"开头！
+		可以在<servlet-mapping>中给出多个<url-pattern>
+			<servlet-mapping>
+			<servlet-name>aaaa</servlet-name>
+			<url-pattern>/AServlet<url-pattern>
+			<url-pattern>/BServlet<url-pattern>
+			<servlet-mapping>
+		这说明一个Servlet绑定了两个URL，无论访问/AServlet还是/BServlet，访问的都是AServlet,
+		访问的都是aaaa;
+
+		还可以在<url-pattern>中使用通配符，所谓的通配符就是星号"*",星号可以匹配任何URL前缀或后缀，
+		使用通配符可以命名一个Servlet绑定的一组URL，例如：
+		*<url-pattern>/Servlet/*</url-pattern>/Servlet/a, /Servlet/b都匹配/Servlet/*//路径匹配;
+		*<url-pattern>*.do</url-pattern>/abc/def/a.do , /a.do,都匹配*.do//扩展名匹配;
+		*<rul-pattern>/*<url-pattern>:匹配所有URL;//啥都匹配
+
+	请注意，通配符要么为前缀，要么为后缀，不能出现在URL中间位置，也不能只有通配符。例如：/*.do就是错误的，
+	因为星号出现在URL的中间位置上了。*.*也是不对的，因为一个URL中最多只能出现一个通配符;
+
+	注意，通配符是一种模糊匹配URL的方式，如果存在更具体的<url-pattern>,那么访问的路径会去匹配具体的
+	<url-pattern>.
+
+11.在conf下的web.xml文件内的内容
+	每个完整的JavaWeb应用中都需要有web.xml，但我们不知道所有的web.xml文件都有一个共同的父文件，它在Tomcat的conf/web.xml路径中
+	下面这些是在conf/web.xml里面的内容
+	404：是一个
+		<servlet>
+			<servlet-name>default<servlet-name>
+			<servlet-class>org.apache.catalina.servlets.DefaultServlet<servlet-class>
+		</servlet>
+		 
+		 <servlet-mapping>
+			<servlet-name>default<servlet-name>
+			<url-pattern>/<url-pattern>
+		 </servlet-mapping>
+
+		 **<url-pattern>/<url-pattern>:表示/最大路径和任何路径都匹配  因为和任何路径都匹配
+			所以它的优先级最低，因为轮到它处理就说明没有匹配的URL，没有匹配的URL就说明
+			路径不存在，因为路径不存在，所以就给出了404;
+
+
+	jsp:	
+		<servlet>
+			<servlet-name>jsp</servlet-name>
+			<servlet-class>org.apache.jasper.servlet.JspServlet</servlet-class>
+		</servlet>
+
+		<servlet-mapping>
+			<servlet-name>jsp<servlet-name>
+			<url-pattern>*.jsp<url-pattern>
+			<url-pattern>*.jspx<url-pattern>
+
+		</servlet-mapping>
+
+		**你在访问jsp的时候要通过这个servlet才能访问，要通过这个servlet处理过后把动态资源转换成静态资源
+		然后通过service响应给浏览器;
+
+	<mime-mapping>
+		<mime-mapping> 
+			<extension>txt</extension> 
+			<mime-type>text/plain</mime-type> 
+		</mime-mapping> 
+		说明扩展名为txt的文件是以text/piain的形式处理的
+
+		***这个是用来声明服务器对待<extension>xx</extension> 扩展名为xx的文件是以mime-type类型来处理
+			mime-mapping标签用于声明服务器对待xx 扩展名为xx的文件是以mime-type类型来处理
+
+
+	关联文件与MIME类型 
+		****服务器一般都具有一种让Web站点管理员将文件扩展名与媒体相关联的方法。
+		例如，将会自动给予名为mom.jpg的文件一个image/jpeg的 MIME 类型。但是，假如你的Web应用具有几个不寻常的文件，
+		你希望保证它们在发送到客户机时分配为某种MIME类型。mime-mapping元素（具有 extension和mime-type子元素）可提供这种保证。
+		例如，下面的代码指示服务器将application/x-fubar的MIME类型分配给所有以.foo结尾的文件。 
+		<mime-mapping> 
+		<extension>foo</extension> 
+		<mime-type>application/x-fubar</mime-type> 
+		</mime-mapping> 
+		或许，你的Web应用希望重载（override）标准的映射。例如，下面的代码将告诉服务器在发送到客户机时指定.ps文件不是
+		作为纯文本（text/plain）而是作为PostScript（application/postscript）。 
+		<mime-mapping> 
+		<extension>ps</extension> 
+		<mime-type>application/postscript</mime-type> 
+		</mime-mapping>
+
+12.Servlet与反射
+	在浏览器的URL地址框输入请求（输入网址），拿到了url路径
+	然后把servlet的路径切走，并到web.xml里面和<url-pattern>的值（自己设置的URL-pattern）进行匹配，
+	匹配成功以后，会通过servlet名称最终找到<servlet-class>里面的值（字符串），
+	得到值以后通过反射的Class.forName();就可以得到值.class。
+	
+	因为是通过反射来获取servlet对象的，所以servlet必须要有一个无参构造器，
+	如果你写了有参构造器，而且没有写无参构造器的话就会出错;
+
+13.ServletContext
+	一个项目里面只有一个ServletContext对象！一般我们都将这个对象的名称取做application(应用程序)
+	我们可以在N多个Servlet中来获取这个唯一的对象，使用它可以给多个Servlet传递数据！这样可以降低耦合性;
+	与天地同寿！！！这个对象在Tomcat启动时就创建，在Tomcat关闭时才会死去
+
+	服务器会为每一个应用创建一个ServletContext对象：
+		**ServletContext对象的创建是在服务器启动时完成的;
+		**ServletContext对象的销毁是在服务器关闭时完成的;
+
+	ServletContext对象的作用是在整个Web应用的动态资源之间共享数据！例如在AServlet中向ServletContext对象
+	中保存一个值，然后在BServlet中就可以获取这个值，这就是共享数据了
+
+14.获取ServletContext的四种方法
+	**ServletConfig#getServletContext();
+	**GenericServlet#getServletContext();
+	**HttpSession#getServletContext();
+	**ServletContext#getServletContext();
+
+15.域对象的功能
+	域对象就是用来在多个Servlet中传递数据！！！
+	**域对象必须要有存储数据的功能
+	**域对象必须要有取数据的功能
+
+	四大域对象
+		**PageContext;
+		**ServletRequest;
+		**HttpSession;
+		**ServletContext;
+
+	所有域对象都有用来存取数据的功能，因为域对象内部有一个Map,用来存储数据，
+	下面是ServletContext对象用来操作数据的几个方法：
+		**void setAttribute(String name,Object value);
+			用来存储域属性，也可以用来修改，会覆盖用同样的key会覆盖上一次存储的key,这一特性和Map相同
+		**Object getAttribute(String name)
+			通过域的key来获取域属性
+		**void removeAttribute(String name)
+			通过名称来删除域属性
+		**Enumeration getAttributeNames();获取所有域属性的名称
+
+	**获取初始化参数
+		 init-param参数可以通过ServletConfig对象的getInitParameter()方法获取到
+
+		context-param参数可以通过ServletContext对象的getInitParameter()方法获取到
+
+		***Object ServletContext.getInitParameter();
+			还可以使用ServletContext来获取在web.xml文件中配置中的应用初始化参数！注意，应用初始化参数和Servlet初始化参数不同
+
+			 **Servlet也可以获取初始化参数，但它是局部的参数，也就是说，一个Servlet只能获取自己的初始化参数，不能获取别人的，
+			 即初始化参数只为一个Servlet准备
+
+			 **可以配置公共的初始化参数，为所有Servlet而用！这需要ServletContext才能使用！
+
+			**** 使用ServletContext.getInitParameter();
+
+16，通过ServletContext来获取资源的相关方法(要以"/" 开头!!!)
+	获取真实路径
+		**String ServletContext.getRealPath(String path);
+		***在使用ServletContext.getRealPath() 时，传入的参数是从 当前servlet 部署在tomcat中的文件夹（项目根目录）
+		算起的相对路径，要以"/" 开头，否则会找不到路径，导致NullPointerException
+
+		使用ServletContext.getRealPath("/")可以得到根目录，即getRealPath()查询是从这里查询的
+			***E:\Tomcat\apache-tomcat-7.0.82\wtpwebapps\hello2\
+            request.getServletContext().getRealPath("");
+            没有使用 "/" 的话就是 E:\Tomcat\apache-tomcat-7.0.82\wtpwebapps\hello2
+                没有斜杠，所以有没有斜杠都一样
+
+	获取资源流
+		 InputStream ServletContext.getResourceAsStream
+		不止可以获取资源的路径，还可以通过ServletContext获取资源流，即把资源以输入流的方式获取
+
+	获取指定目录下的所有资源（从 当前servlet 部署在tomcat中的文件夹算起）
+		**Set<String> ServletContext.getResourcePaths(String path);
+		例如获取/WEB-INF下的所有资源（只会获取目录下的文件夹和文件，并不会深入子文件夹）
+			Set<String> ServletContext.getResourcePaths("/WEB-INF");
+
+*****PrintWriter输出乱码问题
+	第一种方法：
+		使用response.setCharacterEncoding("utf-8");
+		或response.setCharacterEncoding("utf-8");
+		必须写在流创建前面，因为流创建好以后CharacterEncoding就会被确定;
+		控制逻辑为一旦返回了PrintWriter，本函数即不再生效
+
+	第二种：因为PrintWriter创建的时候就默认了在返回一个PrintWriter对象的时候，
+		CharactorEncoding就已经确定了，就已经设置好了字符集了。为ISO-8859-1;
+		所以我们也可以把将要输出的String进行类型转换，将其转换成字节码，再进行charsetName转换
+		使用String line1 =new String(line.getBytes(),"ISO-8859-1");将其转变成ISO-8859-1编码格式
+		String.getBytes();平台默认什么格式的编码 他就会转换成什么格式的编码;
+		（eclipse默认是utf-8的那么String.getBytes();就是String.getBytes("utf-8");的简写）
+
+
+17.使用Class和ClassLoader来获取文件资源
+	classes目录:在tomcatWEB-INF里面的目录专门用来存取src里面的文件，.java文件将会被编译成.class文件存放
+	在里面，而其他文件将会被copy一份到classes里面（如txt文件在src里面，就会被copy到classes里面）；
+
+	**Class.getResourceAsStream();
+	**Class.getClassLoader().getResourceStream();
+
+	Class.getResourceAsStream();相对于.class目录(包里面)/相对于hello2目录，在包外面就会找不到;
+		("/a.txt")"/"相当于将根目录移到了classes目录。
+		("/../../a.txt")相当于将根目录移到了classes向上两层hello2（项目）。
+
+	**Class.getClassLoader().getResourceStream();相对于classes目录;
+
+18.request和response
+	服务器处理请求的流程：
+		1.服务器每次收到请求时，都会为这个请求开辟一个新的线程。
+		2.服务器会把客户端的请求数据封装到request对象中，request就是请求数据的载体
+		3.服务器还会创建response对象，这个对象与客户端连接在一起，它可以用来向客户端发送响应
+
+
+19.response
+	状态码：200表示成功，302表示重定向，404表示客户端出错（访问的资源不存在），500表示服务器端错误。
+			**sendError(int sc)发送错误状态码。例如404、500;
+			**sendError(int sc,String msg)发送错误代码，还附带一个错误信息
+			**setStatus(int sc)发送成功的状态码，也可以发送302;
+
+	响应头：Context-Type、Refresh(定时刷新)、Location(重定向)、expires(有效时间);
+		告诉浏览器不要缓存的响应头
+			Expires:-1;
+			Cache-Control:no-cache;
+			Pragma:no-cache;
+		头就是一个键值对！可能会存在一个头（一个名称，一个值）也可能存在一个头（一个名称，多个值）
+		
+		**setHeader(String name , String value);
+			**适用于单值的头，response.setHeader("Context-Type","text/html");
+		**addHeader(String name , String value);
+			**适用于多值的头，可以通过头来添加多个值。
+			**response.addHeader("Context-Type","text/html");
+			**response.addHeader("Context-Type","text/Css");
+			**response.addHeader("Context-Type","text/plain");
+		**setIntHeader(String name , int value);
+			**适用于添加单值的int类型的值。
+			**response.setIntHeader("Context-Length" , 888);
+		**addIntheader(String name , int value);
+		**setDateHeader(String name , long value);
+			**适用于添加单值的毫秒类型的响应头
+			**response.setDateHeader("expires" , 1000*60*60*24);
+		**addDateHeader(String name , long value);
+
+20.response的两个流
+	**ServletOutputStream用来向客户端发送字节数据。
+		ServletOutputStream out =response.getOutputStream();
+	**PrintWriter,用来向客户端发送字符数据。
+		PrintWrter = response.getWriter();
+
+	***两个流不能同时使用！！否则会抛IllegalStateException异常
+		*****在非法或不适当的时间调用方法时产生的信号。换句话说，即 Java 环境或 Java 应用程序没有处于请求操作所要求的适当状态下。 
+
+21.request
+	请求协议中的数据都可以通过request对象来获取
+	*获取常用信息
+		获取客户端IP：request.getRemoteAddr()
+
+	*获取请求方式
+		request.Method();可能是Post也可能是Get
+
+	*获取HTTP请求头
+		***String getHeader(String name)适用于单值头;
+		int getIntHeader( String name)适用于Int类型的单值头;
+		long getDateHeader(String name)适用于毫秒值类型的单值头;
+		Enumeration getHeaders(String name)适用于多值的请求头;
+		Enumeration<String> getHeaderNames() 返回所有头值;
+
+		User-Agent：可以获取浏览器以及操作系统的信息的请求头;
+
+	*获取请求URL
+		http://localhost:8080/day10_2/AServlet?username=xxx&passwoad=yyy
+		>String getScheme(方案)();获取协议，http
+		>String getServerName();获取服务器名，localhost
+		>String getServerPort();获取服务器端口，8080
+		>String getContextPath();获取项目路径，day10_2
+		>String getServletPath();获取Servlet路径，AServlet
+		>String getQuery(查询)String();获取参数部分，即问号后面的部分username=xxx&passwoad=yyy
+		>String getRequestURI();获取请求URI，等于项目名+Servlet路径。/day10_2/AServlet
+		>String getRequestURL():获取请求URL，等于不包括参数的整个请求路径http://localhost:8080/day10_2/AServlet
+
+	*案例：防盗链
+		使用Referer请求头，这个请求头会返回请求的网页的IP地址,如果是从地址栏输入则没有Referer请求头;
+
+	*获取请求参数：请求参数是有客户端发送给服务器的！有可能是在请求体中（Psot）,也可能是在URL之后（GET）
+		请求参数：有一个参数一个值的，还有一个参数多个值的！
+		>String getParameter(String name);获取指定名称的请求参数值，适用于单值请求参数
+		>String[] getParameterValues(String name);获取指定名称的请求参数值，适用于多值请求参数
+		>Enumeration getParameterNames();获取所有参数的名称
+		>Map<String,String[]>getParameterMap();获取所有请求参数，其中key为参数名，value为参数值;
+
+	*请求转发和请求包含
+		RequestDispatcher rd =requert.getRequestDispatcher("/TwoServlet");
+			使用requse获取RequestDispatcher对象，方法的参数是被转发或被包含的Servlet的路径;
+		请求转发：re.forward(request,response);
+		请求包含：re.include(request,response);
+
+		有时一个请求需要多个Servlet协作才能完成，所以需要在一个Servlet跳到另一个Servlet！
+		>一个请求跨多个Servlet,需要使用转发和包含。
+		>请求转发，由下一个Servlet完成响应体！当前Servlet可以设置响应头！(留头不留体)
+			AServlet转发BServlet的话，AServlet只能设置响应头不能设置响应体，设置了不会显示，或者在
+			Aservlet里面设置的响应头太多了就会抛异常，因为A响应体转发forward给BServlet的响应缓存，
+			A设置的响应体太多了就会爆缓存，爆了以后就会抛出异常。
+		>请求包含：由两个Servlet共同完成响应体！（都留）,请求体就不会爆
+		>无论是请求转发还是请求包含，都在一个请求范围内，使用同一个request和response！
+
+	
+	***域和参数	
+		域是用来传递数据的，域一开始是没有数据的，是自己设置，自己存储的，和参数没关系，参数是客户端发给服务器的。
+·		Servlet中的三大域对象：request、session、application都有如下三个方法;
+		>void setAttribute(String name,Object value);
+		>Object getAttribute(String name);
+		>viod removeAttribute(String name);
+		>Enumeration getAttributeNames();
+		>同一请求范围使用request.setAttribute()、request.getAttribute()来传值！前一个Servlet调用setAttribute(),
+		后一个Servlet调用getAttribute()获取值。
+
+	*请求转发和重定向的区别
+		>请求转发是一个请求一次响应，而重定向是两次请求两次响应
+		>请求转发地址栏不变化，而重定向会显示后一个请求的地址
+		>请求转发只能转发到本项目其他Servlet,而重定向不只能重定向到本项目的其他Servlet，还能重定向到其他项目
+		>请求转发是服务器端行为，只需给出转发的Servlet路径，而重定向需要给出requestURI，即包含项目名
+		>请求转发和重定向效率是转发高！因为是一个请求！
+			<>需要地址栏发生变化，那么必须使用重定向！
+			<>需要在下一个Servlet中获取request域中的数据，必须要使用转发
+
+22.URL编码
+	表单的类型：Content-Type:application/x-www-form-urlencoded,就是把中文转换成%后面跟随两位的16进制。
+	为什么要用它：在客户端和服务器之间传递中文时需要把它转换成网络合适的方式。
+
+	*它不是字符编码！
+	*它是用来在客户端与服务器之间传递参数用的一种方式！
+	*URL编码需要先指定一种字符编码，把字符串解码后，得到byte[],然后把小于0的字节+256，再转换成16进制，前面再添加一个%; 对于URL默认编码为UTF-8。UTF-8所有的非ASCII单词二进制数都是1开头的
+    0000 0000-0000 007F | 0xxxxxxx0000 
+    0080-0000 07FF | 110xxxxx 10xxxxxx0000
+    0800-0000 FFFF | 1110xxxx 10xxxxxx 10xxxxxx0001 
+    0000-0010 FFFF | 11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+
+
+    110 1110 11110
+	*POST请求默认就是使用URL编码！tomcat会自动使用URL解码！
+	*URL编码：String username = URLEncoder.encode(username , "utf-8");
+	*URL解码：String username = URLDecoder.decode(username , "utf-8");
+        import java.net.URLEncoder;
+
+	最后我们需要把链接中的中文参数，使用url来编码！
+
+
+23.路径
+	绝对路径:以/开头的路径就叫做绝对路径,绝对路径在相对于的路径上直接拼接得到最终的路径
+        相对路径:不以/开头的路径就叫做相对路径,相对路径基于当前所在的路径计算的到最终的路径
+        硬盘路径:以盘符开头的路径就叫做硬盘路径.是哪个路径就是哪个路径.没有相对于谁的问题
+
+	1.web.xml中<url-pattern>路径，（叫它Serlvet路径！）
+	  >要么以"*"开头，要么以"/"开头
+
+	2.转发和包含
+	 >以"/"开头;相对当前项目路径。对于服务器来说项目名就是虚拟根路径;所以加"/"也被称为绝对路径
+		是相对项目的绝对路径;
+	 >不以"/"开头，相当于当前Servlet路径;对于服务器来说项目名就是虚拟根路径，不加"/"的话是相对于当前Servlet路径
+		Servlet路径一般是项目名.Servlet；所以可能会变化;
+
+	3.重定向路径（客户端路径）
+		>必须以"/"开头，相对当前主机例如：http://localhost:8080/
+
+	4.页面中超链接和表单路径
+		>与重定向想同，都是客户端路径！需要添加项目名;
+
+	5.ServletContext获取资源路径
+		>相对当前项目目录，即当前index.jsp所在目录，即项目根目录
+
+	6.ClassLoader获取资源
+		>相对classes目录
+
+	7.Class获取资源路径
+		>以"/"开头相对classes路径
+		>不以"/"开头相对当前.class文件所在的目录;
+
+
+Servlet的生命周期：Servlet是单例模式会在，Tomcat（WEB容器）关闭后结束;
+   在服务器没有重启时，java虚拟机是不会关闭的。也就是说static修饰的变量的值一直都在！
+   因为servlet是单例的所以service dao 层的对象也没有消失过。dao对象再service中。service在servlet中 而servlet又再服务器中！
+
+
+
+
+Listener的加载是在应用一开始启动的时候，多个listener之间是没有顺序的，如果有多个listener需要顺序加载，可以考虑把多个listener合并成一个
+。Filter的加载是按照在web.xml中的先后顺序的，其中的init方法，按照的是filter的顺序，doFilter方法是按照filter-mapping的顺序，
+如果多个filter被一次请求匹配到，则是按照一个filter栈的逻辑进行调用。Servlet的加载顺序则没有前后之别，是请求匹配到哪个就进行哪个
+的加载。 它们3个之间的顺序关系是，可以看这个
+    启动-->listener-->filter-->servlet--->访问-->filter-->servlet-->关闭-->servlet--->filter-->listener。
+
+
+
+那么spring bean是否可以在filter中加载到?
+
+从上面的启动顺序可以看出，filter调用的时候，Spring是通过listener进行加载的，肯定是已经启动了。那么为什么我直接把 Filter
+添加Spring的 @Component 注解，通过 @Autowired 却加载不到呢？这是由于，在spring对对应的bean进行扫描的时候，filter还没有执
+行初始化，filter的加载是在listener之后的，那么想要在filter中加载到spring的环境，那么可以通过init方法进行注入
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

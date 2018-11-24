@@ -1,0 +1,327 @@
+JavaWeb监听器
+    
+    三大组件：
+        Servlet
+        Listener
+        Filter
+
+    Listener:监听器
+    1.初次相见：AWT
+    2.二次相见：SAX
+
+监听器：
+    * 它是一个接口，内容由我们来实现
+    * 它需要注册，例如注册在按钮上！
+    * 监听器中的方法，会在特殊事件发生时被调用！
+
+观察者模式
+    * 事件源
+        > 小偷
+    * 事件
+        > 偷东西
+    * 监听器
+        > 警察
+        > 监听器中的方法：抓捕
+JavaWeb监听器概述
+    在JavaWeb被监听的事件源为：ServletContext、HttpSession、ServletRequest,即三大域对象。
+    * 监听域对象"创建"与"销毁"的监听器
+    * 监听域对象"操作域属性"的监听器
+    * 监听HttpSession的监听器
+
+    在WEB.xml中配置监听器
+             <listener>
+        <listener-class>cn.zhu.web.listener.BListener</listener-class>
+             </listener>
+
+    事件源：三大域！
+        > ServletContext
+            * 生命周期监听：ServletContextListener,它有两个方法，一个在出生时调用，一个在死亡时调用。
+            * 属性监听：ServletContextAttributeListener,它有三个方法，一个在添加属性时调用，一个在替换属性时调用，最后一个是在移除属性时调用。
+        > HttpSession
+            * 生命周期监听：HttpSessionListener,它有两个方法，一个在出生时调用，一个在死亡时调用。
+            * 属性监听：HttpSessionAttributeListener,它有三个方法，一个在添加属性时调用，一个在替换属性时调用，最后一个是在移除属性时调用。
+        > ServletRequest
+            * 生命周期监听：ServletRequestListener,它有两个方法，一个在出生时调用，一个在死亡时调用。
+            * 属性监听：ServletRequestAttributeListener,它有三个方法，一个在添加属性时调用，一个在替换属性时调用，最后一个是在移除属性时调用。
+
+       共同的父类接口 EventListener
+//生命周期监听器 
+    > ServletContextListener
+        * void contextDestroyed(ServletContextEvent sce) 
+        * void contextInitialized(ServletContextEvent sce)
+            *  ServletContextEvent:
+                * ServletContext getServletContext()  
+    > HttpSessionListener
+        * void sessionCreated(HttpSessionEvent se) 
+        * void sessionDestroy(HttpSessionEvent se) 
+            *  ServletSessionEvent:
+                * HttpSession getSession()    
+    > ServletRequestListener
+        * void requestInitializedListener(ServletRequestEvent sre)
+        * void requestDestoryListener(ServletRequestEvent sre)
+            * ServletRequestEvent:
+                * ServletRequest getServletRequest()
+                * ServletContext getServletContext()  
+
+//属性监听器 
+    > ServletContextAttributeListener
+        * void attributeAdded(ServletContextAttributeEvent srae)
+        * void attributeRemove(ServletContextAttributeEvent srae)
+        * void attributeReplaced(ServletContextAttributeEvent srae)
+            * ServletContextAttributeEvent
+                *   String getName() 返回属性名称
+                *   Object getValue()  返回属性值，如果是替换返回的是新的属性值
+    > HttpSesstionAttributeListener
+            * void attributeAdded(HttpSessionBindingEvent )
+            * void attributeRemoved(HttpSessionBindingEvent )
+            * void attributeReplaced(HttpSessionBindingEvent )
+                * HttpSessionBindingEvent 
+                    * String getName()  
+                    * HttpSession getSession()  
+                    * Object getValue()  
+    > ServletRequestAttributeListener
+        * void attributeAdded(ServletRequestAttributeEvent  )
+        * void attributeRemoved(ServletRequestAttributeEvent  )
+        * void attributeReplaced(ServletRequestAttributeEvent  )
+             *   String getName() 返回属性名称
+             *   Object getValue()  返回属性值，如果是替换返回的是新的属性值
+
+感知监听（都与HttpSession相关）
+    * 它用来添加到javaBean上，而不是添加到三大域中
+    * 这两个监听器都不需要在web.xml中注册
+
+    HttpSessionBindingListener：添加到javaBean上(使用javabean继承HttpSeesionBindingListener),javabean就知道自己是否添加到session中了。
+        * void valueBound(HttpSessionBindingEvent) 添加
+        * void valueUnbound(HttpSessionBindingEvent) 移除
+
+====================================
+HttpSessionActivationListener
+
+    Session钝化：Tomcat会在session从时间不被使用时钝化session对象，所谓钝化session，
+                就是把session通过序列化的方式保存到硬盘文件中。当用户再使用session时，Tomcat还会把钝化的对象再活化session,
+                所谓活化就是把硬盘文件中的session在反序列化回内存。当session被Tomcat钝化时，session中存储的对象也被钝化，当session
+                被活化时，也会把session中存储的对象活化（当然要对象实现了序列化对象Serializable）。如果某个类实现了HttpSessionActivationListener
+                接口后，当对象随着session被钝化和活化时，下面两个方法就会被调用：
+                    > public void sessionWillPassivate(HttpSessionEvent se):当对象感知被活化时调用本方法；
+                    > public void sessionDidActivate(HttpSessionEvent se):当对象感知被钝化时调用本方法；
+
+                HttpSessionActivationListener监听器与HttpSessionBindingListener监听器相似，都是感知型的监听器，例如让Person类实现了HttpSessionActivationListener监听器接口，
+                并把Person对象添加到了session中后，当Tomcat钝化session时，同时也会钝化session中的Person对象，这时Person对象就会感知到自己被钝化了，其实就是调用Person对象的
+                sessionWillPassivate()方法。当用户再次使用session时，Tomcat会活化session，这时Person会感知到自己被活化，其实就是调用Person对象的sessionActivate()方法。
+
+     Session钝化有两种可能：
+        * 第一种：在用户还没结束回话时，服务器需要瞬间的重启。服务器会自动把Session钝化在tomcat/work/Catalina/localhost/项目名目录下，
+                    在重启完成以后，就会自动加载反序列化回去！然后硬盘下的文件就会消失，文件：SESSIONS.ser
+                关闭：
+                    可以在context.xml下面的<Context>标签下面，创建<Manager pathname="" />标签关闭，tomcat context.xml下有，就是注释过了！可以打开注释来关闭钝化！
+
+        * 第二种: default是关闭的，在用户会话长时间未响应时（可设置！）自动将其session钝化，然后在用户再次响应时，再将其加载！(保存到硬盘中的信息不会删除）
+                   配置文件：在context.xml的<context>下面写:
+                                <Manager className="org.apache.catalina.session.PersistentManager" MaxIdleSwap="1">
+                                        <store class="org.apache.catalina.session.FileStore" directory="mysession"/>          
+                                </Manager>  
+                                    MaxIdleSwap:表示多长时间没响应就将其钝化，最小单位和默认单位是分钟，最小是1分钟:
+                                    directory="mysession":表示钝化后session存储的地方，这个表示在tomcat\conf\catalina\localhost\项目名\mysession下！
+                                    钝化的session的名字是：会以一个session一个文件的形式存储！
+                                                    名字是：SessionId.SESSION的形式存在
+                                    
+
+
+
+
+注意： 1.进行对象的序列化和反序列化的对象，必须实现Serializable接口，否则无法进行序列化和反序列化，
+            当然这仅仅可以进行序列化和反序列化而已，如果序列化完成的对象（已经保存至硬盘），反序列化前又修改了对象，
+            那么反序列化会失败，所以进行序列化的对象必须还要添加serialVersionUID
+       2.配置文件应该要“放到tomcat\conf\catalina\localhost目录下！文件名称为项目名称”。如果将配置文件放在\conf\context.xml中会出现以下问题：
+            如果session放入了对象实例，即使该对象的类可序列化（实现了java.io.Serializable接口），也会在session换出至文件时抛出ClassNotFoundException异常。
+            这种情况怀疑是要将该类的jar文件放到tomcat的lib文件夹下才可以。
+
+================
+
+国际化
+    国际化就是可以把页面中文变成英文，英文变成中文。
+    应用程序使用ResourceBundle类来加载两个资源文件中的一个，到底加载谁，是通过给ResourceBundle的Locale来决定，
+        如果Locale是中文的，那么加载a文件，是英文的就加载b文件。
+
+    我们现在写两个配置文件，一个文件中存放中文信息，另一个存放英文信息
+    我们使用一个类，来通过语言环境，最终识别加载哪一个文件的信息：RsourceBundle
+    什么语言环境：Locale
+        > zh_CN
+        > en_US
+        new Locale("zh", "CN");
+        Locale.getDefault();获取当前默认语言环境
+        Locale.US
+
+    资源文件名称的格式：基本名称+Locale部分+.properties
+    例如：res_zh_CN.properties，其中基本名称为res，而zh_CN是Locale部分
+    必须所有的资源文件基本名称要相同！不同之处就是Locale部分
+        配置文件放在src下面1
+
+    Locale locale = request.getLocale(); 
+    ResourceBundle rb = ResourceBundle.getBundle("res", locale);
+    rb.getString(String Key);
+    1.通过Locale来获取当前时间。
+    2.通过ResourceBundle的getBundle("基本名称", "当前语言版本");来加载资源文件。
+    3.通过 rb.getString(String Key);来获取文件的值。
+        ** 因为.properties文件JAVA是默认使用ISO-8859-1来加载的，所以你得将字符用"ISO-8859-1"来解码，然后再用UTF-8编码，因为你在.properties文件是用UTF-8编码的
+
+=================================================================================================
+
+javaWeb三大组件
+    1.都需要在web.xml中进行配置
+    Serlvet
+    Listener(2个感知监听器不需要配置)
+    Filter
+
+    2.过滤器
+        它会在一组资源（jsp、servlet、css、html等等）的前面执行！
+        它可以让请求得到目标资源，也可以不让请求达到！
+         * 过滤器有拦截请求的能力！
+
+    
+如何写一个Filter接口
+
+    void init(FilterConfig)
+        * 创建之后马上执行；Filter会在服务器启动时就创建！
+    void dstroy()
+        * 销毁之前执行！在服务器关闭时销毁！
+    void doFilter(ServletRequest, ServletResponse, FilterChain)
+        * 每次过滤时都会执行
+
+    Filter是单例的！Servlet也是单例的
+
+怎么在web.xml里面配置
+    <filter>
+        <filter-name>xxx</filter-name>
+        <filter-class>cn.zhu.web.filter.AFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>xxx</filter-name>
+        <url-pattern>/*</url-pattern> //要过滤的文件，这里指全部过滤
+        <servlet-name>myServlet</servlet-name>//还可以指定要过滤那个Servlet,将<servlet-name>直接引用到<filter-mapping>中，
+    </filter-mapping>                               当然<servlet-name>必须要在web.xml有配置过！它与某个Servlet的配置相同！
+
+FilterConfig --> 与ServletConfig相似
+    * 获取初始化参数getInitParameter()
+    * 获取过滤器名称getFilterName();
+    * 获取application:getServletContext();
+
+FilterChain
+    * doFilter(ServletRequest, ServletResponse);放行！//这个方法是Filter接口里面的方法一样！一个是每次过滤都会被调用；一个是放行
+    就相当于调用了目标Servlet的service()方法！调用完以后还是会回到Filter接口里面的doFilter()方法,继续执行未执行完的方法!
+
+@WebFilter("/*" )//在这里面写要拦截的资源！
+
+多过滤器的执行顺序：
+    一个目标可以指定多个过滤器，过滤器的执行顺序是在web.xml文件中<filter-mapping>，<filter-mapping>的配置顺序决定了filter的过滤执行顺序
+FilterChain#doFilter()方法：
+    执行目标资源，或是执行下一个过滤器！如果没有下一个过滤器那么执行的是目标资源，如果有，那么就执行下一个过滤器！
+
+---------------------------
+
+过滤器的四种拦截方式
+    <dispatcher>REQUEST</dispatcher> 拦截直接请求
+    <dispatcher>FORWARD</dispatcher> 拦截请求转发请求
+    <dispatcher>INCLUDE</dispatcher> 拦截请求包含请求
+    <dispatcher>ERROR</dispatcher> 拦截错误转发请求
+里面的必须为大写！！
+在<filter-mapping>中进行配置！
+
+如果不写拦截方式，默认 <dispatcher>REQUEST</dispatcher>，如果写了的话那就拦截写了的！不会默认还有 <dispatcher>REQUEST</dispatcher>；
+    想要web.xml里面的配置生效，必须要把每个Filter @WebFilter("/*" ) 删除！，不然无法生效
+
+---------------------------------
+
+过滤器的应用场景：
+    预处理：执行目标资源之前做预处理工作，例如设置编码，这种的通常都会放行，只是在目标资源执行之前做一些准备工作
+        几乎是所有Servlet中都需要写request.setCharacterEndoing()可以把它放入到一个Filter中
+
+    条件判断：通过条件判断是否放行，例如校验当前用户是否已经登录，或者用户IP是否已经被禁用
+        
+    后续处理：在目标资源执行后，做一些后续的特殊处理工作，例如把目标资源输出的数据进行处理
+        
+-------------------------------------
+
+粗粒度权限控制（拦截是否登录、拦截用户名admin权限）
+
+    RBAC --> 基于角色的权限控制
+
+    1.说明
+        我们可以给出三个页面：index.jsp、user.jsp、admin.jsp
+            index.jsp：谁都可以访问
+            user.jsp：只有登录的用户可以访问
+            admin.jsp：只有管理员才可以访问
+
+    2.分析
+        设计User类：username、password、grade,其中grade表示用户等级，1表示普通用户，2表示管理员用户
+            当用户登录成功后，把user保存到session中。
+
+-------------------------------------
+
+    解决全站字符乱码（Post和GET中文编码问题）
+        乱码问题:
+            获取请求参数中的乱码问题：
+                > POST请求：request.setCharacterEncoding("utf-8");
+                > GET请求：new String(request.getParameter("xxx").getbytes("ISO-8859-1"),"UTF-8");
+            响应乱码的问题：response.setContextType("text/html;charset=utf-8");
+
+-----------------------------------
+
+页面静态化
+    页面静态化就是把动态的页面生成html保存到服务器的文件上，然后再有相同的请求时，不再去执行动态页面，而是直接给用户响应上次已经生成的静态页面。
+        而且静态页面还有助于搜索引擎找到你！
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

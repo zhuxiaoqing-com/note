@@ -1,0 +1,198 @@
+Java7新语法 －try-with-resources
+
+    使用 try-with-resources,可以自动关闭实现了 AutoCloseable 或者  Closeable 接口的资源。比如下面的函数，在 try 语句结束后，
+    不论其包括的代码是正常执行完毕还是发生异常，都会自动调用 BufferdReader 的 Close 方法。
+
+    static String readFirstLineFromFile(String path) throws IOException {
+      try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+        return br.readLine();
+      }
+    }
+
+
+在出现try-with-resources之前可以使用finally子句来确保资源被关闭, 比如下面的方法。
+但是两者有一个不同在于，readFirstLineFromFileWithFinallyBlock方法中，如果finally子句中抛出异常，将会抑制try代码块中抛出的异常。
+相反，readFirstLineFromFile方法中，如果try-with-resources语句中打开资源的Close方法和try代码块中都抛出了异常，Close方法抛出的异常被抑制，try代码块中的异常会被抛出。
+关于这一点，可以看最后的例子。
+
+
+
+    static String readFirstLineFromFileWithFinallyBlock(String path) throws IOException {
+      BufferedReader br = new BufferedReader(new FileReader(path));
+      try {
+        return br.readLine();
+      } finally {
+        if (br != null) br.close();
+      }
+    }
+
+
+
+可以在一个try-with-resources语句中声明多个资源，这些资源将会以声明的顺序相反之顺序关闭, 比如下面的方法。
+
+
+    public static void writeToFileZipFileContents(String zipFileName, String outputFileName)
+        throws java.io.IOException {
+
+        java.nio.charset.Charset charset = java.nio.charset.Charset.forName("US-ASCII");
+        java.nio.file.Path outputFilePath = java.nio.file.Paths.get(outputFileName);
+
+        // Open zip file and create output file with try-with-resources statement
+
+        try (
+          java.util.zip.ZipFile zf = new java.util.zip.ZipFile(zipFileName);
+          java.io.BufferedWriter writer = java.nio.file.Files.newBufferedWriter(outputFilePath, charset)
+        ) {
+
+          // Enumerate each entry
+
+          for (java.util.Enumeration entries = zf.entries(); entries.hasMoreElements();) {
+
+            // Get the entry name and write it to the output file
+
+            String newLine = System.getProperty("line.separator");
+            String zipEntryName = ((java.util.zip.ZipEntry)entries.nextElement()).getName() + newLine;
+            writer.write(zipEntryName, 0, zipEntryName.length());
+          }
+        }
+      }
+
+
+
+注意：一个try-with-resources语句也能够有catch和finally子句。catch和finally子句将会在try-with-resources子句中
+    打开的资源被关闭之后得到调用。
+
+
+
+
+注意：前面提到，如果try-with-resources语句中打开资源的Close方法和try代码块中都抛出了异常，Close 方法抛出的异常被抑制，try代码块中的异常会被抛出。
+Java7之后，可以使用Throwable.getSuppressed方法获得被抑制的异常。
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

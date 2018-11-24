@@ -1,0 +1,764 @@
+1.javascript的简介
+	*是基于对象和时间驱动的语言，应用于客户端。
+		-基于对象：
+			**提供好了很多对象，可以直接拿过来使用
+		-事件驱动：
+			**html做网站静态效果，javascript做动态效果
+		-客户端：专门指的是浏览器
+
+	*javascript的特点
+		（1）互交性
+			-信息的动态互交
+		（2）安全性
+			-javascript不能访问本地磁盘的文件
+		（3）跨平台性
+			-java里面跨平台，jvm虚拟机
+			-只要能够支持js的浏览器，都可以运行
+	*javascript和java的区别（雷锋和雷峰塔）
+		（1）java是sun公司研发，现在是oracle;javascript是网景公司
+		（2）javascript是基于对象的，java是面向对象的
+		（3）java是强类型语言，JavaScript是弱类型语言
+		（4）javascript只需要解析就可以运行，而java需要先编译成字节码文件，再执行。
+	
+	*javascript的组成（下面js）
+		三部分组成
+			（1）ECMAScript
+				-ECMA:欧洲计算机协会
+				-由ECMA组织制定的js语法，语句......
+			
+			（2）BOM
+				-borswer object model:浏览器对象模型
+
+			（3）DOM
+				-document object model:文档对象模型
+
+2.javascript和html的结合方式（两种）
+	第一种：
+		-使用一个标签<script type="text/javascript">js代码;</script>
+
+	第二种：
+		-使用script标签，引用一个外部的js文件
+		***创建一个js文件，写js代码
+		-<script type="text/script" src="js文件的目录及文件"></script>
+
+        相当于导包
+            可以再创建一个<script type="text/script"></script>
+                来执行代码。可以使用导入的文件里面的函数
+	**使用第二种方式的时候，就不要在script里面写js代码了，不会执行。
+
+3.js的原始类型和声明变量
+	**java的基本数据类型 byte short int long float double char boolean
+	
+	**定义变量 都使用关键字 var
+
+	**js的原始类型（五个）
+		-String:字符串
+			***var str ="abc";
+
+		-number:数字类型
+			***var num = 123;
+
+		-boolean：true和false
+
+			***var flag =true;
+
+
+        null： Null类型，代表“空值”，代表一个空对象指针，使用typeof运算得到 “object”，所以你可以认为它是一个特殊的对象值。
+
+    undefined： Undefined类型，当一个声明了一个变量未初始化时，得到的就是undefined。
+
+    null：是javascript的关键字，可以认为是对象类型，它是一个空对象指针，和其它语言一样都是代表“空值”，
+            不过 undefined 却是javascript才有的。undefined是在ECMAScript第三版引入的，为了区分空指针对象和未初始化的变量，它是一个预定义的全局变量。
+             没有返回值的函数返回为undefined，没有实参的形参也是undefined。
+
+
+
+		-null
+			***null表示"没有对象"，即该处不应该有值。典型用法是：
+				（1） 作为函数的参数，表示该函数的参数不是对象。
+				（2） 作为对象原型链的终点。
+
+		-undifined
+			***undefined表示"缺少值"，就是此处应该有一个值，但是还没有定义。
+				（1）变量被声明了，但没有赋值时，就等于undefined。
+				（2) 调用函数时，应该提供的参数没有提供，该参数等于undefined。
+				（3）对象没有赋值的属性，该属性的值为undefined。
+				（4）函数没有返回值时，默认返回undefined。
+			***定义一个变量，没有赋值
+			***var aa;
+		**typeof();查看当前变量的数据类型
+
+		区分undifined和null
+			undifined 变量定义了为初始化/访问对象不存在属性
+			null 访问的对象不存在
+
+4.js的语句
+	-java里面的语句：
+		**if判断语句
+		**switch语句
+		**for;while;do while循环语句
+
+	-js里面的语句
+		**if语句
+		**switch语句
+			-java里面支持的数据类型  String jdk1.7以后支持String;
+			-javascript里面都支持
+		**循环语句for;while;do while;
+
+5.javascript的运算符
+	**JavaScript里面不区分整数和小数
+		123/1000/1000
+		在java里面是等于0;在JavaScript里面是等于123;
+
+	**字符串的相加和相减的操作
+		***如果相加和java一样+作为连接符；//"3"+2的结果是23
+		***如果相减执行减法运算		  //"3"-2的结果是1
+
+		*提示NaN：表示不是一个数字
+            在进行parseInt() 转换一个字符串的时候 如果字符串 不能转换成int类型的就会将其转换成 NaN
+
+	**boolean类型也可以操作
+		***如果设置成true,相当于这个值是1
+		***如果设置成false,相当于这个值是1
+
+	**==和===区别
+		**做判断
+		**==比较的只是值
+		**===比较的是值和类型
+	
+	**引入知识
+		直接向页面输出的语句（可以把内容显示在页面上）
+		*document.write("aaa");
+		*document.write("<hr/>");
+		**可以向页面输出变量，固定值和html代码
+		**document.write里面是双引号，如果设置标签的属性需要使用单引号
+	
+		alert("弹窗内容");
+		**可以在网页上弹出窗口
+		    
+       for ... in  相当于java 的 foreach 
+       for (variable in object) {...}
+       
+
+
+
+6.javascript的数组
+	*定义方式（三种）
+		第一种：var arr=[1,"4",false];
+		第二种：使用内置对象Array对象
+			var arr1=new Array(5);
+		第三种：使用内置对象Array
+			var arr2=new Array(3,4,5);
+	*数组里面有一个属性length获取数组的长度
+	*数组的长度是可变的
+	*数组可以存放不同的数据类型的数据//var arr2=new Array(3,"s",5);
+
+7.javascript的函数（三种）
+	第一种：
+		**使用关键字 function
+		**function方法名（参数列表）{
+			方法体；
+			返回值可有可无（根据实际需要）
+		}
+		function addd(s,m){
+			sum=s+m;
+			return sum;
+		}
+
+	第二种：
+		**匿名函数
+			var add = function(参数列表)
+			{
+				方法体和返回值
+			}
+	
+	第三种：
+		**动态函数
+		**使用到javascript里面的一个内置对象 Function
+			var add = new Function("参数列表","方法体和返回值")；
+			可以把参数列表，方法体和返回值单独提取出来
+			//var  canshu = "s,y";
+			//var  fanfa = "sum=s+y; return sum;"
+
+8.javascript的全局变量和局部变量
+	**全局变量：在script标签里面定义一个变量，这个变量只能在页面中的js部分只用
+		-可以在方法外部使用，在方法内部使用，在另一个script标签使用	
+
+	**局部变量：在方法内部定义一个变量，只能在方法内部使用
+		-如果在方法的外部调用这个变量，提示出错
+		-SCRIPT5009:"变量"未定义;
+        省略 var 语句，直接声明变量
+        num = 100; 相当于 window.num = 100; 这是一个全局变量
+        每个代码后面的 ";"，  可以省略的;
+    javascript的计算需要注意的地方： 因为只有一种类型 var ， 所以它在除法运算的时候 除不尽 会自动进行从 int 转变成 double 类型的，
+                                     如果不需要小数点，请用 parseInt() 进行将 double转变成 int 类型的
+
+
+	**ie自带了一个调式工具，ie8及以上的版本中，按键盘上F12就会出现。
+
+9.script标签放的位置
+	*建议把script标签放到</body>后面
+	*如果现在有这样一个需求：
+		在javascript里面需要获取到input里面的值，如果把script标签放到haed里面会出现问题
+			html是丛珊倒下解析的，script标签放到head里面，是取不到input里面的值的，
+			因为还没有解析到input就先解析了script;
+
+Javascript的常用对象
+
+1.javascript的String对象
+	**var str = "abc";
+
+	**方法和属性（文档）
+		***属性length字符串的长度
+
+		***方法
+		（1）与html相关的方法
+			-bold();加粗
+
+			-fontcolor();设置字符串的颜色
+			-fontsize(();设置字体的大小
+			-link();将字符串显示成超链接
+				**str4.link("hello.html")
+			-sub() sup():下标和上标
+
+		（2）与java相似的方法
+			-concat(); 连接字符串
+			-charAt(); 返回指定位置的字符串
+			-indexOf();返回字符或字符串的位置
+			-split();  切分字符串，成数组
+			-replace();替换字符串
+				*传递两个参数：
+					--第一次参数是原始字符或字符串
+					--要替换成的字符或字符串
+			-substr()获取子串//str.substr(5,6);
+				*从第几位开始，向后截取几位
+			-substring()获取子串
+				*从第几位开始，到第几位结束，但是不包括最后那一位
+
+2.javascript的数组对象
+	**创建数组（三种）
+		var arr = [1,"r",true];
+		var arr = new Array(3);
+		var arr = new Array(1,"r",true);
+
+	**属性：length 查看数组的长度
+
+	**方法
+		-concat();数组的连接;不会改变原数组
+
+		-join(separtor);用指定的分隔符来替换数组原先的分隔符","。不会改变原数组
+		var arr = new Array("a","b","c","d");
+		document.write(arr);//a,b,c,d
+		var arr1 =arr.join("-");
+		document.write(arr1);//a-b-c-d
+
+		-push();向数组末尾添加元素，返回数组新的长度
+		 **如果添加的是一个数组，这个时候把数组当作一个整体字符串添加进去
+			会改变原数组
+			//如果添加var arr [3,4];那么3,4这是一个元素
+
+		-pop();表示删除最后一个元素，返回删除的那个元素;会改变原数组
+		-reverse()颠倒数组中的元素;不用返回值就会把当前数组改变
+
+3.javascript的Date对象
+	**在java里面获取当前时间
+		toLocaleString();把当前Date对象的时间转换成我们习惯的时间格式
+			//获取当前时间
+			**var date =new Date();
+			document.write(date);//Fri Apr 17 10:47:11 UTC+0800 2015
+			//转换成习惯的格式
+			document.write(date.toLocaleString());
+		
+		**获取当前年的方法
+			getFullYear();得到当前的年
+		**获取当前月的方法
+			getMonth();
+				***返回的是0-11月，如果想要得到准确的值，加1
+					0代表的就是1月，以此类推
+		**获取当前星期的方法
+			getDay()星期  返回的是0-6;
+			**外国的朋友，把星期日作为一周的第一天，所以0是星期日
+		**获取当前日的方法
+			getDate();得到当前的天
+		**获取当前小时的方法
+			getHours();
+		**获取当前分钟的方法
+			getMinutes();
+		**获取当前秒的方法
+			getSeconds();
+		**获取毫秒数
+			getTime();
+			返回的是1970 1 1到至今的毫秒数
+			**应用场景：
+				***使用毫秒数处理缓存的效果（不让其有缓存）
+					http://baidu.com?毫秒数
+
+4.javascript的Math对象
+	*数学的运算
+	**里面的都是静态方法，使用可以直接使用Math.方法()
+
+	**ceil(装天花板)(x);向上舍入
+	**floor(地板)(x);向下舍入
+	**round(圆)();四舍五入
+	**random();得到随机数（伪随机数）返回0-1之间的随机数;
+		-得到0-9的随机数
+			Math.random()*10
+			Math.floor(Math.random()*10);
+
+5.javascript的全局函数
+	*由于不属于任何一个对象，直接写名称使用
+	**eval();执行js代码（如果字符串是一个js代码，使用方法直接执行）
+	**encodeURI();对字符进行编码（基本只对中文进行编码  不会对英文字母、数字和符号进行编码）
+		-就是将中文转换成二进制之类的，可以有效解决浏览器乱码;
+
+	**decodeURI();对字符进行解码
+	**encodeURIComponent()和decodeURIComponent()和上面两种效果基本一样
+
+	**isNaN();判断 当前字符是否为数字
+		**如果是数字，返回false;
+		**如果不是数字，返回true;
+	**parseInt();类型转换
+		将字符串转换成number类型;
+		如果字符串不是"32"这样的数字 而是"da"这样的字符串的话就会返回NaN;
+
+6.函数的重载
+	**什么是函数的重载？方法名相同，参数不同
+	**js的函数重载是否存在？不存在
+		**对于方法名一样的函数是调用最后一个方法;
+		**对于传递进来的值会把传递进来的参数保存到arguments数组里面
+
+	**js里面是否存在重载？（面试题目）
+		（1）js里面不存在重载
+		（2）但是可以通过其他方式模拟重载的效果 使用 arguments
+			
+		***function add()
+		{
+			if(arguments.length == 2)
+			{
+				return arguments[0]+arguments[1];
+
+			}else if(arguments.length == 3){
+				return arguments[0]+arguments[1]+arguments[2];
+
+			}else if(arguments.length == 4){
+				return arguments[0]+arguments[1]+arguments[2]+arguments[3];
+
+			}else {
+				return 0;
+			}
+		}//这个方法可以接收2-4个参数的相加运算，如果参数不在2-4个之间的话就返回0;
+
+7.javascript的bom对象
+	**bom:broswer objcet model:浏览器对象模型
+
+	**有哪些对象？
+	***navigator（航海家）:获取客户机的信息（浏览器信息）
+		-navigator.appName这是属性 获取浏览器的名称
+	***screen（ 屏，幕）:获取屏幕的信息
+		-width属性
+		-hight属性
+
+	***location（位置）：请求url地址
+		-href属性
+		***获取到请求的url地址
+			-document.write(location.href);
+		***设置url地址
+			-页面上安置一个按钮，按钮上绑定一个事件，当我点击这个按钮，页面跳转到另外一个页面
+			-location.href="hello.html";
+
+		***<input type="button" value="tiaozhuan" onclick="href1();"/>
+			-鼠标点击事件 onclick="js的方法;"
+		//和<a></a>标签  <a>标签是下划线表示的超链接。location是按钮
+
+	***history（历史）:请求的url的历史记录
+		-到访问的上一个页面		
+			history.back(后面;后退;以前)();
+			history.go(-1);
+		-到访问的下一个页面
+			history.forward(向前;向将来)();
+			history.go(1);
+	
+	***window(重点)
+		*窗口对象
+		*顶层对象（所有的bom对象都是在window里面操作的）
+
+		**方法
+			-window.alert():页面弹出一个框，显示内容
+				**简写：alert();
+			-confirm();确认框
+				-var falg = window.confirm("显示的内容")
+				-确认框会返回一个值，按确定返回true，取消返回false
+			-prompt（提示）();输入的对话框
+				-window.prompt("在里面显示的内容","输入框的默认值")
+				-返回输入的值，没有值就返回null;
+			-open();打开一个新的窗口.
+				**open("打开的新窗口的地址","","窗口的特征，比如高度和宽度","")；
+				-创建一个按钮，点击这个按钮，打开一个新的窗口
+
+			-close();关闭窗口（浏览器兼容性差）
+			
+			-做定时器
+			**setInterval(间隔；间距)("js代码",毫秒数);1秒=1000毫秒
+				-表示每3秒，执行一次alert方法
+				window.setInterval("alert(123);"3000);
+
+			**setTimeout(超时)("js代码"毫秒数)
+				-表示在毫秒数之后执行，但是只会执行一次
+
+			**clearInterval();清除setInterval设置的定时器
+				var id=setInterval("alert(123);"3000);//通过setInterval设置的定时器会有一个返回值
+				clearInterval(id);
+
+			**clearTimeout();清除由setTimeout设置的定时器
+
+8.javascript的Dom对象
+	*dom:document object model:文档对象模型
+	**文档：
+		超文本文档（超本文标记文档）html、xml
+	**对象：
+		提供了属性和方法
+	**模型：使用属性和方法操作超文本标记型文档
+
+	***可以使用js里面的dom里面提供的对象，使用这些对象的属性和方法，对标记型文档里面的所有内容封装成对象
+	***想要对标记型文档进行操作首先需要对标记型文档里面的所有内容封装成对象
+		--需要把html里面的标签、属性、文本内容都封装成对象
+
+	***要想对标记型文档进行操作，解析标记型文档
+	***解析过程
+		根据html的层级结构，在内存中分配一个树形结构，需要把html中的每部分都封装成对象
+		-document对象：整个文档
+		-element对象：标签对象
+		-属性对象
+		-文本对象
+
+		--Node节点对象：这个对象是这些对象的父对象
+			***如果在对象里面找不到想要的方法，这个时候到Node对象里面去找
+	
+		DOM模型有三种：
+			DOM level 1:将html文档封装成对象。
+			DOM level 2:在level 1的基础上添加新的功能，例如：对于事物和css样式的支持。
+			DOM level 3:支持xml1.0的一些新特性。
+
+		DHTML:是很多技术的简称
+			**html:封装数据
+			**css:使用属性和属性值设置样式
+			**dom:操作html文档（标记型文档）
+			**javascript：专门指的是js的语法语句（ECMAScript）
+
+9.document对象
+	*表示整个的文档
+
+	**常用方法
+		****write()方法：
+			（1）向页面输出变量（值）
+			（2）向页面输出html代码
+
+		***getElementById();
+			-通过id得到元素（标签）
+			-//使用getElementById得到input标签
+			vae input1=document.getElementById("id")//传递的参数是标签里面的ID的值;
+			//得到input里面的value值
+			alert(intput1.value);//标签对象.属性名称
+			//向input里面设置一个值value
+			input.value="bbbb";
+
+		***getElementsByName();
+			-通过标签的name的属性值得到标签
+			-返回一个集合（数组）
+			-使用getElementsByName得到input的标签
+			var inputs = document.getElemnetsByName("name");//传递的参数是标签里面的name的值;
+			//alert(inputs.length);
+			//遍历数组
+			for(var i=0;i<inputs.length;i++){//通过遍历数组，得到每个标签里面的具体的值
+				var intput1 = inputs[i];//每次循环得到input对象，赋值到input1里面
+				alert(input1.value);//得到每个input标签里面的value的值;
+				}
+
+		***getElementsByTagName("标签名称");
+			-通过标签名称得到元素
+			-返回的是一个集合（数组）
+	
+		***注意地方
+			***只有一个标签，这个标签只能使用name获取到，这个使用getElementByName();返回的是一个数组，
+			但是现在只有一个元素，这个时候不需要遍历，而是可以直接通过数组的下标获取到值;
+			//通过name得到input标签
+			var input2 = document.getElementsByName("name11")[0];
+			alert(input2.value);
+
+		-window的opener(开启工具):获取创建当前窗口的窗口
+		//跨页面的操作  opener:得到创建这个窗口的窗口 得到window页面
+				var pwin =window.opener;//得到window页面
+				pwin.document.getElementById("numid").value=mun1;
+				pwin.document.getElementById("nameid").vaule=name1;
+				//关闭窗口
+				window.close;
+案例：在末尾添加节点
+	第一步：获取到ul标签
+	第二步：创建li标签
+		document.createElement("标签名称")方法
+	第三步：创建文本
+		document.createTextNode("文本内容");
+	第四步：把文本添加到li下面
+		使用appenChild方法
+	第五步：吧li添加到ul的末尾
+		ul.appendChild(li);
+
+10元素对象（element对象）
+	**要操作element对象，首先必须要获取到element,
+		-使用document里面相应的方法获取
+
+	**方法
+		***获取属性对象
+			var id1=span1.getAttributeNode("要获取的属性");
+		***获取属性里面的值
+			var input1=getAttribute("属性名称");
+
+		***设置属性的值
+			input.setAttribute("属性class","值haha");
+
+		删除属性
+			removeAttribute("属性名称");
+
+			**无法删除value
+
+	***想要获取标签下面的子标签
+		**使用属性childNodes,但是这个属性的兼容性很差
+		**获得标签下面子标签的唯一有效方法，使用getElementsByTagName方法
+
+11.Node对象属性
+	*nodeName
+	*nodeType
+	*nodeValue
+
+	*使用dom解析html时候，需要html里面的标签，属性和文本都封装成对象
+
+	*标签节点对应的值
+		nodeType:	1
+		nodeName:	大写标签名称	比如SPAN
+		nodeVaule:	null
+	*属性节点对应的值
+		nodeType:	2
+		nodeName:	属性名称
+		nodeValue	属性的在值
+	*文本节点对应的值
+		nodeType:	3
+		nodeName:	#text
+		nodeValue:	文本内容
+	
+	*firstChild;这是一个属性 获取第一个文本对象
+	
+12.Node对象的属性二
+	<ul>
+		<li>qqqqq</li>
+		<li>wwwww</li>
+	</ul>
+
+	*父节点
+		-ul是li的父节点
+		-parentNode属性
+
+	*子节点
+		-li是ul的子节点
+		-childNodes:得到所有子节点，但是兼容性很差
+		-firstChild:获取第一个子节点
+		-lastChild:获取最后一个子节点
+
+	*同辈节点
+		-li直接关系是同辈节点
+		-nextSibling：返回一个给定节点的下一个兄弟节点。
+		-previousSibling:返回一个给定节点的上一个兄弟节点。
+
+13.操作dom树
+	**appendChild方法
+		-添加子节点到末尾
+		-特点：类似于剪切粘贴的效果
+
+	**insertBefore(newNode,oldNode)方法
+		-在某个节点之前插入一个新的节点
+		-两个参数
+			*要插入的节点
+			*在谁之前插入
+		-使用父节点来进行插入parent.insertBefor(newNode,oldNode);
+
+	**removeChild();删除节点
+		-通过父类点删除，不能自己删除自己
+
+	**replaceChild(newNode,oldNode)方法：替换节点
+		-不能自己替换自己，通过父节点替换
+		-两个参数
+	
+	**cloneNode(boolean):复制节点
+		-参数Boolean true表示复制节点中的子节点
+			     false表示不复制节点中的子节点
+
+	**操作dom总结
+		*获取节点的使用方法
+			getElementById():通过节点的ID属性，查找对应节点
+			getElementsByName():通过节点的name属性，查找对应节点
+			getElementsByTagName():通过节点名称，查找对应节点
+		*插入节点的方法
+			insertBefor(newNode,oldNode);在某个节点之前插入
+			appendChild();在节点的末尾插入，剪切粘贴
+		*删除节点的方法
+			removeChild();通过父节点删除
+		*替换节点的方法
+			replaceChild();通过父节点来替换
+
+14.innerHTML属性
+	*这个属性不是dom的组成部分，但是大多数浏览器都支持这个属性
+	
+	第一个作用：获取文本内容
+		***//获取span标签
+		var span1 = document.getElementsById("sid");
+		alert(span1.innerHTML);
+		*直接获取标签里的所有，把子标签也打印出来了
+
+	第二个作用：向标签里面设置内容（可以是html代码）
+		***//向div里面设置内容<h1>AAAAAAA</h1>
+		//获取到div
+		var div11 = document.getElementById("div11");
+		//设置内容
+		div.innerHTML = "<h1>AAAAAA</h1>"
+
+案例二：动态获取时间
+	var date= new Date();
+	var d1=date.toLocaleString();
+	s.innerHTML=di;
+	-定时器 setInterval:某个时间重复执行js代码
+
+
+案例三：全选练习
+	属性checked=true:复选框是选中，false是不选中
+
+案例四：下拉列表左右选择
+	-select下拉列表里面属性multiple:让下拉框里面的内容都显示出来
+	-属性：selected=true: option是选中，false：option是不选中
+	-当使用appendChild操作数组时，记得把数组的角标减一；
+
+案例五：省市联动
+	-二维数组：数组里面家一个数组
+	-事件：onchange事件，改变事件  域的内容被改变。
+	-方法 add(this.value);
+
+案例六：动态生成表格
+	-innerHTML属性
+	-使用一个变量存html代码
+	-tab="<table>"
+	-tab +="</table>"
+
+15.表单提交方式
+	*使用submit提交
+	<input type="submit"/>
+
+	使用button提交表单
+	//获取表单对象，通过对象设置action属性
+	//再通过submit()方法提交表单
+	//form1.submit();
+	
+	*使用超链接提交
+		-代码
+		<a href="hello.html?name=value">使用超链接提交</a>
+
+------------------------------------------------------------------
+    
+    页面常用的事件
+
+	* onclick：鼠标点击事件
+    * ondbclick 对象被双击市发生 
+	
+    * onsubmit : onsubmit 事件会在表单中的确认按钮被点击时发生。 只能放在 from 标签里面
+
+    * onmouseover 鼠标移至对象上
+    * onmouseout  鼠标离开对象上时发生
+
+	* onfocus:得到焦点（某些版本的ie5、6不兼容）
+	* onblur:失去焦点                               这三个主要与from表单里的文本框或下拉框配合使用
+    * onchange : 改变内容（一般和select一起使用）
+
+    * onload : 在页面加载完成后运行
+    * onunload : 在页面关闭后运行
+
+    <a>标签
+        如果页面过长有滚动条，且希望通过链接的 onclick 事件执行操作。应将它的 href 属性设为 javascript:void(0);，而不要是 #，这可以防止不必要的页面跳动； 
+        实际上 #包含了一个位置信息默认的锚是#top 也就是网页的上端 ，而javascript:void(0) 仅仅表示一个死链接，没有任何信息。所以调用脚本的时候最好用void(0) 
+        链接的 onclick 事件被先执行，其次是 href 属性下的动作（页面跳转，或 javascript 伪链接）； 
+        a本身会触发一个链接，a的onclick会触发一个链接，onclick事件执行后会触发a本身的链接，为了阻止a本身链接的触发，需要对onclick事件的函数返回false。
+        return true：返回正常的处理结果。
+
+        return false：返回错误的处理结果;终止处理;阻止提交表单;阻止执行默认的行为。
+
+        return：把控制权返回给页面。
+
+        *** 如果你点击超链接，选择再新窗口打开就回无效。
+                可以使用JavaScript的function来操作，使用方法来判断是否给 a tag 的 href 赋值。 href 的初始值为 Javascript:void(0)
+
+    class和id的命名规则
+
+    最佳规则：始终使用字母、数字或连字符，并且始终以字母开头
+
+记住，class和id名称是区分大小写的。
+
+    不要使用下划线，不要以数字或连字符打头，不接受“*”，“/”，“\”。虽然新的浏览器对生僻字符集的支持功能更多，但不是所有的浏览器如此，
+    为了保证兼容性，请遵循最佳规则吧。
+
+
+
+
+    Html A标签中 href 和 onclick 同时使用的问题 优先级别
+
+1 顺序 
+
+ie 6 : href 先触发 onclick 后触发
+
+其他浏览器 先触发onlick 后触发 href
+
+-------------------------------------------------------------
+
+对于空白字符串 '' == 0  ， 而 0 由等于 false  1等于 true
+
+布尔值与其他类型的值作比较时，布尔值会转化为数字
+
+
+假如你打算把一个变量赋予对象类型的值，但是现在还没有赋值，那么你可以用null表示此时的状态(证据之一就是typeof null 的结果是'object')；
+相反，假如你打算把一个变量赋予原始类型的值，但是现在还没有赋值，那么你可以用undefined表示此时的状态。
+
+ToPrimitive(obj)等价于：先计算obj.valueOf()，如果结果为原始值，则返回此结果；
+否则，计算obj.toString()，如果结果是原始值，则返回此结果；否则，抛出异常。
+
+
+----------------------------------------------------------------------------
+
+
+ var s1 = '{dbName: "a", length: "b", nullSign: "2", dataType: "1"} ';
+	    var s2 = '{wName: "a", wProperty: "1"}';
+	    eval("var o1 =" + s1);
+	    eval("var o2=" + s2);
+	    for(var i in o2){
+	    	console.log(i);
+	    o1[i] = o2[i];
+	    }
+	    console.log(o1);
+   
+
+    
+for (variable in object) {...}
+variable
+在每次迭代时，将不同的属性名分配给变量。
+object
+被迭代枚举其属性的对象。  
+    
+      a{ a:1,b:2};
+    
+    那么 variable 就为 a
+        Object 就为 1
+
+
+
+
+
+
+
+
+
+
+

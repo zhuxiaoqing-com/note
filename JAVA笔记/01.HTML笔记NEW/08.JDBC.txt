@@ -1,0 +1,388 @@
+JDBC
+   SUN公司提供的一套数据库的规范(就是一组接口)。并提供了连接数据库的协议标准。各厂商会遵循SUN的规范
+   提供一套可以访问自己数据库的API被称之为驱动！
+
+
+第一步：导jar包：驱动！
+第二步：加载驱动类：Class.forName("类名");
+第三步：给出url、username、password，
+
+
+JDBC四大配置参数：
+    >driverClassName:com.mysql.jdbc.Driver
+    >url:jdbc:mysql://localhost:3306/mydb3     如果说本地连接数据库 ip和端口号可以省略不写
+    >username:root
+    >password:123
+
+1.首先使用Class.forname(类名);加载驱动类// 其本质是在com.mysql.jdbc.Driver类里面有一个静态代码块，里面会自动执行
+                                DriverManager.registDriver(driver);
+2.其次DriverManager.getConnection()使用来获取连接对象，连接数据库
+3.通过连接对象获取发送语句对象Statement.
+    Statement有两个方法 
+        >executeUpdate(String sql)它可以发送DML、DDL
+        >createStatement(String sql)它可以发送DQL，会返回一个表格对象ResultSet;       
+
+ResultSet
+    ResultSet表示结果集，它是一个二维的表格！ResultSet内部维护一个行光标(游光标)，ResultSet提供了一系列方法来移动光标
+        > void beforeFirst():把光标放到第一行的前面，这也是光标默认的位置;
+        > void afterLast():把光标放到最后一行的后面
+        > boolean first():把光标放在第一行位置上，返回值表示调控光标是否成功
+        > boolean last():吧光标放到最后一行的位置上;
+        > boolean isBeforeFirst():当前光标位置是否在第一行前面
+        > boolean isAfterLast():当前光标位置是否在最后一行后面
+        > boolean isFirst():当前光标位置是否在第一行
+        > boolean isLast():当前光标位置是否在最后一行
+        > boolean previous()把光标向上挪一行
+        > boolean next()把光标向下挪一行
+        > boolean relative(int row)：相对位移，当row为正数时，表示向下移动row行,为负数时表示向下移动row行
+        > boolean absolute(int row):绝对位移，吧光标移动到指定位置的行上
+        > int getRow();返回当前光标所在行。
+
+       上面方法分为两类，一类用来判断游标的位置，另一类是用来移动游标的。如果结果集是不可滚动的，那么只能使用next()方法
+           来滚动，那么只能使用next()方法来移动游标，而而beforeFirst()、afterLast()、first()、last()、previous()、relative()方法都不能使用！！！
+           结果集是否支持滚动，要从Connection类的createStatement()方法说起，创建Statement方法的时候决定了ResultSet是否支持滚动
+
+        一般不会使用滚动;
+        所以一般直接使用createStatement();来获取结果集对象就好了  这种方法有三种特性：
+            > 不滚动：不滚动的话就只能使用next()方法来移动游标；
+            > 不敏感：敏感：数据库改变，使结果集也会改变
+            > 不可更新：可更新：修改结果集，使数据库也改变
+
+========================
+
+PreparedStatement
+      它是Statement接口中的子接口;
+      强大之处：
+        > 防SQL攻击
+        > 提高代码的可读性、可维护性
+        > 提高效率
+      
+     PreparedStatement用法
+        > 给出SQL模板！参数用?来代替
+        > 调用Conection的PreparedStatement(Stirng sql模板)
+        > 使用PreparedStatement系列Setxxx方法来给？赋值
+
+预处理的原理
+    > 服务器的工作：
+       * 效验sql语句的语法
+       * 编译：一个与函数相似的东西
+       * 执行：调用函数
+
+    > PreparedStatement:
+       * 前提：连接的数据库必须支持预处理！几乎没有不支持的
+       * 每个preparedStatement都与一个sql模板绑定在一起，先把sql模板给数据库，数据库先进行效验，
+             再进行编译。执行时只是把参数传递过去而已！
+       * 若二次执行时，就不用再次效验语法，也不用再次编译！直接执行！
+
+预编译(mysql默认是关闭的)：预编译会只对相同的SQL语句只进行一次语法效验和编译，提高效率，而不用每次发送SQL
+        语句都进行编译！编译用的时间可能比执行语句还长！
+
+       要使用预编译就要在url后面添加：
+            jdbc:mysql://localhost:3306/mydb1?useServerPrepStmts=true&cacheprepStmts=true;
+
+=====================================
+
+JDBC在DAO层的Date的转换
+    数据库类型与java中类型的对应关系：
+    DATE --> java.sql.Date
+    TIME --> java.sql.Time
+    TIMESTAMP --> java.sql.Timestamp
+
+    领域对象种的所有属性不能出现java.sql包下的东西！即不能使用java.sql.Date。
+    ResultSet#getDate()返回的是java.sql.Date()
+    PreparedStatement#setDate(int,Date),其中第二个参数也是java.sql.Date
+
+    时间类型的转换：
+       java.sql.Date、Time、Timestamp --> java.util.Date 
+       因为java.util.Date 是他们三个的父类所以直接赋值给java.util.Date 就完成了转换
+         java.util.Date = java.sql.Date、Time、Timestamp
+
+       java.util.Date --> java.sql.Date、Time、Timestamp 
+        需要使用java.sql.Date、Time、Timestamp 的构造方法，因为java.sql.Date、Time、Timestamp 的构造方法需要
+            一个毫秒值，所以把java.util.Date转换成毫秒值，然后创建相应的java.sql包下面的对象就可以完成转换
+
+            java.util.Date date = new java.util.Date();
+            long l = date.getTime();
+            java.sql.Date sql.Date = new java.sql.Date(l);
+
+================================
+
+大数据
+    就是大的字节数据或大的字符数据
+
+            类型            长度
+字节数据：
+            tinyblob        2的8次方-1B --> 256B
+            blob            2的16次方-1B --> 64KB
+            mediumblob      2的24次方-1B --> 16MB
+            longblob        2的32次方-1B --> 4G
+字符数据：  
+            tinyclob        2的8次方-1B --> 256B
+            clob            2的16次方-1B --> 64KB
+            mediumclob      2的24次方-1B --> 16MB
+            longclob        2的32次方-1B --> 4G
+
+但是，mysql中没有提供tinyclob、clob、mediumclob、longclob四种类型，而是使用如下四种类型来处理文本大数据：
+
+Mysql里面的字符数据：  
+            tinytext        2的8次方-1B --> 256B
+            text            2的16次方-1B --> 64KB
+            mediumtext      2的24次方-1B --> 16MB
+            longtext        2的32次方-1B --> 4G
+
+            mysql想要传输大数据必须要修改配置文件 my.ini
+            在my.ini的最后面添加语句：
+            max_allowed_packet=20971520  数字表示能传输的最大的大小
+
+=================================
+
+批处理
+        * void addBatch(String sql):添加一条语句到“批中”;
+        * int[] executeBatch();返回值表示每条语句所影响的行数据;
+        * void clearBatch();清空“批”中的所有语句。
+    
+    Batch就相当于一个集合
+ 使用Statement的addBatch()来把SQL语句添加到Batch集合里面。
+ 使用Statement的executeBatch()来吧Batch集合里面的语句发送到数据库管理系统进行批量添加。
+ 当执行了executeBatch()以后Batch里面的数据就会被清空，也就是说连续两次调用executeBatch()就相当于调用了一次。
+ 还可以在执行“批”之前，调用Statement的clearBatch()方法来清空"批"！
+
+ 使用Statement的addBatch()相当于吧SQL语句添加到Batch里面
+
+ 而使用preparedStatement的addBatch()不是往Batch里面添加SQL语句，而是给?赋值。
+
+ 打开批处理
+    MySQL的批处理需要通过参数来打开：在URL后面加个?rewriteBatchedStatements=true
+    jdbc:mysql://localhost:3306/mydb1?rewriteBatchedStatements=true
+
+=====
+
+事务ACID
+
+事务的四大特性
+    原子性、一致性、隔离性、持久性
+
+    原子性A：事务中所有的操作是不可再分割的原子单位。事务中所有操作要么全部执行成功要么全部执行失败
+    一致性C：事务执行成功后，数据库状态和其他业务规则保持一致，如转账业务，无论事务执行成功与否，参与转账的两个账号的余额之和应该是不变的。
+    隔离性I：隔离性是指在并发操作中，不同事物之间应该是隔离开来的，使每个并发中的事务不会互相干扰;
+    持久性D：一旦事务提交成功，事务中所有的数据操作都必须被持久化到数据库中，即使提交事务后，数据库马上崩溃，在
+            数据库重启时，也必须保证通过某种机制恢复数据。
+
+在MYsql中开启事务
+    在默认情况下MySQL每执行一条SQL语句，都是一个单独的事务。如果需要在一个事务中包含多条SQL语句，那么需要开启事务和结束事务。
+开启事务：start transaction
+结束事务：commit 或rollback
+
+如果没有使用commit提交的话就会自动算rollback回滚
+
+在JDBC中开启事务
+    connection.setAutoCommit(false)表示开启事务！！！
+    con.commit();表示提交事务
+    con.rollback();表示回滚事务
+
+事务并发问题以及处理方法
+事务并发问题
+1.第一类丢失数据：在完全未隔离事务的情况下，两个事物更新同一条数据资源，某一事物异常终止，回滚造成第一个完成的更新也同时丢失。
+2.脏读：果第二个事务查询到第一个事务还未提交的更新数据，形成脏读。
+3.虚读(幻读)(phantom read)：一个事务执行两次查询，第二次查询比第一次多出或少一些数据，造成两次结果不一致。只是另一个事务在这两次查询中间插入或者删除了数据造成的。
+4.不可重复读(unrepeated read)：一个事务两次读取同一行数据，结果得到不同状态结果，如中间正好另一个事务更新了该数据，两次结果相异，不可信任。
+5.第二类丢失更新(second lost updates)：是不可重复读的特殊情况，如果两个事务都读取同一行，然后两个都进行写操作，并提交，第一个事务所做的改变就会丢失。
+
+事务隔离级别：
+为了解决数据库事务并发运行时的各种问题数据库系统提供四种事务隔离级别：
+1. Serializable 串行化
+    不会出现任何并发问题，因为它是对同一数据的访问是串行的，非并发访问的。
+2. Repeatable Read 可重复读(MySQL默认)
+    防止脏读和不可重复读
+3. Read Commited 可读已提交(Oracle默认)
+    能防止脏读
+4. Read Uncommited 可读未提交
+    性能最好，可能出现任何事务并发问题
+
+每个数据库连接都有一个全局变量 @@tx_isolation ，表示当前的事务隔离级别。
+
+JDBC设置隔离级别
+    con.setTransactionlsolation(int level)
+    参数可选如下：对应的正整数
+        > Connection.TRANSACTION_READ_UNCOMMITTED   1
+        > Connection.TRANSACTION_READ_COMMITTED     2
+        > Connection.TRANSACTION_REPEATABLE_READ    4
+        >Connection.TRANSACTION_SERIALIZABLE        8
+
+===========================================
+
+数据库连接池
+    初始大小：10个
+    最小空闲连接数：3个
+    增量：一次创建的最小单位：5个
+    最大连接数：20个
+    最大的等待时间：1000毫秒
+
+    连接池也是使用四大连接参数来完成创建连接对象！
+
+    连接池必须实现：javax.sql.DataSource接口！
+    连接池返回的是Connection对象，它的close()方法与众不同(使用装饰者模式装饰过)，调用它的close()不是关闭，而是把连接归还给池！
+
+数据库池现在了解了两种
+    第一种：dbcp由.apache.commons提供的、
+    第二种：C3P0
+
+    C3P0可以指定配置文件，而且配置文件可以是properties,也可以是xml下的。当然xml下的高级一些。
+    文件名称：必须叫c3p0-config.xml
+    文件位置：必须在src下面
+
+       如果有了配置文件，还设置了参数，以后加载为主。
+
+============================
+
+Tomcat配置连接池
+    1.Tomcat配置JNDI资源
+        JNDI(java Naming and Directory Interface),java命名个目录接口。JNDI的作用是：在服务器上配置
+        资源，然后通过统一资源的方式来获取配置的资源
+ 配置可以在Tomcat下的conf目录的context.xml里面配置。但是context.xml里面配置的信息是对所有的项目生效的，所以一般不往这里面配置
+    还可以往conf目录下的server.xml里面的<Host>下面配置
+    ***也可以往conf\Catalina\localhost下配置。创建一个与要配置的项目的名称相同的xml文件。
+        (这种配置方法在eclipse里面配置不能用)
+        在eclipse里面配置得在WebContent/META-INF下的目录创建context.xml才能配置
+        配置信息全部写在context.xml下面
+    ***详情请看User.xml
+
+    配置资源的目的当然是为了获取资源了。只要你启动了Tomcat，那么就可以在项目中任何类中通过JNDI获取资源的方式来获取资源了。 
+       1.创建JNDI的上下文对象
+       Context cxt = new InitialContext();
+       2.查询出入口
+       Context envContext = (Context)cxt.lookup("java:comp/env");//这个地址是固定的
+       3.再进行二次查询，找到我们的资源
+        使用的是名称与<Resource>元素的name对应
+        DataSource dataSource = (DataSource)envContext.lookup("jdbc/dataSource");
+        Connection con = dataSource.getConnection
+======================                  
+DbUtils的介绍
+common.dbutils.jar
+QueryRuner
+
+update方法：
+    * int update(String sql,Object... params)-->可执行增，删，改语句
+    * int update(Connection con, String sql, Object... params)-->需要调用者提供Connection,这说明本方法不再管理Connection了，支持事务。
+
+query方法：
+    * T query(String sql, ResultSetHandler rsh, Object... params)-->可执行查询
+        >它会先得到ResultSet,然后调用rsh的handle()把rs转换成需要的类型！
+    * T query(Connection con, String sql, ResultSetHandler rsh, Object... params),支持事务
+
+ResultSetHandler接口：
+    * BeanHandler(单行) --> 构造器需要一个Class类型的参数，用来把一行结果转换成指定类型的javaBean对象
+    * BeanListHandler(多行) --> 构造器需要一个Class类型的参数，用来把一行结果转换成指定类型的javaBean对象,多行就是多个bean对象存储到List集合里面
+    * MapHandler(单行) --> 吧一行结果集转换成Map对象
+    * MapListHandler(多行) --> 吧一行结果集转换成Map对象，多行就是多个Map,即List<Map>
+
+    * ScalarHandler(单行单列)--> 通常用与select count(*) from stu 语句！结果集是单行单列的！它返回的是Object.
+       不同的sql管理软件的驱动的返回类型是不一样的，有些返回int有些long，所以你使用Object向下转型可能会失败，
+       这样我们可以去取他们的共同父类Number.然后在转型，这样就不会失败了
+       可以 Number num1 = (Number)qr.query(sql,new ScalarHandler());
+                int num2 = (int)num1;
+
+======================
+
+ThreadLocal
+
+    ThreadLocal类只有是三个方法：
+        void set(T value):保存值
+        T get():获取值
+        void remove():移除值
+
+    ThreadLocal的内部是一个Map
+        ThreadLocal内部其实是一个Map来保存数据。虽然在使用ThreadLocal时只给出了值，没有给出建，其实它内部使用了
+         当前线程为键。
+    ThereadLocal通常用在一个类的成员上
+    多个线程访问它时，每个线程都有自己的副本，互不干扰！
+    Spring中吧Connetion放到了ThreadLocal中！
+
+=====================
+
+***想要在表单中添加预定的参数，又不想被客户看见，只要使用<input type="hidden" />就好了，hidden表示隐藏按钮
+
+添加Customer案例
+错误1：将要使用反射的方法写成了protected修饰的
+    思考：eclipse生成的service就是protected修饰的，为什么tomcat可以访问，我们就不可以访问？
+    原因：因为Tomact访问的service是public修饰的那个，而不是生成的那个，两个service的参数不一样public修饰的service的形参的是request，
+        而protected修饰的service的形参是HttpRequest. 
+     解决方案：将 protected 修饰的方法改成public就好了
+
+错误2:beanUtils的populate();方法不能映射method参数，因为bean里没有这个参数，只要一使用这populate方法就报错！
+    思考：如果不能映射，而且还必须要method方法，（没有就无法通过反射来运行这个方法），那么难道手动赋值嘛？
+    解决方案：从bean方法里面添加一个method参数，这样beanUtils的populate();方法就可以把Map里面的键值映射到bean里面了
+
+问题1：查询出来的顺序很乱？怎么弄才会变成查询出来的顺序按照存取进去的顺序排序？
+    解决方案：因为如果你没有指定一个列进行order by排序的话，那么MySQL Select 默认排序是按照物理存储顺序显示的。
+            你只要在sql上面指定一个列将其进行order by排序就可以了。
+
+==================================
+
+分页
+分页的优点：只查询一页，不用查询所有页
+
+分页数据
+    页面的数据都是由Servlet传递来的！
+    Servlet：
+    *当期页码：pageCode
+        pageCode：如果页面没有传递当前页码，那么Servlet默认是第一页，或者按页面传递的来准！
+    *总页面：totalPages
+    *当前页数据：beanList
+    *每页记录数：业务数据，或叫系统数据！
+    *总记录数：totalRecored
+        通过 select count(*) from t_customer
+    *url
+
+显示分页页码列表
+ 1 2 3 4 5 6 7 8 9 10
+    *最多显示多少个页码！定为10;
+    *当前页，在页码列表中的位置，定为6;
+
+    只需要当前页码来定出来页码列表！
+    定下来页码列表值需要两样数据：
+     * begin
+     * end
+     10 11 12 13 14 (15) 16 17 18 19
+    需要使用pageCode来推算出begin和end。pageCode永远在当前页码表的第6位（页码大于6的情况下）
+    begin = pageCode - 5
+    end = pageCode + 4
+  计算公式：
+    * 如果总页数<=10（列表长度），那么begin=1，end=总页数
+    * 使用公式计算；begin =  pageCode - 5； end = pageCode + 4;
+    * 头溢出：当begin<1时，让begin=1  end = totalPage
+    * 尾溢出：当end > totalPage ,让 end = totalPage , begin = end - 9;
+
+   自己格外加的。。
+    * 实现的是，在到达尾部以后，会继续向前，直到分页页码列表到了5 6 7 8 9 10 为止
+        尾溢出以后：当end-totalpage<=4时，begin=pageCode-5; end = totalpage;
+                    当end-totalpage>4时，begin=totalpage-5; end =totalpage;
+
+
+
+
+ResultSet
+    调用getObject(),数据库没有值会返回null：
+    调用getInt(),数据库没有值不会将null返回，会自动做转换，将其null转换成int类型的0.也就是java默认初始化的值
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

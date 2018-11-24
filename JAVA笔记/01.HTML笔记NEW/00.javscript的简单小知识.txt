@@ -1,0 +1,636 @@
+eval
+
+    eval() 计算某个字符串，并执行其中的的 JavaScript 代码。 
+    
+     Object   eval("表达式");执行表达式语句
+     Object   eval("("+javascript类型+")");转为javascript对象   
+    返回值通过计算 string 得到的值（如果有的话）。eval函数将把最后一个表达式或者语句所包含的值或引用作为返回值。
+    person={firstname:"John",lastname:"Doe",age:50,eyecolor:"blue"}; JS 创建对象的方式
+    alert(eval('{foo:"bar"}')); // 输出 bar eval执行这段语句，foo:"bar" 将值"bar"赋给了foo，然后eval又将其值拿了过来
+
+
+运算符 = = 和 if的区别
+
+    在= =比较时， 空字符串 和 0 、false 是基本上等同的，如果对象不存在自动为false
+    = =  在比较对象时，会比较其地址值
+      在比较对象时，通过指针指向的内存地址来做比较。
+
+       [] 会调用 toString() 方法，得到 ''空字符串。
+
+下面的值为false:
+false
+null
+undefined
+""  即空字符串
+0
+NaN
+
+
+
+javascript事件
+window.onload. 页面加载完成后执行
+onchange 域的内容被改变。
+onblur 失去焦点时   在用户离开输入框时执行 JavaScript 代码 
+
+
+
+Math.max()函数，返回一列参数中的最大值。 
+    返回值
+    参数中最大的值。如果没有参数，则返回 -Infinity。如果有某个参数为 NaN，或是不能转换成数字的非数字值，则返回 NaN。
+        所以我并不知道怎么通过Math.max(),来解决IE问题
+    因为这个函数可以测试数据并返回最大值，因此可以用它来测试浏览器支持的默认属性
+    var scrollTop = Math.max(
+        doc.documentElement.scrollTop,
+        doc.body.scrollTop
+    );
+
+    这解决了一个IE问题。我们可以读出当前文件的特性，但是对于该文件不同的文档类型，两个属性中其中之一将被赋予该值。
+    而使用Math.max()则可以获得正确的值，因为只有一个属性有返回值，另一个将是未定义。
+
+-------------------------------------------------------------------------------------
+
+
+对于 val() 一般返回 空。但 select 没有 option 的时候返回 null 
+ 对于禁止点击事件，如果不禁止的话，就会导致你不断的点击，不断地往数据库查询， connection 最终会使连接池的 connection 耗尽，导致连接池 泄露 
+       一旦连接池泄露只能重启服务器
+       对于循环查询也要注意这个问题，因为你用的查询 数据库的工具，很可能是在你查询语句前后自动帮你获取和结束线程的。
+       如果你循环的过多的话就会获取的太多，而还没结束，就会报错
+
+ 会与 .html() 为空一直返回 "" ，只有你的这个元素不存在的时候才会返回 null
+
+ --------------------------------------------------------------------------------------
+
+
+
+对于空白字符串 '' == 0  ， 而 0 由等于 false  1等于 true
+
+布尔值与其他类型的值作比较时，布尔值会转化为数字
+
+
+假如你打算把一个变量赋予对象类型的值，但是现在还没有赋值，那么你可以用null表示此时的状态(证据之一就是typeof null 的结果是'object')；
+相反，假如你打算把一个变量赋予原始类型的值，但是现在还没有赋值，那么你可以用undefined表示此时的状态。
+
+ToPrimitive(obj)等价于：先计算obj.valueOf()，如果结果为原始值，则返回此结果；
+否则，计算obj.toString()，如果结果是原始值，则返回此结果；否则，抛出异常。
+此处有个例外，即Date类型的对象，它会先调用toString()方法，后调用valueOf()方法。
+
+在运算过程中，所有类型的值都有一种向数字类型转化的趋势。毕竟曾经有名言曰：
+    万物皆数。
+
+先转换 valueOf()  然后 toString()  Date 例外 先 toString() 后 vlaueOf() 
+
+数组的valueOf()方法返回自身
+
+对于数组来说，toString()方法的算法，是将每个元素都转为字符串类型，然后用逗号','依次连接起来，所以最终结果是空字符串''，它是一个原始类型的值。
+
+
+toString()方法用来得到对象的一段文字描述；而valueOf()方法用来得到对象的特征值。
+
+当然，这只是我自己的理解。顾名思义，toString()方法倾向于返回一个字符串。那么valueOf()方法呢？
+根据规范中的描述，它倾向于返回一个数字——尽管内置类型中，valueOf()方法返回数字的只有Number和Date。
+
+
+请使用 isNaN() 来判断一个值是否是数字。原因是 NaN 与所有值都不相等，包括它自己
+    
+document.write(isNaN(123));         false
+document.write(isNaN(-1.23));       false
+document.write(isNaN(5-2));         false
+document.write(isNaN(0));           false
+document.write(isNaN("Hello"));      true
+document.write(isNaN("2005/12/12")); true
+
+
+ Number.NaN 可以使用 Number.NaN 来表示 NaN
+    NaN属于Number类型
+
+这样当通过isNaN()函数对字符串’abc’判断时会返回true，然而事实是字符串’abc’的type类型为string，而NaN的type类型为number，
+    字符串’abc’不应该是NaN。但isNaN函数先通过ToNumber(‘abc’)把字符串’abc’强制转换为NaN了，所以isNaN(NaN)就返回true了。
+    ECMA也推荐我们用x !== x返回true判断x是否为NaN。
+
+Number.isNaN()
+
+Number.isNaN()在ES6中定义的，Number.isNaN() 方法用来检测传入的值是否是 NaN。该方法比传统的全局函数 isNaN() 更可靠
+    。该方法不会强制将参数转换成数字，只有在参数是真正的数字类型，且值为 NaN 的时候才会返回 true。
+
+
+比较字符串时，将字符串放在前面比较 变量，可以防止空指针异常
+
+
+
+moment.js
+    moment("毫秒值").format("YYYY-MM-DD hh:mm:ss")  format 将其转换成相应的 格式
+
+moment() // 当前时间
+
+moment("2010-10-20 4:30","YYYY-MM-DD HH:mm")
+    将其字符串转换成 Date
+    放入字符串 为其传入格式，会将其转换成 Date 
+    解析器忽略非字母数字字符，所以下面两个都会返回相同的值。
+    moment("12-25-1995", "MM-DD-YYYY");
+    moment("12/25/1995", "MM-DD-YYYY");
+
+
+
+js如何获取系统的根路径 单独的 js 文件里面是不能使用 <%=%> 和 el 表达式的。我们可以
+function getBasePath(){ 
+var obj=window.location; 
+var contextPath=obj.pathname.split("/")[1]; 
+var basePath=obj.protocol+"//"+obj.host+"/"+contextPath; 
+return basePath; 
+} 
+
+
+window 是所有对象的父类
+javascript对象包含 
+
+1.window javascript的顶层对象 
+
+2.navigator 客户端浏览器的信息 
+
+3.screen 客户端显示屏的信息 
+
+4.history 浏览器窗口访问过的url信息 
+
+5.location 当前url信息 
+
+其中location对象包含 
+
+比如有这样一个html地址 http://localhost:8080/huyao_soccer/huyao/tag/myplugin.jsp 
+
+1.hash 
+
+2.host 主机名和当前url的端口号 返回:localhost:8080 
+
+3.hostname 主机名 返回:localhost 
+
+4.href 完整的url 返回:http://localhost:8080/huyao_soccer/huyao/tag/myplugin.jsp 
+
+5.pathname 返回当前url的路径部分 返回:/huyao_soccer/huyao/tag/myplugin.jsp 
+
+6.port 端口号 返回:8080 
+
+7.protocol 协议 返回: http: 
+
+8.search 从?开始的url部门(查询部分) 
+
+
+
+
+<script language="JavaScript">
+if (window != top)
+top.location.href = location.href;
+</script>
+如果当前页面不是顶部页面就将其跳转到 顶部页面
+    用来跳出 iframe 
+
+
+拼接字符串的时候 可以使用 &quit; 等转义来代表 / 等。
+
+
+bootstrap 你可以手动控制 其 bootstrap 的栅格系统
+
+.col-md-1 { width:12.68%;}
+.col-md-2 { width:87.32%;}
+
+
+随着函数使用场合的不同，this的值会发生变化
+但是总有一个原则：那就是this指的是：调用函数的那个对象
+即：谁调用这个函数或者方法，this关键字就指向谁
+
+实际上fun()是全局window的一个方法，调用fun()方法，即window.fun();所以this=>window
+this.name=>window.name
+
+
+person.showName();//输出：局部
+//调用showName函数的是person,所以this指向person
+
+example对象的onclick得到to_green的方法，那么包含this的函数就是onclick
+
+点击事件是所有元素的属性，而标签元素也是一个对象。所有点击事件的 onclick 里面的 this 指的就是被点击的标签元素的 document 对象 
+因为函数没有属于或被赋予给谁，那么 它就是属于 window 的，所以 this 就是 window 的
+
+
+
+javascript 抛出异常
+    js中可以抛出任何类型的异常，比如数字、字符串甚至布尔值
+     throw 'error';  
+        throw 123;  
+        throw false;  
+
+    也可以抛出自定义的对象
+            try  
+        {  
+            var exception = new CommonException('您的代码出错啦', 1);  
+      
+            throw exception;  
+      
+            alert('这地方的代码将不会执行到');  
+        }  
+        catch (e) {  
+            alert(e.message);  
+            alert(e.code)  
+        }  
+
+当然，像大多数的面向对象语言中有内置的Exception类一样，js中也有内置的异常类： Error 
+    new Error([message[, fileName[, lineNumber]]])  
+
+            try {  
+          throw new Error('Whoops!');  
+        } catch (e) {  
+          console.log(e.name + ': ' + e.message);  
+          console.log(e.name);     // 'Error'  
+        console.log(e.message);  // 'Whoops!'  
+        }  
+
+服务端返回的mime类型为"text/html",而回调函数指定的为"json",
+    发现返回值类型指定错误
+就是这里的类型与服务端指定不匹配，造成ajax请求出错。如果想在服务端返回json类型，请到<%tomcat%>\conf\web.xml文件中寻找json对应的MIME类型，并在服务端指定即可。
+
+如果返回的格式，和 ajax 指定的格式不对是不会调用回调函数的， jquery.
+
+
+
+----------------------------------------------------------
+
+如果一个属性 没有申明 类型那么他默认是全局变量不管他在哪。
+  funciton a() {
+    a =11;  // a 是一个全局变量
+  }
+  
+var i=100;//显式申明
+i=100;//隐式申明
+
+     在函数中使用 var 关键字进行显示申明的变量是作为局部变量，而没有用 var 关键字，使用直接赋值方式申明的是全局变量
+
+num = 1；
+
+  事实上是对属性赋值操作。首先，它会尝试在当前作用域(如在方法中申明，则当前作用域链代表全局作用域和方法局部作用域)
+    中解析 num. 如果在任何当前作用域中找到 num.则会执行对num属性赋值；如果没有找到 num.它才会在全局对象(即当前作用域链的最顶层对象，如window对象）中创造num属性并赋值。
+    
+  * 注意！它并不是申明了一个全局变量，而是创建了一个全局对象的属性。
+
+    即便如此，可能你还是很难明白“变量声明”跟“创建对象属性”在这里的区别。事实上，Javascript的变量声明、创建属性以及每个
+    Javascript中的每个属性都有一定的标志说明它们的属性----如只读（ReadOnly）不可枚举（DontEnum）不可删除（DontDelete）等等。
+
+
+    由于变量声明自带不可删除属性，比较var num = 1 跟 num = 1，
+    前者是变量声明，带不可删除属性，因此无法被删除；
+    后者为全局变量的一个属性，因此可以从全局变量中删除。
+
+
+    
+    那么问题来了怎么删除 全局变量的属性呢
+
+    js delete 用法(删除对象属性及变量)
+
+     function fun() {
+	    name = 'mm';
+	}
+	fun();
+	console.log(window.name);//mm  
+	delete window.name;
+	console.log(window.name); //undefined
+
+
+    delete 对象.属性  就可以删除对象的属性
+
+
+
+--------------------------------------------------------------
+
+
+
+load():
+    $("#button").click(function(){
+      $("div").load('xxx.jsp');
+    });
+
+    可以键 xxx.jsp 的页面加载到 button 的 id 里面。
+    这样就可以不用担心 iframe 的父子页面
+
+
+
+对于 Funciton 类的对象的 toString() 方法
+
+    就是打印自身
+
+        function func() {
+       console.log("I am a function");
+        }
+        func.toString();
+        输出："function func() {
+           console.log("I am a function");
+        }"
+
+关于 toString() 方法
+    输出的是字符串。所以不管你加 什么都是 字符串拼接操作
+
+
+  JavaScript中的作用域
+    javaScript 的作用域是采用就近原则的方式的
+  
+
+<script>
+    var str1 = "hello";
+    var str2 = "world";
+
+    function t1() {
+        console.log(str1);
+        console.log(str2);
+
+        var str2 = "toby";
+        console.log(str2);
+    }
+    
+    //这里会输出什么?
+    t1();
+
+</script>
+    hello
+    undefined
+    toby
+            
+    
+
+    因为采用了就近原则
+    
+    str2 在函数里面已经定义但是还没有初始化，所以就是 undefined
+
+ 
+ 注意如果是 function 的话会将 注释也输出出来
+
+-------------------------------------
+
+
+    作用域链就是 Active Object 链 
+       就是当前的 Active Object 中找不到，属性就会往上面找直到 Window. 
+
+js 词法分析。
+    js 中的函数执行前，必须要做的一件事情就是词法分析，那么究竟什么是词法分析呢?
+     
+        分析参数,分析变量声明,分析函数声明
+
+     js 的函数执行的时候，会有两个阶段。
+        分析阶段、执行阶段
+        
+        分析阶段 
+            分析参数
+            分析 var  声明
+            分析 函数 声明
+
+       分析完就到了 执行阶段
+
+
+       我们试着分析 下面这个 函数
+<script>
+    function t(userName) {
+        console.log(userName);//这里输出什么?
+
+        var userName = function () {
+            console.log('tom');
+        }
+    }
+    t('toby');
+</script>
+
+
+  分析阶段首先是  
+        函数运行的瞬间，会生成一个 Active Object 对象(以下简称AO对象)。一个函数作用域内能找到的所有
+        变量，都在 AO 对象上。此时用代码表示为 t.AO = {};
+
+       分析参数
+        接收参数，以参数名为属性，参数值为属性值，
+            t.AO = {userName : body};  
+
+        分析函数里面的 var 申明。
+            var在AO上,形成一个属性,以var的变量名为属性名,值为undefined,(因为是先分析,后执行,这只是词法分析阶段,
+            并不是执行阶段,分析阶段值都是undefined,如果执行阶段有赋值操作,那值会按照正常赋值改变),也就是说代码应该
+            表示为:t.AO = {userName : undefined},
+            但是还有另外一个原则,那就是 分析阶段 如果AO有已经有同名属性,则不影响(也就是什么事都不做),由于分析参数时,
+            AO上已经有userName这个属性了,所以按照这个原则,此时什么事都不做,也就是说,此时按照分析参数时的结果
+            t.AO = {userName : toby}  如果是执行阶段那就正常赋值改变。
+
+
+            //这个叫函数声明
+            function userName() {
+                console.log('tom');
+            }
+
+            //这个叫函数表达式
+            var userName = function () {
+                console.log('tom');
+            }
+
+    
+        分析函数声明: 这个函数声明有个特点,AO上如果有与函数名同名的属性,则会被此函数覆盖,因为函数在JS领域,也是变量的一种类型,
+            因此用代码表示为: t.AO = { userName : function userName() {console.log('tom');}}
+
+
+
+        然后就是 执行阶段。执行阶段就是我们熟悉的阶段
+            不管是 执行阶段 还是 分析阶段 全部是对函数的 Avtive Object 对象里面的值进行改变。
+
+    
+    javaScript 作用域会先在自己的 Active Object 上找，找不到就到父函数的 AO 上找，再找不到再找上一层的AO,直到找到window.
+          这样就形成一条链,这条AO链就是JavaScript中的作用域链.JavaScript中有两条很重要的链,一条是作用域链,一条是原型链
+
+
+
+----------------------------------
+
+    原型链
+    
+    typeof obj 和 obj instanceof Type
+
+    typeof obj
+        返回obj对象的类型的全小写的字符串,只针对基本类型有效,
+        如果作用在引用类型上,都返回object字符串,无法判断变量的真实类型
+    
+    obj instanceof Type
+        判断obj是否属于Type类型,返回boolean,只能作用在引用类型上,
+        如果作用在基本类型上,都是返回false的结果.
+
+
+ javaScript 中的类
+    javaScript 中是没有类的概念的，创建对象是用 构造函数来完成的，或者直接用 json 格式 {} 来写对象
+
+  
+
+
+对于function语句式，解释器会优先解释。即加载了这个js文件后，会扫描一下所有的js代码，然后把该优先执行的东西先执行了，
+然后再从上到下按顺序执行。
+
+
+
+
+Js不可以跨域请求数据。  服务器可以正常响应成功 成功码 200 ，但是浏览器不会接受，浏览器会报错
+什么是跨域：
+1、域名不同
+2、域名相同端口不同。
+
+解决js的跨域问题可以使用jsonp。
+
+Jsonp不是新技术，跨域的解决方案。使用js的特性绕过跨域请求。Js可以跨域加载js文件。
+
+
+  js 加载以后，因为 js 会自动执行加载进来的 callback。 然后 callback 执行，执行以后加载的进来的 js 就运行了
+
+
+    <script type="text/javascript">
+    $(document).ready(function(){
+        var url = "http://www.practice-zhao.com/student.php?id=1&callback=jsonhandle";
+        var obj = $('<script></script>');
+        obj.attr("src",url);
+        // 此时开始调用
+        $("body").append(obj);
+    });
+</script>
+    你需要将 callback 的方法名称传递给服务器，然后服务器返回一个合法的 js,就会被立即执行，比如 jsonhandle({id=1,name='xx'});
+        这就是合法的 js ，调用以后就相当于调用了 jsonhandle 方法，传入了 {id=1,name='xx'} 对象。这样就把数据取到了
+
+    原理就是这样
+    其实就和 你 加载 img  一样的，你添加一个 img 标签，也是会立即请求  服务器的
+    只不过换成了 '<script></script>'
+
+
+
+
+html 会把所有的 Html 加载成一个 domTree , 只要变化就会重新渲染页面
+    因为我们操作了 dom 树，所以页面会变化。代码会执行，
+    浏览器就会重新渲染页面
+
+
+
+--------------------------
+
+javascript 的正则表达式
+   
+jquery 正则表达式速查表
+    
+    /^[a-z0-9_-]{3,16}$/
+     /...$/ 格式  // 相当于 ""  $ 表示正则结 有多个 正则的话就可以用 $ 分割
+
+var regName=/(^[a-zA_Z0-9_-]{6,16}$)|(^[\u2E80-\u9FFF]{2,5})$/;
+	 // 调用 正则的test()方法符合正则规则。就会返回 true 不符合 返回 false
+	 alert(regName.test(empName));
+    
+    
+^ 表示匹配输入字符串的开始位置。如果设置了RegExp对象的Multiline属性，^也匹配“\n”或“\r”之后的位置。
+匹配输入字符串的结束位置。如果设置了RegExp对象的Multiline属性，$也匹配“\n”或“\r”之前的位置。
+
+$
+匹配输入字符串的结束位置。如果设置了RegExp对象的Multiline属性，$也匹配“\n”或“\r”之前的位置。 
+
+^ 正则前面不带 ^ 会忽略前面的 空格。" x" 和 "x" 为 true . 带了 ^ 的话 " x" 和 "x" 为 false
+$ 和 ^ 一样表示的是后面。
+
+多个正则使用 () 来区分
+    正则没有 || 只有 | ， 如果 || 的话 会认为都是 true
+
+
+
+
+alert(fruits.push("sss" || "xxx"));
+	var ss = "" || "xx";
+	'' || xx
+	的意思是 如果 左边为 false 的话就返回 右边的
+	如果左边为 true 返会 左边的
+	'xx' || ss
+	其实就是如果 左边的没有值的话就使用右边的 备用的值
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

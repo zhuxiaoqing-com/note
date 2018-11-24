@@ -1,0 +1,34 @@
+
+java.lang 
+类 System
+public static void arraycopy(Object src,
+                             int srcPos,
+                             Object dest,
+                             int destPos,
+                             int length)
+从指定源数组中复制一个数组，复制从指定的位置开始，到目标数组的指定位置结束。
+从 src 引用的源数组到 dest 引用的目标数组，数组组件的一个子序列被复制下来。
+被复制的组件的编号等于 length 参数。源数组中位置在 srcPos 到 srcPos+length-1 之
+间的组件被分别复制到目标数组中的 destPos 到 destPos+length-1 位置。 
+
+ 
+就是从 src 的 srcPos 开始复制，复制 srcPos + length -1 的数组下标  复制到  dest 的 destPos 开始的下标。
+
+只要下列任何情况为真，则抛出 IndexOutOfBoundsException 异常，并且不会修改目标数组： 
+
+srcPos 参数为负。 
+destPos 参数为负。 
+length 参数为负。 
+srcPos+length 大于 src.length，即源数组的长度。 
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="canonical" href="http://blog.csdn.net/qq_24399533/article/details/50733912"/> 
+    <script type="text/javascript">
+        var username = "qq_24399533";
+        var _blogger = username;
+        var blog_address = "http://blog.csdn.net/qq_24399533";
+        var static_host = "http://csdnimg.cn/release/phoenix/";
+        var currentUserName = ""; 
+        var fileName = '50733912';
+        var commentscount = 2;
+        var islock = false;
+        window.quickReplyflag = true;
+        var totalFloor = 2;
+        var isBole = false;
+        var isDigg = false;
+        var isExpert = false;
+        var isAdm = false;
+        var baiduKey = "";
+        var needInsertBaidu = false;
+    </script>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <script src="http://c.csdnimg.cn/public/common/libs/jquery/jquery-1.9.1.min.js" type="text/javascript"></script>
+    <link rel="stylesheet" href="http://c.csdnimg.cn/public/common/libs/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="http://c.csdnimg.cn/public/static/css/avatar.css">
+    <link rel="stylesheet" href="http://csdnimg.cn/release/phoenix/production/main-a73b503dcd.css">
+    <link rel="stylesheet" href="http://c.csdnimg.cn/public/common/toolbar/content_toolbar_css/content_toolbar.css">
+
+    <script src="http://csdnimg.cn/rabbit/exposure-click/main-1.0.5.js"></script>
+    <script type="text/javascript" src="http://csdnimg.cn/pubfooter/js/tracking-1.0.2.js" charset="utf-8"></script>
+    <script type="text/javascript" src="http://csdnimg.cn/release/phoenix/production/main-187a8b1677.js"></script>
+
+    <script src="http://dup.baidustatic.com/js/ds.js"></script>
+    <script type="text/javascript">
+        // Traffic Stats of the entire Web site By baidu
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            hm.src = "https://hm.baidu.com/hm.js?6bcd52f51e9b3dce32bec4a3997715ac";
+            var s = document.getElementsByTagName("script")[0];
+            s.parentNode.insertBefore(hm, s);
+        })();
+        // Traffic Stats of the entire Web site By baidu end
+    </script>
+    <meta name="description" content="form有2中方法把数据提交给服务器，get和post,分别说下吧。 
+（一）get提交 
+  1.首先说下客户端（浏览器）的form表单用get方法是如何将数据编码后提交给服务器端的吧。 
+   
+    对于get方法来说，都是把数据串联在请求的url后面作为参数，如：http://localhost:8080/servlet?msg=abc 
+（很常见的一个乱码问题就要出现了，如果" />
+    <meta name="keywords" content="" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" /><link rel="alternate" media="handheld" href="#" />
+    <meta name="shenma-site-verification" content="5a59773ab8077d4a62bf469ab966a63b_1497598848">
+    <title>form表单提交数据编码方式和tomcat接受数据解码方式的思考 - CSDN博客</title>
+    <link href="http://csdnimg.cn/public/favicon.ico" rel="SHORTCUT ICON">
+      </head>
+<body>
+<script id="toolbar-tpl-scriptId" prod="download" skin="black" src="http://c.csdnimg.cn/public/common/toolbar/js/content_toolbar.js" type="text/javascript" domain="http://blog.csdn.net/"></script>
+<div class="container clearfix">
+  <main>
+    <article>
+        <h1 class="csdn_top">form表单提交数据编码方式和tomcat接受数据解码方式的思考</h1>
+        <div class="article_bar clearfix">
+            <div class="artical_tag">
+                <span class="original">
+                转载                </span>
+                <span class="time">2016年02月24日 22:20:29</span>
+            </div>
+
+            <ul class="article_tags clearfix csdn-tracking-statistics tracking-click" data-mod="popu_377" >
+                <li class="tit">标签：</li>
+
+<!--          [startarticletags]-->
+                <!--          [endarticletags]-->
+            </ul>
+            <ul class="right_bar">
+                <li><button class="btn-noborder"><i class="icon iconfont icon-read"></i><span class="txt">1046</span></button></li>
+                <li class="edit">
+                    <a class="btn-noborder" href="" >
+                        <i class="icon iconfont icon-bianji"></i><span class="txt">编辑</span>
+                    </a>
+                </li>
+                <li class="del">
+                    <a class="btn-noborder" onclick="javascript:deleteArticle(fileName);return false;">
+                        <i class="icon iconfont icon-shanchu"></i><span class="txt">删除</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        <div id="article_content" class="article_content csdn-tracking-statistics tracking-click" data-mod="popu_519" data-dsm="post">
+                        
+<p><span style="font-family:Helvetica;font-size:14px;">  form有2中方法把数据提交给服务器，get和post,分别说下吧。 <br /></span><span>（一）get提交<span> </span></span><br /><span>  1.首先说下客户端（浏览器）的form表单用get方法是如何将数据编码后提交给服务器端的吧。<span> </span></span><br /><span>  <span> </span></span><br /><span>    对于get方法来说，都是把数据串联在请求的url后面作为参数，如：http://localhost:8080/servlet?msg=abc<span> </span></span><br /><span>（很常见的一个乱码问题就要出现了，如果url中出现中文或其它特殊字符的话，如：http://localhost:8080/servlet?msg=杭州，服务器端容易得到乱码），url拼接完成后，浏览器会对url进行URL encode，然后发送给服务器，URL encode的过程就是把部分url做为字符，按照某种编码方式（如：utf-8,gbk等）编码成二进制的字节码，然后每个字节用一个包含3个字符的字符串 "%xy" 表示，其中xy为该字节的两位十六进制表示形式。我这里说的可能不清楚，具体介绍可以看下java.net.URLEncoder类的介绍在</span><a href="http://gceclub.sun.com.cn/Java_Docs/html/zh_CN/api/java/net/URLEncoder.html">这里</a><span>。了解了URL
+ encode的过程，我们能看到2个很重要的问题，第一：需要URL encode的字符一般都是非ASCII的字符（笼统的讲），再通俗的讲就是除了英文字母以外的文字（如：中文，日文等）都要进行URL encode，所以对于我们来说，都是英文字母的url不会出现服务器得到乱码问题，出现乱码都是url里面带了中文或特殊字符造成的；第二：URL encode到底按照那种编码方式对字符编码？这里就是浏览器的事情了，而且不同的浏览器有不同的做法，中文版的浏览器一般会默认的使用GBK，通过设置浏览器也可以使用UTF-8，可能不同的用户就有不同的浏览器设置，也就造成不同的编码方式，所以很多网站的做法都是先把url里面的中文或特殊字符用javascript做URL
+ encode，然后再拼接url提交数据，也就是替浏览器做了URL encode，好处就是网站可以统一get方法提交数据的编码方式。 完成了URL encode，那么现在的url就成了ASCII范围内的字符了，然后以iso-8859-1的编码方式转换成二进制随着请求头一起发送出去。这里想多说几句的是，对于get方法来说，没有请求实体，含有数据的url都在请求头里面，之所以用URL encode，我个人觉的原因是：对于请求头来说最终都是要用iso-8859-1编码方式编码成二进制的101010.....的纯数据在互联网上传送，如果直接将含有中文等特殊字符做iso-8859-1编码会丢失信息，所以先做URL
+ encode是有必要的。<span> </span></span><br /><span>   2。服务器端（tomcat）是如何将数据获取到进行解码的。<span> </span></span><br /><span>   第一步是先把数据用iso-8859-1进行解码，对于get方法来说，tomcat获取数据的是ASCII范围内的请求头字符，其中的请求url里面带有参数数据，如果参数中有中文等特殊字符，那么目前还是URL encode后的%XY状态，先停下，我们先说下开发人员一般获取数据的过程。通常大家都是request.getParameter("name")获取参数数据，我们在request对象或得的数据都是经过解码过的，而解码过程中程序里是无法指定，这里要说下，有很多新手说用request.setCharacterEncoding("字符集")可以指定解码方式，其实是不可以的，看servlet的官方API说明有对此方法的解释：Overrides
+ the name of the character encoding used in the body of this request. This method must be called prior to reading request parameters or reading input using getReader().可以看出对于get方法他是无能为力的。那么到底用什么编码方式解码数据的呢，这是tomcat的事情了，默认缺省用的是iso-8859-1,这样我们就能找到为什么get请求带中文参数为什么在服务器端得到乱码了，原因是在客户端一般都是用UTF-8或GBK对数据URL
+ encode，这里用iso-8859-1方式URL decoder显然不行，在程序里我们可以直接<span> </span></span></p>
+<pre class="java">new String(request.getParameter("name").getBytes("iso-8859-1"),"客户端指定的URL encode编码方式")  </pre>
+<p><span style="font-family:Helvetica;font-size:14px;">还原回字节码，然后用正确的方式解码数据，网上的文章通常是在tomcat里面做个配置 </span><span></span></p>
+<pre class="html">&lt;&lt;/span&gt;Connector port="8080" protocol="HTTP/1.1" maxThreads="150" connectionTimeout="20000" redirectPort="8443" URIEncoding="GBK"/&gt;  </pre>
+<p><span style="font-family:Helvetica;font-size:14px;">这样是让tomcat在获取数据后用指定的方式URL decoder，URL decoder的介绍在<a href="http://gceclub.sun.com.cn/Java_Docs/html/zh_CN/api/java/net/URLDecoder.html#decode(java.lang.String,%20java.lang.String)">这里</a></span></p>
+<div><span style="font-family:Helvetica;font-size:14px;"><br /></span></div>
+<div><span style="font-family:Helvetica;font-size:14px;"><br /></span></div>
+<div><span style="font-family:Helvetica;font-size:14px;"><br /></span></div>
+<div><span style="font-family:Helvetica;font-size:14px;"><span style="font-family:Helvetica;font-size:14px;">（一）post提交 <br /></span><span>1.客户端（浏览器）的form表单用post方法是如何将数据编码后提交给服务器端的。<span> </span></span><br /><span>  在post方法里所要传送的数据也要URL encode，那么他是用什么编码方式的呢？<span> </span></span><br /><span>   在form所在的html文件里如果有段，那么post就会用此处指定的编码方式编码。一般大家都认为这段代码是为了让浏览器知道用什么字符集来对网页解释，所以网站都会把它放在html代码的最前端，尽量不出现乱码，其实它还有个作用就是指定form表单的post方法提交数据的URL encode编码方式。从这里可以看出对于get方法来数，浏览器对数据的URL encode的编码方式是有浏览器设置来决定，（可以用js做统一指定），而post方法，开发人员可以指定。<span> </span></span><br /><span>2。服务器端（tomcat）是如何将数据获取到进行解码的。<span> </span></span><br /><span>如果用tomcat默认缺省设置，也没做过滤器等编码设置，那么他也是用iso-8859-1解码的，但是request.setCharacterEncoding("字符集")可以派上用场。<span> </span></span><br /><br /><span>我发现上面说的tomcat所做的事情前提都是在请求头里没有指定编码方式，如果请求头里指定了编码方式将按照这种方式编码。<br /><br /></span><br /></span>
+<p><span> </span>首先要了解JAVA处理字符的原理。</p>
+<p>    JAVA使用UNICODE来存储字符数据，处理字符时通常有三个步骤：</p>
+<p>   <span> </span><span style="color:rgb(255,0,0);">1、按指定的字符编码形式，从源输入流中读取字符数据</span></p>
+<p>   <span> </span><span style="color:rgb(255,0,0);">2、以UNICODE编码形式将字符数据存储在内存中</span></p>
+<p>   <span> </span><span style="color:rgb(255,0,0);">3、按指定的字符编码形式，将字符数据编码并写入目的输出流中</span></p>
+<p><span style="color:rgb(255,0,0);"><span style="color:rgb(255,0,0);">   <span> </span></span>所以JAVA处理字符时总是经过了两次编码转换，<span style="color:rgb(0,0,255);">一次是从指定编码转换为UNICODE编码</span>，<span style="color:rgb(0,0,255);">一次是从UNICODE编码转换为指定编码</span>。如果在读入时用错误的形式解码字符，则内存存储的是错误的UNICODE字符。而从最初文件中读出的字符数据，到最终在屏幕终端显示这些字符，期间经过了应用程序的多次转换。如果中间某次字符处理用错误的编码方式解码了从输入流读取的字符数据，或用错误的编码方式将字符写入输出流，则下一个字符数据的接收者就会编解码出错，从而导致最终显示乱码。<span style="color:rgb(255,0,0);"><strong>这一点，是我们分析字符编码问题以及解决问题的指导思想</strong></span>。</span></p>
+<p> </p>
+<p><span style="color:rgb(0,0,128);"><strong>一、在JAVA文件中硬编码中文字符，在eclipse中运行，控制台输出了乱码</strong></span>。</p>
+<p>    例如，我们在JAVA文件中写入以下代码：</p>
+<p>    String text = "大家好";</p>
+<p>    System.out.println(text);</p>
+<p>    如果我们是在eclipse里编译运行，可能看到的结果是类似这样的乱码：????。那么，这是为什么呢？</p>
+<p>    我们先来看看整个字符的转换过程。</p>
+<p>    1. 在eclipse窗口中输入中文字符，并保存成UTF-8的JAVA文件。这里发生了多次字符编码转换。不过因为我们相信eclipse的正确性，所以我们不用分析其中的过程，只需要相信保存下的JAVA文件确实是UTF-8格式。</p>
+<p>    2. 在eclipse中编译运行此JAVA文件。这里有必要详细分析一下编译和运行时的字符编码转换。</p>
+<p>   <span> </span><span style="color:rgb(255,0,0);">编译：</span>我们用javac编译JAVA文件时，javac不会智能到猜出你所要编译的文件是什么编码类型的，所以它需要指定读取文件所用的编码类型。默认javac使用平台缺省的字符编码类型来解析JAVA文件。平台缺省编码是操作系统决定的，我们使用的是中文操作系统，语言区域设置通常都是中国大陆，所以平台缺省编码类型通常是GBK。这个编码类型我们可以在JAVA中使用System.getProperty("file.encoding")来查看。所以javac会默认使用GBK来解析JAVA文件。如果我们要改变javac所用的编码类型，就要加上-encoding参数，如javac
+ -encoding utf-8 Test.java。</p>
+<p>    这里要另外提一下的是eclipse使用的是内置的编译器，并不能添加参数，如果要为javac添加参数则建议使用ANT来编译。不过这并非出现乱码的原因，因为eclipse可以为每个JAVA文件设置字符编码类型，而内置编译器会根据此设置来编译JAVA文件。</p>
+<p>   <span> </span><span style="color:rgb(255,0,0);">运行：</span>编译后字符数据会以UNICODE格式存入字节码文件中。然后eclipse会调用java命令来运行此字节码文件。因为字节码中的字符总是UNICODE格式，所以java读取字节码文件并没有编码转换过程。虚拟机读取文件后，字符数据便以UNICODE格式存储在内存中了。</p>
+<p>    3. 调用System.out.println来输出字符。这里又发生了字符编码转换。</p>
+<p>    System.out.println使用了PrintStream类来输出字符数据至控制台。PrintStream会使用平台缺省的编码方式来输出字符。我们的中文系统上缺省方式为GBK，所以内存中的UNICODE字符被转码成了GBK格式，并送到了操作系统的输出服务中。因为我们操作系统是中文系统，所以往终端显示设备上打印字符时使用的也是GBK编码。如果到这一步，我们的字符其实不再是GBK编码的话，终端就会显示出乱码。那么，在eclipse运行带中文字符的JAVA文件，控制台显示了乱码，是在哪一步转换错误呢？我们一步步来分析。</p>
+<p>   <span> </span><span style="color:rgb(255,0,0);">保存JAVA文件成UTF-8后，如果再次打开你没有看到乱码，说明这步是正确的</span>。</p>
+<p>   <span> </span><span style="color:rgb(255,0,0);">用eclipse本身来编译运行JAVA文件，应该没有问题</span>。</p>
+<p>   <span> </span><span style="color:rgb(255,0,0);">System.out.println会把内存中正确的UNICODE字符编码成GBK</span>，<span style="color:rgb(255,0,0);">然后发到eclipse的控制台去</span>。</p>
+<p>    等等，我们看到在Run Configuration对话框的Common标签里，控制台的字符编码被设置成了UTF-8！问题就在这里。  System.out.println已经把字符编码成了GBK，而控制台仍然以UTF-8的格式读取字符，自然会出现乱码。将控制台的字符编码设置为GBK，乱码问题解决。（这里补充一点：eclipse的控制台编码是继承了workspace的设置的，通常控制台编码里没有GBK的选项而且不能输入。我们可以先在 workspace的编码设置中输入GBK，然后在控制台的设置中就可以看到GBK的选项了，设置好后再把workspace的字符编码设置改回utf-
+ 8就是。）</p>
+<p> </p>
+<p>   <span> </span><span style="color:rgb(0,0,128);"><strong>二、JSP文件中硬编码中文字符，在浏览器上显示乱码</strong></span>。</p>
+<p>    我们用eclipse编写一个JSP页面，使用tomcat浏览这个页面时，整个页面的中文字符都是乱码。这是什么原因呢？</p>
+<p>    JSP页面从编写到在浏览器上浏览，总共有四次字符编解码。</p>
+<p>    1. 以某种字符编码保存JSP文件</p>
+<p>    2. Tomcat以指定编码来读取JSP文件并编译</p>
+<p>    3. Tomcat向浏览器以指定编码来发送HTML内容</p>
+<p>    4. 浏览器以指定编码解析HTML内容</p>
+<p>    这里的四次字符编解码，有一次发生错误最终显示的就会是乱码。我们依次来分析各次的字符编码是如何设置的。</p>
+<p>    保存JSP文件，这是在编辑器中设置的，比如eclipse中，设置文件字符类型为utf-8。</p>
+<p>    JSP文件开头的&lt;%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%&gt;，其中pageEncoding用来告诉tomcat此文件所用的字符编码。这个编码应该与eclipse保存文件用的编码一致。Tomcat以此编码方式来读取JSP文件并编译。</p>
+<p>    page标签中的contentType用来设置tomcat往浏览器发送HTML内容所使用的编码。这个编码会在HTTP响应头中指定以通知浏览器。</p>
+<p>    浏览器根据HTTP响应头中指定的字符编码来解析HTML内容。如：</p>
+<p>    HTTP/1.1 200 OK</p>
+<p>    Date: Mon, 01 Sep 2008 23:13:31 GMT</p>
+<p>    Server: Apache/2.2.4 (Win32) mod_jk/1.2.26</p>
+<p>    Vary: Host,Accept-Encoding</p>
+<p>    Set-Cookie: JAVA2000_STYLE_ID=1;</p>
+<p>    Domain=www.java2000.net;</p>
+<p>    Expires=Thu, 03-Nov-2011 09:00:10 GMT;</p>
+<p>    Path=/</p>
+<p>    Content-Encoding: gzip</p>
+<p>    Transfer-Encoding: chunked</p>
+<p>    Content-Type: text/html;charset=UTF-8</p>
+<p>    另外，<span style="color:rgb(0,0,255);"><strong>HTML中有个标签&lt;meta http-equiv="Content-Type" content="text/html; charset=UTF-8"&gt;中也指定了charset。不过这个字符编码只有在当网页保存在本地作为静态网页时有效，因为没有HTTP头，所以浏览器根据此标签来识别HTML内容的编码方式</strong></span>。</p>
+<p>    现在在JSP文件中硬编码出现乱码的机会比较小了，因为大家都用了如eclipse的编辑器，基本上可以自动保证这几个编码设置的正确性。现在更多碰到的是在JSP文件中从其他数据源中读取中文字符所产生的乱码问题。</p>
+<p>   </p>
+<p>   <span> </span><span style="color:rgb(0,0,128);"><strong>三、在JSP文件中读取字符文件并在页面中显示，中文字符显示为乱码</strong></span>。</p>
+<p>    比如，我们在JSP文件中使用以下代码：</p>
+<p>   &lt; %</p>
+<p>    BufferedReader reader = new BufferedReader(new FileReader("D://test.txt"));</p>
+<p>    String content = reader.readLine();</p>
+<p>    reader.close();</p>
+<p>    %&gt;</p>
+<p>   &lt; %=content%&gt;</p>
+<p>    test.txt里保存的是中文字符，但在浏览器上看到的乱码。这是个经常见到的问题。我们继续用之前的方法一步步来分析输入和输出流</p>
+<p>    1. test.txt是以某种编码方式保存中文字符，比如UTF-8。</p>
+<p>    2. BufferedReader直接读取test.txt的字节内容并以默认方式构造字符串。分析BufferedReader的代码，我们可以看到 BufferedReader调用了FileReader的read方法，而FileReader又调用了FileInputStream的native 的read方法。所谓native的方法，就是操作系统底层方法。那么我们操作系统是中文系统，所以FileInputStream默认用GBK方式读取文件。因为我们保存test.txt用的是UTF-8，所以在这里读取文件内容使用GBK是错误的编码。</p>
+<p>    3.&lt; %=content%&gt;其实就是out.print(content)，这里又用到了HTTP的输出流JspWriter，于是字符串content又被以JSP的page标签中指定的UTF-8方式编码成字节数组被发送到浏览器端。</p>
+<p>    4. 浏览器以HTTP头中指定的方式解码字符，这时无论是用GBK还是UTF-8解码，显示的都是乱码。</p>
+<p>    可见，我们字符编码转换在第二步时出错了，UTF-8的字符串被当做GBK读入了内存中。</p>
+<p>    解决这个乱码问题有两种方法，一是把test.txt用GBK保存，则FileInputStream能正确读入中文字符；二是使用InputStreamReader来转换字符编码，如：</p>
+<p>    InputStreamReader sr = new InputStreamReader(new FileInputStream("D://test.txt"),"utf-8");</p>
+<p>    BufferedReader reader = new BufferedReader(sr);</p>
+<p>    这样，JAVA就会用utf-8的方式来从文件中读取字符数据。</p>
+<p>    另外，我们可以通过在java命令后带上Dfile.encoding参数来指定虚拟机读取文件使用的默认字符编码，例如java -Dfile.encoding=utf-8 Test，这样，我们在JAVA代码里用System.getProperty("file.encoding")取到的值为utf-8。</p>
+<p> </p>
+<p>   <span> </span><span style="color:rgb(0,0,128);"><strong>四、JSP读取request.getParameter里的中文参数后，在页面显示为乱码</strong></span>。</p>
+<p>    在JAVA的WEB应用中，对request对象里的parameters的中文处理一直是常见也最难搞的一只大怪兽。经常是刚搞定了这边，那边又出了乱码。而导致这种复杂性的，主要是此过程中字符编解码次数非常多，而且无论是浏览器还是WEB服务器特别是TOMCAT总是不能给我们一个比较满意的支持。</p>
+<p>    首先我们来分析用GET方式上传参数的乱码情况。</p>
+<p>    例如我们在浏览器地址栏输入以下URL：<a href="http://localhost:8080/test/test.jsp?param">http://localhost:8080/test/test.jsp?param</a>=大家好</p>
+<p>    我们的JSP代码如此处理param这个参数：</p>
+<p>   &lt; % String text = request.getParameter("param");  %&gt;</p>
+<p>   &lt; %=text%&gt;</p>
+<p>    而就这么简单的两句代码，我们很有可能在页面上看到这样的乱码：?ó????</p>
+<p>    网上对处理request.getParamter中的乱码有很多文章和方法，也都是正确的，只是方法太多让人一直不明白到底是为什么。这里给大家分析一下到底是怎么一回事。</p>
+<p>    首先，我们来看看与request对象有哪些相关的编码设置：</p>
+<p>    1. JSP文件的字符编码</p>
+<p>    2. 请求这个带参数URL的源页面的字符编码</p>
+<p>    3. IE的高级设置中的选项“总以utf-8方式发送URL地址”</p>
+<p>    4. TOMCAT的server.xml中配置URIEncoding</p>
+<p>    5. 函数request.setCharacterEncoding()</p>
+<p>    6. JS的encodeURIComponent函数与JAVA的URLDecoder类</p>
+<p>    这么多条相关编码设置，也难怪大家被搞得头晕了。这里给大家根据各种情况给大家一一分析一下。见下表：</p>
+<p><br /><br /><img src="" alt="" /></p>
+<p>    以上表格里的现象，除了指名在IE7上，其他全是在IE6上测试的结果。</p>
+<p>    由这个表我们可以看到，IE的“总以utf-8方式发送URL地址”设置并不影响对parameter的解析，而从页面请求URL和从地址栏输入URL居然也有不同的表现。</p>
+<p>    根据这个表列出的现象，大家只要用smartSniff抓几个网络包，并稍稍调查一下TOMCAT的源代码，就可以得出以下结论：</p>
+<p>    1. IE设置中的“总以utf-8方式发送URL地址”只对URL的PATH部分起作用，对查询字符串是不起作用的。也就是说，如果勾选了这个选项，那么类似http://localhost:8080/test/大家好.jsp?param=大家好这种URL，前一个“大家好”将被转化成utf-8形式，而后一个并没有变化。这里所说的utf-8形式，其实应该叫utf-8+escape形式，即��Һ�这种形式。</p>
+<p>    那么，查询字符串中的中文字符，到底是用什么编码传送到服务器的呢？答案是系统默认编码，即GBK。也就是说，在我们中文操作系统上，传送给WEB服务器的查询字符串，总是以GBK来编码的。</p>
+<p>    2. 在页面中通过链接或location重定向或open新窗口的方式来请求一个URL，这个URL里面的中文字符是用什么编码的？答：是用该页面的编码类型。也就是说，如果我们从某个源JSP页面上的链接来访问http://localhost:8080/test/test.jsp?param=大家好这个URL，如果源JSP页面的编码是UTF-8，则大家好这几个字的编码就是UTF-8。</p>
+<p>    而在地址栏上直接输入URL地址，或者从系统剪贴板粘贴到地址栏上，这个输入并非从页面中发起的，而是由操作系统发起的，所以这个编码只可能是系统的默认 编码，与任何页面无关。我们还发现，在不同的浏览器上，用链接方式打开的页面，如果在地址栏上再敲个回车，显示的结果也会不同。IE上敲回车后显示不变 化，而傲游上可能就会有乱码或乱码消失的变化。说明IE上敲回车，实际发送的是之前记忆下来的内存中的URL，而傲游上发送的从当前地址栏重新获取的 URL。</p>
+<p>    3. TOMCAT的URIEncoding如果不加以设置，则默认使用ISO-8859-1来解码URL，设置后便用设置了的编码方式来解码。这个解码同时包 括PATH部分和查询字符串部分。可见，这个参数是对用GET方式传递的中文参数最关键的设置。不过，这个参数只对GET方式传递的参数有效，对POST 的无效。分析TOMCAT的源代码我们可以看到，在请求一个页面时，TOMCAT会尝试构造一个Request对象，在这个对象里，会从 Server.xml里读取URIEncoding的值，并赋值给Parameters类的queryStringEncoding变量，而这个变量将在
+ 解析request.getParameter中的GET参数时用来指导字符解码。</p>
+<p>    4. request.setCharacterEncoding函数只对POST的参数有效，对GET的参数无效。且这个函数必须是在第一次调用 request.getParameter之前使用。这是因为Parameters类有两个字符编码参数，一个是encoding，另一个是 queryStringEncoding，而setCharacterEncoding设置的是encoding，这个是在解析POST的参数是才用到 的。</p>
+<p>    所以，这就导致了我们通常都要分开处理POST和GET的字符编码，用TOMCAT自带的filter只能处理POST的，另外要设置URIEncoding来设置GET的。这样很麻烦而且URIEncoding无法根据内容来动态区分编码，总还是一个问题。</p>
+<p>    在调查TOMCAT的代码时发现了另一个在server.xml里的参数useBodyEncodingForURI，可以解决这个问题。这个参数设成 true后，TOMCAT就会用request.setCharacterEncoding所设置的字符编码来同样解析GET参数了。这样，那个 SetCharacterEncodingFilter就可以同时处理GET和POST参数了。</p>
+<p>    知道了以上知识后，我们再来分析一下前面表格中列出的几个典型现象。</p>
+<p>    第一条，请求源页面的编码为UTF-8，而TOMCAT的URIEncoding未指定，则TOMCAT用ISO8859-1方式来解码参数，所以从request中读出来后，内存中存储的为错误的UNICODE数据，导致之后到屏幕显示的所有转换全部出错。</p>
+<p>    第九条，请求源页面编码为GBK，而TOMCAT的URIEncoding也为GBK，TOMCAT用GBK方式去解码原本用GBK编码的字符，解码正确，内存中的UNICODE值正确，最终显示正确的中文。</p>
+<p>    第十三条，请求源页面编码为UTF-8，TOMCAT的URIEncoding也为UTF-8，而在IE6中最终显示的中文字符，如果是奇数个数，则最后一个会显示为乱码。这是为什么呢？</p>
+<p>    我的猜测是，这是因为IE6将URL地址发送时，对查询字符串是直接对UTF-8格式的字符使用GBK来编码，而不是对UNICODE的字符来用GBK编 码，所以UTF-8的数据没有经过UNICODE而直接编码成了GBK。而到了TOMCAT这边，GBK的编码又被当成UTF-8做了解码。所以这个过程 中经过了UTF-8转换成GBK，然后又从GBK转换成UTF-8的过程，而这种转换，恰好就会出现奇数个中文字符串的最后一位为乱码的现象。而在IE7 中，估计把这种现象当做BUG已经被解决了，即在发送地址时会先转成UNICODE再编码成GBK。那么估计在IE7的浏览器+中文操作系统环境下，如果
+ 我们把TOMCAT的URIEncoding设置成GBK，无论JSP编码成什么格式，都不会出现乱码。这个没测试，请大家自己验证。</p>
+<p>    其他几条就不再做分析了，有兴趣的大家自己分析。</p>
+<p>   </p>
+<p>   <span> </span><span style="color:rgb(0,0,128);"><strong>五、对URL做Encode和Decode</strong></span></p>
+<p>    对于request参数的中文乱码问题，个人觉得最好的还是用URLEncode/URLDecode，因为如果你的WEB站点要支持国际化，最好就是保证从IE递送过来的参数永远是正确的UTF-8编码。</p>
+<p>    在IE端，我们可以用JS脚本来对参数编码：encodeURIComponent()，编码后中文字符便变成了��Һ�这 种形式。在JAVA端，可以用java.net.URLDecoder.decode来解码。不过这里要注意一个问题，就是TOMCAT会自动先对URL 做一次decode，我们可以在TOMCAT的UDecoder类中看到这一点。不过TOMCAT并非使用了URLDecoder.decode，而是自 己编写了一个decode函数。网上有些文章上介绍过一种处理乱码的方法便是在JS中对参数做两次encodeURIComponent，在JAVA中做
+ 一次decode，可以解决一些没有设置URIEncoding时发生的乱码问题。不过个人觉得如果弄懂了整个字符编码转换的过程，基本上是用不到这种方 法的。</p>
+<p> </p>
+<p>   <span> </span><span style="color:rgb(0,0,128);"><strong>六、从数据库中读取中文字符数据，在页面上显示为乱码</strong></span>。</p>
+<p>    对于数据库中读取中文字符出现乱码的问题，本人遇到的还比较少，所以暂时没有总结。如果大家有类似的经验，欢迎补充说明，我一定注明作者身份。</p>
+<p>    好了，对各种字符乱码问题的分析就总结到这里，相信只要把握“以指定编码读取--转换为UNICODE--以指定编码输入”这基本步骤，初学者也可以很快 分析出字符乱码的根源所在。另外我建议不要随便使用new String(str.getBytes(enc1),enc2)这种方式来强行转码，也不要随便使用网上的字符转码函数，我觉得只会把问题隐藏更深更复 杂化。我们应该清晰地分析整个字符流的编解码过程，自然可以找出乱码的根源所在，从而保证整个字符流动中，在内存中的UNICODE始终是正确的。</p>
+<p><br /></p>
+<p><br /></p>
+<div>
+<h1 style="margin:0px;padding:15px 0px 10px;font-size:20px;font-family:'Microsoft YaHei', 'Hiragino sans GB', sTHeiti, Tahoma, simHei, sans-serif;font-weight:100;color:rgb(0,0,0);">
+java字符编码转换研究(转帖)</h1>
+<p style="margin:0px;padding:0px;color:rgb(102,102,102);">
+<span style="color:rgb(153,153,153) !important;">已有 313 次阅读</span><span style="color:rgb(153,153,153) !important;">2012-8-16 16:44</span><span> </span><span style="margin:0px 5px;color:rgb(204,204,204);">|</span><span style="color:rgb(153,153,153) !important;">系统分类:<a href="http://www.apkbus.com/home.php?mod=space&amp;do=blog&amp;view=all&amp;catid=1">Android开发</a></span></p>
+</div>
+<div>
+<div>
+<p style="margin:0px;padding:0px;">1. 概述</p>
+<p style="margin:0px;padding:0px;text-indent:22pt;">本文主要包括以下几个方面：编码基本知识，java，系统软件，url，工具软件等。</p>
+<p style="margin:0px;padding:0px;text-indent:22pt;">在下面的描述中，将以"中文"两个字为例，经查表可以知道其GB2312编码是"<span>d6d0 cec4</span>"，Unicode编码为"<span>4e2d 6587</span>"，UTF编码就是"<span>e4b8ad
+ e69687</span>"。注意，这两个字没有iso8859-1编码，但可以用iso8859-1编码来"表示"。</p>
+<p style="margin:0px;padding:0px;">2. 编码基本知识</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">最早的编码是iso8859-1，和ascii编码相似。但为了方便表示各种各样的语言，逐渐出现了很多标准编码，重要的有如下几个。</p>
+<p style="margin:0px;padding:0px;">2.1. iso8859-1</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">属于单字节编码，最多能表示的字符范围是0-255，应用于英文系列。比如，字母'a'的编码为0x61=97。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">很明显，iso8859-1编码表示的字符范围很窄，无法表示中文字符。但是，由于是单字节编码，和计算机最基础的表示单位一致，所以很多时候，仍旧使用iso8859-1编码来表示。而且在很多协议上，默认使用该编码。比如，虽然"中文"两个字不存在iso8859-1编码，以gb2312编码为例，应该是"<span>d6d0
+ cec4</span>"两个字符，使用iso8859-1编码的时候则将它拆开为4个字节来表示："<span>d6 d0 ce c4</span>"（事实上，在进行存储的时候，也是以字节为单位处理的）。而如果是UTF编码，则是6个字节"<span>e4 b8 ad e6 96 87</span>"。很明显，这种表示方法还需要以另一种编码为基础。</p>
+<p style="margin:0px;padding:0px;">2.2. GB2312/GBK</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">这就是汉子的国标码，专门用来表示汉字，是双字节编码，而英文字母和iso8859-1一致（兼容iso8859-1编码）。其中gbk编码能够用来同时表示繁体字和简体字，而gb2312只能表示简体字，gbk是兼容gb2312编码的。</p>
+<p style="margin:0px;padding:0px;">2.3. unicode</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">这是最统一的编码，可以用来表示所有语言的字符，而且是定长双字节（也有四字节的）编码，包括英文字母在内。所以可以说它是不兼容iso8859-1编码的，也不兼容任何编码。不过，相对于iso8859-1编码来说，uniocode编码只是在前面增加了一个0字节，比如字母'a'为"<span>00 61</span>"。</p>
+<p style="margin:0px;padding:0px;text-indent:22pt;">需要说明的是，定长编码便于计算机处理（注意GB2312/GBK不是定长编码），而unicode又可以用来表示所有字符，所以在很多软件内部是使用unicode编码来处理的，比如java。</p>
+<p style="margin:0px;padding:0px;">2.4. UTF</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">考虑到unicode编码不兼容iso8859-1编码，而且容易占用更多的空间：因为对于英文字母，unicode也需要两个字节来表示。所以unicode不便于传输和存储。因此而产生了utf编码，utf编码兼容iso8859-1编码，同时也可以用来表示所有语言的字符，不过，utf编码是不定长编码，每一个字符的长度从1-6个字节不等。另外，utf编码自带简单的校验功能。一般来讲，英文字母都是用一个字节表示，而汉字使用三个字节。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">注意，虽然说utf是为了使用更少的空间而使用的，但那只是相对于unicode编码来说，如果已经知道是汉字，则使用GB2312/GBK无疑是最节省的。不过另一方面，值得说明的是，虽然utf编码对汉字使用3个字节，但即使对于汉字网页，utf编码也会比unicode编码节省，因为网页中包含了很多的英文字符。</p>
+<p style="margin:0px;padding:0px;">3. java对字符的处理</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">在java应用软件中，会有多处涉及到字符集编码，有些地方需要进行正确的设置，有些地方需要进行一定程度的处理。</p>
+<p style="margin:0px;padding:0px;">3.1. getBytes(charset)</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">这是java字符串处理的一个标准函数，其作用是将字符串所表示的字符按照charset编码，并以字节方式表示。注意字符串在java内存中总是按unicode编码存储的。比如"中文"，正常情况下（即没有错误的时候）存储为"<span>4e2d 6587</span>"，如果charset为"gbk"，则被编码为"<span>d6d0
+ cec4</span>"，然后返回字节"<span>d6 d0 ce c4</span>"。如果charset为"utf8"则最后是"<span>e4 b8 ad e6 96 87</span>"。如果是"iso8859-1"，则由于无法编码，最后返回 "<span>3f 3f</span>"（两个问号）。</p>
+<p style="margin:0px;padding:0px;">3.2. new String(charset)</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">这是java字符串处理的另一个标准函数，和上一个函数的作用相反，将字节数组按照charset编码进行组合识别，最后转换为unicode存储。参考上述getBytes的例子，"gbk" 和"utf8"都可以得出正确的结果"<span>4e2d 6587</span>"，但iso8859-1最后变成了"<span>003f
+ 003f</span>"（两个问号）。</p>
+<p style="margin:0px;padding:0px;text-indent:22pt;">因为utf8可以用来表示/编码所有字符，所以new String( str.getBytes( "utf8" ), "utf8" ) === str，即完全可逆。</p>
+<p style="margin:0px;padding:0px;">3.3. setCharacterEncoding()</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">该函数用来设置http请求或者相应的编码。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">对于request，是指提交内容的编码，指定后可以通过getParameter()则直接获得正确的字符串，如果不指定，则默认使用iso8859-1编码，需要进一步处理。参见下述"表单输入"。值得注意的是在执行setCharacterEncoding()之前，不能执行任何getParameter()。java doc上说明：This method must be
+ called prior to reading request parameters or reading input using getReader()。而且，该指定只对POST方法有效，对GET方法无效。分析原因，应该是在执行第一个getParameter()的时候，java将会按照编码分析所有的提交内容，而后续的getParameter()不再进行分析，所以setCharacterEncoding()无效。而对于GET方法提交表单是，提交的内容在URL中，一开始就已经按照编码分析所有的提交内容，setCharacterEncoding()自然就无效。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">对于response，则是指定输出内容的编码，同时，该设置会传递给浏览器，告诉浏览器输出内容所采用的编码。</p>
+<p style="margin:0px;padding:0px;">3.4. 处理过程</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">下面分析两个有代表性的例子，说明java对编码有关问题的处理方法。</p>
+<p style="margin:0px;padding:0px;">3.4.1. 表单输入</p>
+<p style="margin:0px;padding:0px;text-indent:22pt;">User input<span>  *(gbk:d6d0 cec4) <span> </span></span>browser<span>  *(gbk:d6d0 cec4) <span> </span></span>web
+ server<span>  iso8859-1(00d6 00d 000ce 00c4) <span> </span></span>class，需要在class中进行处理：getbytes("iso8859-1")为<span>d6 d0 ce c4</span>，new String("gbk")为<span>d6d0
+ cec4</span>，内存中以unicode编码则为<span>4e2d 6587</span>。</p>
+<p style="margin:0px 0px 0px 43pt;padding:0px;text-indent:-21pt;">
+<span lang="en-us" style="font-family:Wingdings;font-size:11pt;" xml:lang="en-us">l</span><span> </span>用户输入的编码方式和页面指定的编码有关，也和用户的操作系统有关，所以是不确定的，上例以gbk为例。</p>
+<p style="margin:0px 0px 0px 43pt;padding:0px;text-indent:-21pt;">
+<span lang="en-us" style="font-family:Wingdings;font-size:11pt;" xml:lang="en-us">l</span><span> </span>从browser到web server，可以在表单中指定提交内容时使用的字符集，否则会使用页面指定的编码。而如果在url中直接用?的方式输入参数，则其编码往往是操作系统本身的编码，因为这时和页面无关。上述仍旧以gbk编码为例。</p>
+<p style="margin:0px 0px 0px 43pt;padding:0px;text-indent:-21pt;">
+<span lang="en-us" style="font-family:Wingdings;font-size:11pt;" xml:lang="en-us">l</span><span> </span>Web server接收到的是字节流，默认时（getParameter）会以iso8859-1编码处理之，结果是不正确的，所以需要进行处理。但如果预先设置了编码（通过request. setCharacterEncoding ()），则能够直接获取到正确的结果。</p>
+<p style="margin:0px 0px 0px 43pt;padding:0px;text-indent:-21pt;">
+<span lang="en-us" style="font-family:Wingdings;font-size:11pt;" xml:lang="en-us">l</span><span> </span>在页面中指定编码是个好习惯，否则可能失去控制，无法指定正确的编码。</p>
+<p style="margin:0px;padding:0px;">3.4.2. 文件编译</p>
+<p style="margin:0px;padding:0px;text-indent:22pt;">假设文件是gbk编码保存的，而编译有两种编码选择：gbk或者iso8859-1，前者是中文windows的默认编码，后者是linux的默认编码，当然也可以在编译时指定编码。</p>
+<p style="margin:0px;padding:0px;text-indent:22pt;">Jsp<span>  *(gbk:d6d0 cec4) <span> </span></span>java file<span>  *(gbk:d6d0 cec4) <span> </span></span>compiler
+ read<span>  uincode(gbk: 4e2d 6587; iso8859-1: 00d6 00d 000ce 00c4) <span> </span></span>compiler write<span>  utf(gbk: e4b8ad e69687; iso8859-1: *) <span> </span></span>compiled
+ file<span>  unicode(gbk: 4e2d 6587; iso8859-1: 00d6 00d 000ce 00c4) <span> </span></span>class。所以用gbk编码保存，而用iso8859-1编译的结果是不正确的。</p>
+<p style="margin:0px;padding:0px;text-indent:22pt;">class<span>  unicode(4e2d 6587) <span> </span></span>system.out / jsp.out<span>  gbk(d6d0 cec4) <span> </span></span>os
+ console / browser。</p>
+<p style="margin:0px 0px 0px 43pt;padding:0px;text-indent:-21pt;">
+<span lang="en-us" style="font-family:Wingdings;font-size:11pt;" xml:lang="en-us">l</span><span> </span>文件可以以多种编码方式保存，中文windows下，默认为ansi/gbk。</p>
+<p style="margin:0px 0px 0px 43pt;padding:0px;text-indent:-21pt;">
+<span lang="en-us" style="font-family:Wingdings;font-size:11pt;" xml:lang="en-us">l</span><span> </span>编译器读取文件时，需要得到文件的编码，如果未指定，则使用系统默认编码。一般class文件，是以系统默认编码保存的，所以编译不会出问题，但对于jsp文件，如果在中文windows下编辑保存，而部署在英文linux下运行/编译，则会出现问题。所以需要在jsp文件中用pageEncoding指定编码。</p>
+<p style="margin:0px 0px 0px 43pt;padding:0px;text-indent:-21pt;">
+<span lang="en-us" style="font-family:Wingdings;font-size:11pt;" xml:lang="en-us">l</span><span> </span>Java编译的时候会转换成统一的unicode编码处理，最后保存的时候再转换为utf编码。</p>
+<p style="margin:0px 0px 0px 43pt;padding:0px;text-indent:-21pt;">
+<span lang="en-us" style="font-family:Wingdings;font-size:11pt;" xml:lang="en-us">l</span><span> </span>当系统输出字符的时候，会按指定编码输出，对于中文windows下，System.out将使用gbk编码，而对于response（浏览器），则使用jsp文件头指定的contentType，或者可以直接为response指定编码。同时，会告诉browser网页的编码。如果未指定，则会使用iso8859-1编码。对于中文，应该为browser指定输出字符串的编码。</p>
+<p style="margin:0px 0px 0px 43pt;padding:0px;text-indent:-21pt;">
+<span lang="en-us" style="font-family:Wingdings;font-size:11pt;" xml:lang="en-us">l</span><span> </span>browser显示网页的时候，首先使用response中指定的编码（jsp文件头指定的contentType最终也反映在response上），如果未指定，则会使用网页中meta项指定中的contentType。</p>
+<p style="margin:0px;padding:0px;">3.5. 几处设置</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">对于web应用程序，和编码有关的设置或者函数如下。</p>
+<p style="margin:0px;padding:0px;">3.5.1. jsp编译</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">指定文件的存储编码，很明显，该设置应该置于文件的开头。例如：&lt;%@page pageEncoding="GBK"%&gt;。另外，对于一般class文件，可以在编译的时候指定编码。</p>
+<p style="margin:0px;padding:0px;">3.5.2. jsp输出</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">指定文件输出到browser是使用的编码，该设置也应该置于文件的开头。例如：&lt;%@ page contentType="text/html; charset= GBK" %&gt;。该设置和response.setCharacterEncoding("GBK")等效。</p>
+<p style="margin:0px;padding:0px;">3.5.3. meta设置</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">指定网页使用的编码，该设置对静态网页尤其有作用。因为静态网页无法采用jsp的设置，而且也无法执行response.setCharacterEncoding()。例如：&lt;META http-equiv="Content-Type" content="text/html; charset=GBK" /&gt;</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">如果同时采用了jsp输出和meta设置两种编码指定方式，则jsp指定的优先。因为jsp指定的直接体现在response中。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">需要注意的是，apache有一个设置可以给无编码指定的网页指定编码，该指定等同于jsp的编码指定方式，所以会覆盖静态网页中的meta指定。所以有人建议关闭该设置。</p>
+<p style="margin:0px;padding:0px;">3.5.4. form设置</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">当浏览器提交表单的时候，可以指定相应的编码。例如：&lt;form accept-charset= "gb2312"&gt;。一般不必不使用该设置，浏览器会直接使用网页的编码。</p>
+<p style="margin:0px;padding:0px;">4. 系统软件</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">下面讨论几个相关的系统软件。</p>
+<p style="margin:0px;padding:0px;">4.1. mysql数据库</p>
+<p style="margin:0px;padding:0px;text-indent:22pt;">很明显，要支持多语言，应该将数据库的编码设置成utf或者unicode，而utf更适合与存储。但是，如果中文数据中包含的英文字母很少，其实unicode更为适合。</p>
+<p style="margin:0px;padding:0px;text-indent:22pt;">数据库的编码可以通过mysql的配置文件设置，例如default-character-set=utf8。还可以在数据库链接URL中设置，例如： useUnicode=true&amp;characterEncoding=UTF-8。注意这两者应该保持一致，在新的sql版本里，在数据库链接URL里可以不进行设置，但也不能是错误的设置。</p>
+<p style="margin:0px;padding:0px;">4.2. apache</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">appache和编码有关的配置在httpd.conf中，例如AddDefaultCharset UTF-8。如前所述，该功能会将所有静态页面的编码设置为UTF-8，最好关闭该功能。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">另外，apache还有单独的模块来处理网页响应头，其中也可能对编码进行设置。</p>
+<p style="margin:0px;padding:0px;">4.3. linux默认编码</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">这里所说的linux默认编码，是指运行时的环境变量。两个重要的环境变量是LC_ALL和LANG，默认编码会影响到java URLEncode的行为，下面有描述。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">建议都设置为"zh_CN.UTF-8"。</p>
+<p style="margin:0px;padding:0px;">4.4. 其它</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">为了支持中文文件名，linux在加载磁盘时应该指定字符集，例如：mount /dev/hda5 /mnt/hda5/ -t ntfs -o iocharset=gb2312。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">另外，如前所述，使用GET方法提交的信息不支持request.setCharacterEncoding()，但可以通过tomcat的配置文件指定字符集，在tomcat的server.xml文件中，形如：&lt;Connector ... URIEncoding="GBK"/&gt;。这种方法将统一设置所有请求，而不能针对具体页面进行设置，也不一定和browser使用的编码相同，所以有时候并不是所期望的。</p>
+<p style="margin:0px;padding:0px;">5. URL地址</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">URL地址中含有中文字符是很麻烦的，前面描述过使用GET方法提交表单的情况，使用GET方法时，参数就是包含在URL中。</p>
+<p style="margin:0px;padding:0px;">5.1. URL编码</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">对于URL中的一些特殊字符，浏览器会自动进行编码。这些字符除了"/?&amp;"等外，还包括unicode字符，比如汉子。这时的编码比较特殊。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">IE有一个选项"总是使用UTF-8发送URL"，当该选项有效时，IE将会对特殊字符进行UTF-8编码，同时进行URL编码。如果改选项无效，则使用默认编码"GBK"，并且不进行URL编码。但是，对于URL后面的参数，则总是不进行编码，相当于UTF-8选项无效。比如"中文.html?a=中文"，当UTF-8选项有效时，将发送链接"%<span>e4��文.html?a=\x4e\x2d\x65\x87</span>"；而UTF-8选项无效时，将发送链接"<span>\x4e\x2d\x65\x87.html?a=\x4e\x2d\x65\x87</span>"。注意后者前面的"中文"两个字只有4个字节，而前者却有18个字节，这主要时URL编码的原因。</p>
+<p style="margin:0px;padding:0px;text-indent:22pt;">当web server（tomcat）接收到该链接时，将会进行URL解码，即去掉"%"，同时按照ISO8859-1编码（上面已经描述，可以使用URLEncoding来设置成其它编码）识别。上述例子的结果分别是"<span>\ue4\ub8\uad\ue6\u96\u87.html?a=\u4e\u2d\u65\u87</span>"和"<span>\u4e\u2d\u65\u87.html?a=\u4e\u2d\u65\u87</span>"，注意前者前面的"中文"两个字恢复成了6个字符。这里用"\u"，表示是unicode。</p>
+<p style="margin:0px;padding:0px;text-indent:22pt;">所以，由于客户端设置的不同，相同的链接，在服务器上得到了不同结果。这个问题不少人都遇到，却没有很好的解决办法。所以有的网站会建议用户尝试关闭UTF-8选项。不过，下面会描述一个更好的处理办法。</p>
+<p style="margin:0px;padding:0px;">5.2. rewrite</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">熟悉的人都知道，apache有一个功能强大的rewrite模块，这里不描述其功能。需要说明的是该模块会自动将URL解码（去除%），即完成上述web server（tomcat）的部分功能。有相关文档介绍说可以使用[NE]参数来关闭该功能，但我试验并未成功，可能是因为版本（我使用的是apache<span> </span>2.0.54）问题。另外，当参数中含有"?&amp;
+ "等符号的时候，该功能将导致系统得不到正常结果。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">rewrite本身似乎完全是采用字节处理的方式，而不考虑字符串的编码，所以不会带来编码问题。</p>
+<p style="margin:0px;padding:0px;">5.3. URLEncode.encode()</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">这是Java本身提供对的URL编码函数，完成的工作和上述UTF-8选项有效时浏览器所做的工作相似。值得说明的是，java已经不赞成不指定编码来使用该方法（deprecated）。应该在使用的时候增加编码指定。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">当不指定编码的时候，该方法使用系统默认编码，这会导致软件运行结果得不确定。比如对于"中文"，当系统默认编码为"gb2312"时，结果是"%<span>4e-e�</span>"，而默认编码为"UTF-8"，结果却是"%<span>e4��文</span>"，后续程序将难以处理。另外，这儿说的系统默认编码是由运行tomcat时的环境变量LC_ALL和LANG等决定的，曾经出现过tomcat重启后就出现乱码的问题，最后才郁闷的发现是因为修改修改了这两个环境变量。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">建议统一指定为"UTF-8"编码，可能需要修改相应的程序。</p>
+<p style="margin:0px;padding:0px;">5.4. 一个解决方案</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">上面说起过，因为浏览器设置的不同，对于同一个链接，web server收到的是不同内容，而软件系统有无法知道这中间的区别，所以这一协议目前还存在缺陷。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">针对具体问题，不应该侥幸认为所有客户的IE设置都是UTF-8有效的，也不应该粗暴的建议用户修改IE设置，要知道，用户不可能去记住每一个web server的设置。所以，接下来的解决办法就只能是让自己的程序多一点智能：根据内容来分析编码是否UTF-8。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">比较幸运的是UTF-8编码相当有规律，所以可以通过分析传输过来的链接内容，来判断是否是正确的UTF-8字符，如果是，则以UTF-8处理之，如果不是，则使用客户默认编码（比如"GBK"），下面是一个判断是否UTF-8的例子，如果你了解相应规律，就容易理解。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">public static boolean isValidUtf8(byte[] b,int aMaxCount){</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">       int lLen=b.length,lCharCount=0;</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">       for(int i=0;i&lt;lLen&amp;&amp; lCharCount&lt;aMaxCount;++lCharCount){</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">              byte lByte=b[i++];//to fast operation, ++ now, ready for the following for(;;)</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">              if(lByte&gt;=0) continue;//&gt;=0 is normal ascii</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">              if(lByte&lt;(byte)0xc0 || lByte&gt;(byte)0xfd) return false;</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">              int lCount=lByte&gt;(byte)0xfc?5:lByte&gt;(byte)0xf8?4</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">                     :lByte&gt;(byte)0xf0?3:lByte&gt;(byte)0xe0?2:1;</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">              if(i+lCount&gt;lLen) return false;</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">              for(int j=0;j&lt;lCount;++j,++i) if(b[i]&gt;=(byte)0xc0) return false;</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">       }</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">       return true;</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">}</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">相应地，一个使用上述方法的例子如下：</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">public static String getUrlParam(String aStr,String aDefaultCharset)</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">throws UnsupportedEncodingException{</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">       if(aStr==null) return null;</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">       byte[] lBytes=aStr.getBytes("ISO-8859-1");</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">       return new String(lBytes,StringUtil.isValidUtf8(lBytes)?"utf8":aDefaultCharset);</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">}</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">不过，该方法也存在缺陷，如下两方面：</p>
+<p style="margin:0px 0px 0px 42pt;padding:0px;text-indent:-21pt;">
+<span lang="en-us" style="font-family:Wingdings;" xml:lang="en-us">l</span><span> </span>没有包括对用户默认编码的识别，这可以根据请求信息的语言来判断，但不一定正确，因为我们有时候也会输入一些韩文，或者其他文字。</p>
+<p style="margin:0px 0px 0px 42pt;padding:0px;text-indent:-21pt;">
+<span lang="en-us" style="font-family:Wingdings;" xml:lang="en-us">l</span><span> </span>可能会错误判断UTF-8字符，一个例子是"学习"两个字，其GBK编码是"<span> </span><span>\xd1\xa7\xcf\xb0</span>"，如果使用上述isValidUtf8方法判断，将返回true。可以考虑使用更严格的判断方法，不过估计效果不大。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">有一个例子可以证明google也遇到了上述问题，而且也采用了和上述相似的处理方法，比如，如果在地址栏中输入"<a href="http://www.google.com/search?hl=zh-CN&amp;newwindow=1&amp;q=%E5%AD%A6%E4%B9%A0"><span style="color:#1d58d1;">http://www.google.com/search?hl=zh-CN&amp;newwindow=1&amp;q=学习</span></a>"，google将无法正确识别，而其他汉字一般能够正常识别。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">最后，应该补充说明一下，如果不使用rewrite规则，或者通过表单提交数据，其实并不一定会遇到上述问题，因为这时可以在提交数据时指定希望的编码。另外，中文文件名确实会带来问题，应该谨慎使用。</p>
+<p style="margin:0px;padding:0px;">6. 其它</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">下面描述一些和编码有关的其他问题。</p>
+<p style="margin:0px;padding:0px;">6.1. SecureCRT</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">除了浏览器和控制台与编码有关外，一些客户端也很有关系。比如在使用SecureCRT连接linux时，应该让SecureCRT的显示编码（不同的session，可以有不同的编码设置）和linux的编码环境变量保持一致。否则看到的一些帮助信息，就可能是乱码。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">另外，mysql有自己的编码设置，也应该保持和SecureCRT的显示编码一致。否则通过SecureCRT执行sql语句的时候，可能无法处理中文字符，查询结果也会出现乱码。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">对于Utf-8文件，很多编辑器（比如记事本）会在文件开头增加三个不可见的标志字节，如果作为mysql的输入文件，则必须要去掉这三个字符。（用linux的vi保存可以去掉这三个字符）。一个有趣的现象是，在中文windows下，创建一个新txt文件，用记事本打开，输入"连通"两个字，保存，再打开，你会发现两个字没了，只留下一个小黑点。</p>
+<p style="margin:0px;padding:0px;">6.2. 过滤器</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">如果需要统一设置编码，则通过filter进行设置是个不错的选择。在filter class中，可以统一为需要的请求或者回应设置编码。参加上述setCharacterEncoding()。这个类apache已经给出了可以直接使用的例子SetCharacterEncodingFilter。</p>
+<p style="margin:0px;padding:0px;">6.3. POST和GET</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">很明显，以POST提交信息时，URL有更好的可读性，而且可以方便的使用setCharacterEncoding()来处理字符集问题。但GET方法形成的URL能够更容易表达网页的实际内容，也能够用于收藏。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">从统一的角度考虑问题，建议采用GET方法，这要求在程序中获得参数是进行特殊处理，而无法使用setCharacterEncoding()的便利，如果不考虑rewrite，就不存在IE的UTF-8问题，可以考虑通过设置URIEncoding来方便获取URL中的参数。</p>
+<p style="margin:0px;padding:0px;">6.4. 简繁体编码转换</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">GBK同时包含简体和繁体编码，也就是说同一个字，由于编码不同，在GBK编码下属于两个字。有时候，为了正确取得完整的结果，应该将繁体和简体进行统一。可以考虑将UTF、GBK中的所有繁体字，转换为相应的简体字，BIG5编码的数据，也应该转化成相应的简体字。当然，仍旧以UTF编码存储。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;">例如，对于"语言 語言"，用UTF表示为"<span>\xE8\xAF\xAD\xE8\xA8\x80 \xE8\xAA\x9E\xE8\xA8\x80</span>"，进行简繁体编码转换后应该是两个相同的 "<span>\xE8\xAF\xAD\xE8\xA8\x80&gt;</span>"。</p>
+<p style="margin:0px;padding:0px;text-indent:21pt;"><br /></p>
+<div>
+<h3 style="font-size:16px;line-height:1.5em;margin:0px 0px .5em;padding:10px 0px 0px;color:#000000;">
+<a href="http://wanghuan8086.iteye.com/blog/173869">表单用post方法提交数据时乱码问题</a></h3>
+<div style="clear:both;display:block;margin:10px 0px 5px;line-height:20px;"><a href="http://www.iteye.com/blogs/tag/%E6%B5%8F%E8%A7%88%E5%99%A8">浏览器</a><a href="http://www.iteye.com/blogs/tag/IE">IE</a><a href="http://www.iteye.com/blogs/tag/Ajax">Ajax</a><a href="http://www.iteye.com/blogs/tag/Google">Google</a><a href="http://www.iteye.com/blogs/tag/HTML">HTML</a> </div>
+</div>
+<div>  今天在用HttpClient的PostMethod模拟浏览器用表单的post方法发送数据给服务器的时候,如果数据是中文,服务器接收的是乱码,然后看了很多乱码的文章,最后解决了,现在总结下.<span> </span><br />
+  1.首先搞清楚客户端是用那种编码方式将数据编码后提交的.<span> </span><br />
+浏览器在form提交后，会生成一个HTTP的头部信息"content-type"，标准规定其形式为Content-type: application/x-www-form-urlencoded; charset=UTF-8<span> </span><br />
+这样服务器端就可以知道form里的字符是怎么编码的了。<span style="color:#FF0000;">要注意的是这里的charset=UTF-8是默认的,如果这个HTML代码里有&lt;meta http-equiv="Content-Type" content="text/html; charset=GBK" /&gt;,那么此HTML的form表单将以GBK的编码方式提交数据,其实表单提交数据使用的编码方式是可以指定的.</span>那现在用HttpClient,根本就没有浏览器和具体的HTML代码,其实HttpClient的PostMethod对象里已经有设定编码方式的方法<span> </span></div>
+</div>
+</div>
+<pre class="java">PostMethod post = new PostMethod("http://iteye.com");  
+2. post.setRequestHeader("ContentType","application/x-www-form-urlencoded;charset=UTF-8");
+</pre>这里的编码方式可以随意指定,开始就是因为没有写这段,采用了Httpclient默认的编码方式,所以出现乱码,这里设置编码方式的方法也不唯一.ajax使用post方法提交数据的编码方式的设定也和这个类似.<span> </span><br /><br />
+  2.服务器端是如何选择那种编码方式来对数据进行解码的呢.<span> </span><br />
+首先我用request.getCharacterEncoding()来看表单提交数据所使用的编码方法,奇怪的是用浏览器提交request.getCharacterEncoding()是null,而用HttpClient提交request.getCharacterEncoding()的值是UTF-8,和客户端指定的编码方式一致,后来google了下,原来是浏览器做的手脚,IE是不将表单提交数据使用的编码方式写到HTTP头部发送出去的.我发现如果用HttpClient的post提交数据,编码方式指定的话,request.getCharacterEncoding()是能得到值的,而且request对象也用此编码方式解码,不用request.setCharacterEncoding("")指定;如果request.getCharacterEncoding()是null,就要request.setCharacterEncoding("")指定编码方式,要和你提交时设定的编码方式一致.然后request.getParameter("")的值就是你想要的了.(这里有可能有误的地方请指出)<br /><br /><p></p>
+</div>
+                    </div>
+    </article>
+      <div class="readall_box csdn-tracking-statistics tracking-click" data-mod="popu_376">
+          <div class="read_more_mask"></div>
+          <a class="btn btn-large btn-gray-fred read_more_btn" target="_self">阅读全文</a>
+      </div>
+      <div class="article_copyright">
+              </div>
+      <ul class="article_collect clearfix csdn-tracking-statistics tracking-click"  data-mod="popu_378">
+          <li class="tit">本文已收录于以下专栏：</li>
+<!--          [startarticlecolumns]-->
+                                <!--          [endarticlecolumns]-->
+      </ul>
+      <div class="comment_box clearfix">
+          <div id="comment_form">
+              <div id="commentsbmitarear">
+                              </div>
+          </div>
+      </div>
+      <div class="comment_li_outbox">
+          <div id="comment_list"></div>
+      </div>
+
+      <div class="more_comment">
+          <div id="comment_bar" class="trackgin-ad" data-mod="popu_385"></div>
+      </div>
+
+      <!-- <h3 class="recommend_tit" id="related">相关文章推荐</h3> -->
+      <div class="recommend_list clearfix" id="rasss">
+                                                                                      <dl class="clearfix csdn-tracking-statistics recommend_article" data-mod="popu_387" data-poputype="feed"  data-feed-show="false"  data-dsm="post">
+                      <a href="http://blog.csdn.net/u010617952/article/details/52199280"  target="_blank" strategy="BlogCommendFromBaidu_0">
+                        <dd class="clearfix">
+                          <h2 class="">form表单提交数据编码方式和tomcat接受数据解码方式的思考</h2>
+                          <div class="summary">
+                              http://blog.sina.com.cn/s/blog_95c8f1ac010198j2.html
+
+********************************************...                          </div>
+
+                          <ul class="">
+                              <li class="avatar_img"><img src="http://avatar.csdn.net/9/9/C/3_u010617952.jpg" alt="u010617952" title="u010617952"/></li>
+                              <li class="user_name">u010617952</li>
+                              <li class="time">2016年08月13日 14:42</li>
+                              <li class="visited_num"><i class="icon iconfont icon-read"></i><span>1996</span></li>
+                          </ul>
+                        </dd>
+                      </a>
+                  </dl>
+                                                                                                    <dl class="clearfix csdn-tracking-statistics recommend_article" data-mod="popu_387" data-poputype="feed"  data-feed-show="false"  data-dsm="post">
+                      <a href="http://blog.csdn.net/llwan/article/details/17889737"  target="_blank" strategy="BlogCommendFromBaidu_1">
+                        <dd class="clearfix">
+                          <h2 class="">解决JSP_url参数中文乱码及用JS_javascirpt编码js实现encode后台JSP_解码decode的实现</h2>
+                          <div class="summary">
+                              一、正常JSP加密方法
+ 
+
+
+    
+">点击这里   
+
+二、正常JSP解密方法
+ 
+
+
+ 
+ 
+//request.setCharacterEncoding("GBK...                          </div>
+
+                          <ul class="">
+                              <li class="avatar_img"><img src="http://avatar.csdn.net/2/4/9/3_llwan.jpg" alt="llwan" title="llwan"/></li>
+                              <li class="user_name">llwan</li>
+                              <li class="time">2014年01月05日 20:39</li>
+                              <li class="visited_num"><i class="icon iconfont icon-read"></i><span>13898</span></li>
+                          </ul>
+                        </dd>
+                      </a>
+                  </dl>
+                                                                                      <script>
+                      (function() {
+                          var s = "_" + Math.random().toString(36).slice(2);
+                          document.write('<div id="' + s + '"></div>');
+                          (window.slotbydup=window.slotbydup || []).push({
+                              id: '4765209',
+                              container: s,
+                              size: '808,120',
+                              display: 'inlay-fix'
+                          });
+                      })();
+                  </script>
+                                                                <dl class="clearfix csdn-tracking-statistics recommend_article" data-mod="popu_387" data-poputype="feed"  data-feed-show="false"  data-dsm="post">
+                      <a href="http://blog.csdn.net/u010746364/article/details/53334407"  target="_blank" strategy="BlogCommendFromBaidu_2">
+                        <dd class="clearfix">
+                          <h2 class="">表单提交Post方法、Get方法背后的秘密</h2>
+                          <div class="summary">
+                              （转载）http://blog.csdn.net/wzwenhuan/article/details/7803510
+
+
+表单大家都很熟悉，上网的时候经常会遇到表单
+
+
+
+
+
+
+
+...                          </div>
+
+                          <ul class="">
+                              <li class="avatar_img"><img src="http://avatar.csdn.net/B/3/D/3_u010746364.jpg" alt="u010746364" title="u010746364"/></li>
+                              <li class="user_name">u010746364</li>
+                              <li class="time">2016年11月25日 14:53</li>
+                              <li class="visited_num"><i class="icon iconfont icon-read"></i><span>6086</span></li>
+                          </ul>
+                        </dd>
+                      </a>
+                  </dl>
+                                                                                                    <dl class="clearfix csdn-tracking-statistics recommend_article" data-mod="popu_387" data-poputype="feed"  data-feed-show="false"  data-dsm="post">
+                      <a href="http://blog.csdn.net/JkunZhang/article/details/6187977"  target="_blank" strategy="BlogCommendFromBaidu_3">
+                        <dd class="clearfix">
+                          <h2 class="">js的form表单提交url传参数（包含+等特殊字符）的解决方法</h2>
+                          <div class="summary">
+                              JavaScript encodeURIComponent() 函数
+http://www.w3school.com.cn/js/jsref_encodeURIComponent.asp                          </div>
+
+                          <ul class="">
+                              <li class="avatar_img"><img src="http://avatar.csdn.net/C/C/0/3_jkunzhang.jpg" alt="JkunZhang" title="JkunZhang"/></li>
+                              <li class="user_name">JkunZhang</li>
+                              <li class="time">2011年02月16日 14:31</li>
+                              <li class="visited_num"><i class="icon iconfont icon-read"></i><span>19749</span></li>
+                          </ul>
+                        </dd>
+                      </a>
+                  </dl>
+                                                                                                    <dl class="clearfix csdn-tracking-statistics recommend_article" data-mod="popu_387" data-poputype="feed"  data-feed-show="false"  data-dsm="post">
+                      <a href="http://blog.csdn.net/qq_26677129/article/details/52937044"  target="_blank" strategy="BlogCommendFromBaidu_4">
+                        <dd class="clearfix">
+                          <h2 class="">form表单提交</h2>
+                          <div class="summary">
+                              表单的enctype属性
+
+enctype 属性规定在发送到服务器之前应该如何对表单数据进行编码。
+
+默认地，表单数据会编码为"application/x-www-form-urlencode...                          </div>
+
+                          <ul class="">
+                              <li class="avatar_img"><img src="http://avatar.csdn.net/0/F/9/3_qq_26677129.jpg" alt="qq_26677129" title="qq_26677129"/></li>
+                              <li class="user_name">qq_26677129</li>
+                              <li class="time">2016年10月26日 18:31</li>
+                              <li class="visited_num"><i class="icon iconfont icon-read"></i><span>1332</span></li>
+                          </ul>
+                        </dd>
+                      </a>
+                  </dl>
+                                                                        <!-- 广告位：PC端-博客详情通栏7（feed流）-808*120 -->
+              <script async="async" charset="utf-8" src="https://shared.ydstatic.com/js/yatdk/3.0.0/stream.js" data-id="8935aa488dd58452b9e5ee3b44f1212f" data-hide-ad-label = "0" data-div-Style="width:100%;padding:16px 35px 16px 10px;border-bottom:1px solid #f4f4f4;" data-img-Style="float:right;width:120px;" data-tit-Style="font-size:20px;font-weight:bold;margin-bottom:10px;font-family: 'PingFang SC', 'Microsoft YaHei', SimHei, Arial, SimSun;" data-des-Style="width:700px;font-size:14px;font-family: 'PingFang SC', 'Microsoft YaHei', SimHei, Arial, SimSun;" > </script>
+                                                                              <dl class="clearfix csdn-tracking-statistics recommend_article" data-mod="popu_387" data-poputype="feed"  data-feed-show="false"  data-dsm="post">
+                      <a href="http://blog.csdn.net/u010617952/article/details/52199280"  target="_blank" strategy="BlogCommendFromQuerySearch_5">
+                        <dd class="clearfix">
+                          <h2 class="">form表单提交数据编码方式和tomcat接受数据解码方式的思考</h2>
+                          <div class="summary">
+                              http://blog.sina.com.cn/s/blog_95c8f1ac010198j2.html
+
+********************************************...                          </div>
+
+                          <ul class="">
+                              <li class="avatar_img"><img src="http://avatar.csdn.net/9/9/C/3_u010617952.jpg" alt="u010617952" title="u010617952"/></li>
+                              <li class="user_name">u010617952</li>
+                              <li class="time">2016年08月13日 14:42</li>
+                              <li class="visited_num"><i class="icon iconfont icon-read"></i><span>1996</span></li>
+                          </ul>
+                        </dd>
+                      </a>
+                  </dl>
+                                                                                                    <dl class="clearfix csdn-tracking-statistics recommend_article" data-mod="popu_387" data-poputype="feed"  data-feed-show="false"  data-dsm="post">
+                      <a href="http://blog.csdn.net/u011024652/article/details/51959029"  target="_blank" strategy="BlogCommendFromQuerySearch_6">
+                        <dd class="clearfix">
+                          <h2 class="">回看JSP——解决提交form表单出现的乱码问题</h2>
+                          <div class="summary">
+                              最近又开始把JSP重新拿出来学一遍，有了不少的收货，有些之前没注意到的小细节也发现了解决的方法，比如form表单的乱码问题。乱码问题在写web程序时很常见，也很让人头疼，有时候一个疏忽就会出现乱码，接...                          </div>
+
+                          <ul class="">
+                              <li class="avatar_img"><img src="http://avatar.csdn.net/E/B/6/3_u011024652.jpg" alt="u011024652" title="u011024652"/></li>
+                              <li class="user_name">u011024652</li>
+                              <li class="time">2016年07月19日 20:28</li>
+                              <li class="visited_num"><i class="icon iconfont icon-read"></i><span>4855</span></li>
+                          </ul>
+                        </dd>
+                      </a>
+                  </dl>
+                                                                                                    <dl class="clearfix csdn-tracking-statistics recommend_article" data-mod="popu_387" data-poputype="feed"  data-feed-show="false"  data-dsm="post">
+                      <a href="http://blog.csdn.net/sxyandapp/article/details/44623039"  target="_blank" strategy="BlogCommendFromQuerySearch_7">
+                        <dd class="clearfix">
+                          <h2 class="">解决表单提交参数乱码问题【终极版】不看后悔</h2>
+                          <div class="summary">
+                              解决表单提交参数乱码问题【终极版】不看后悔
+提交表单乱码问题，一直是困然网站开发人员的“吐血”问题，这问题虽说不痛不痒，但是绝对“恶心人”。之前自己遇到这个问题是，一直是能绕过就绕过，懒得理它，直到...                          </div>
+
+                          <ul class="">
+                              <li class="avatar_img"><img src="http://avatar.csdn.net/B/E/5/3_sxyandapp.jpg" alt="sxyandapp" title="sxyandapp"/></li>
+                              <li class="user_name">sxyandapp</li>
+                              <li class="time">2015年03月25日 16:20</li>
+                              <li class="visited_num"><i class="icon iconfont icon-read"></i><span>20041</span></li>
+                          </ul>
+                        </dd>
+                      </a>
+                  </dl>
+                                                                                                    <dl class="clearfix csdn-tracking-statistics recommend_article" data-mod="popu_387" data-poputype="feed"  data-feed-show="false"  data-dsm="post">
+                      <a href="http://blog.csdn.net/u010617952/article/details/52199280"  target="_blank" strategy="BlogCommendFromCsdn_8">
+                        <dd class="clearfix">
+                          <h2 class="">form表单提交数据编码方式和tomcat接受数据解码方式的思考</h2>
+                          <div class="summary">
+                              http://blog.sina.com.cn/s/blog_95c8f1ac010198j2.html
+
+********************************************...                          </div>
+
+                          <ul class="">
+                              <li class="avatar_img"><img src="http://avatar.csdn.net/9/9/C/3_u010617952.jpg" alt="u010617952" title="u010617952"/></li>
+                              <li class="user_name">u010617952</li>
+                              <li class="time">2016年08月13日 14:42</li>
+                              <li class="visited_num"><i class="icon iconfont icon-read"></i><span>1996</span></li>
+                          </ul>
+                        </dd>
+                      </a>
+                  </dl>
+                                                                                                    <dl class="clearfix csdn-tracking-statistics recommend_article" data-mod="popu_387" data-poputype="feed"  data-feed-show="false"  data-dsm="post">
+                      <a href="http://blog.csdn.net/zhao1949/article/details/51897069"  target="_blank" strategy="BlogCommendFromCsdn_9">
+                        <dd class="clearfix">
+                          <h2 class="">form表单提交数据编码方式和tomcat接受数据解码方式的思考</h2>
+                          <div class="summary">
+                              http://blog.sina.com.cn/s/blog_95c8f1ac010198j2.html
+**********************************************...                          </div>
+
+                          <ul class="">
+                              <li class="avatar_img"><img src="http://avatar.csdn.net/6/F/B/3_zhao1949.jpg" alt="zhao1949" title="zhao1949"/></li>
+                              <li class="user_name">zhao1949</li>
+                              <li class="time">2016年07月13日 13:05</li>
+                              <li class="visited_num"><i class="icon iconfont icon-read"></i><span>1468</span></li>
+                          </ul>
+                        </dd>
+                      </a>
+                  </dl>
+                                                    </div>
+  </main>
+<aside>
+  <div class="right_box user_info">
+      <dl class="inf_bar clearfix">
+          <dt class="csdn-tracking-statistics tracking-click" data-mod="popu_381">
+              <a href="http://blog.csdn.net/qq_24399533" target="_blank">
+                  <img src="http://avatar.csdn.net/A/A/A/3_qq_24399533.jpg" class="avatar_pic">
+              </a>
+              <span class="medals" title="">
+                  </span>
+          </dt>
+          <dd>
+              <h3 class="csdn-tracking-statistics tracking-click"  data-mod="popu_380"><a href="http://blog.csdn.net/qq_24399533" target="_blank" id="uid">qq_24399533</a></h3>
+              <span  class="csdn-tracking-statistics tracking-click" data-mod="popu_379"><a class="btn btn-redborder-small "  id="span_add_follow" target="_self">＋关注</a></span>
+          </dd>
+      </dl>
+      <div class="inf_number_box clearfix">
+          <dl>
+              <dt>原创</dt>
+              <dd>10</dd>
+          </dl>
+          <dl>
+              <dt>粉丝</dt>
+              <dd id='fan'>1</dd>
+          </dl>
+          <dl>
+              <dt>喜欢</dt>
+              <dd>0</dd>
+          </dl>
+          <dl>
+        <dt>码云</dt>
+        <dd>&nbsp;</dd>
+      </dl>
+
+      </div>
+
+  </div>
+          <div class="extension_other csdn-tracking-statistics tracking-click" data-mod="popu_389">
+          <!--u3032528-->
+        <div class="flashrecommend">
+            <script type="text/javascript" src="//cee1.iteye.com/bwocoltly.js"></script>
+        </div>
+      </div>
+      <div class="writings">
+    <div class="public_signal clearfix">
+      <h3>他的最新文章</h3>
+      <a href="http://blog.csdn.net/qq_24399533" target="_blank" class="more"><span>更多文章</span></a>
+    </div>
+      <ul class="inf_list clearfix csdn-tracking-statistics tracking-click" data-mod="popu_382">
+                    <li class="clearfix">
+              <a href="http://blog.csdn.net/qq_24399533/article/details/51069319" target="_blank">StarUML小技巧汇总</a>
+          </li>
+                    <li class="clearfix">
+              <a href="http://blog.csdn.net/qq_24399533/article/details/51069123" target="_blank">mysql的约束</a>
+          </li>
+                    <li class="clearfix">
+              <a href="http://blog.csdn.net/qq_24399533/article/details/51051258" target="_blank">Spring动态代理的两种方式</a>
+          </li>
+                    <li class="clearfix">
+              <a href="http://blog.csdn.net/qq_24399533/article/details/51051221" target="_blank">Spring的&lt;aop:aspectj-autoproxy&gt;配置</a>
+          </li>
+                    <li class="clearfix">
+              <a href="http://blog.csdn.net/qq_24399533/article/details/51010554" target="_blank">Spring AOP 实现原理</a>
+          </li>
+                </ul>
+  </div>
+            <div class="user-hotArticle sort userSort">
+            <h3>文章分类</h3>
+            <ul class="hotArticle-list userSort-list">
+                                    <li class="clearfix">
+                        <a href="http://blog.csdn.net/qq_24399533/article/category/6134494" class="odd-overhidden floatL">JavaWeb</a>
+                        <div class="read list-left floatR"><span>2篇</span></div>
+                    </li>
+                                    <li class="clearfix">
+                        <a href="http://blog.csdn.net/qq_24399533/article/category/6134512" class="odd-overhidden floatL">算法</a>
+                        <div class="read list-left floatR"><span>1篇</span></div>
+                    </li>
+                                    <li class="clearfix">
+                        <a href="http://blog.csdn.net/qq_24399533/article/category/6136172" class="odd-overhidden floatL">hibernate</a>
+                        <div class="read list-left floatR"><span>2篇</span></div>
+                    </li>
+                                    <li class="clearfix">
+                        <a href="http://blog.csdn.net/qq_24399533/article/category/6154540" class="odd-overhidden floatL">Spring</a>
+                        <div class="read list-left floatR"><span>6篇</span></div>
+                    </li>
+                                    <li class="clearfix">
+                        <a href="http://blog.csdn.net/qq_24399533/article/category/6168459" class="odd-overhidden floatL">mysql</a>
+                        <div class="read list-left floatR"><span>1篇</span></div>
+                    </li>
+                                    <li class="clearfix">
+                        <a href="http://blog.csdn.net/qq_24399533/article/category/6168489" class="odd-overhidden floatL">staruml</a>
+                        <div class="read list-left floatR"><span>1篇</span></div>
+                    </li>
+                            </ul>
+            <div class="unfold-btn">
+              <span>展开</span><i class="icon iconfont icon-xiajiantou"></i>
+            </div>
+        </div>
+    <!--    [StartShowSelfColumn]-->
+    <!--    [EndShowSelfColumn]-->
+            <div class="user-hotArticle sort timeSort">
+          <h3>文章存档</h3>
+          <ul class="hotArticle-list timeSort-list">
+                            <li class="clearfix">
+                  <a href="http://blog.csdn.net/qq_24399533/article/month/2016/04" class="odd-overhidden floatL">2016年4月</a>
+                  <div class="read list-left floatR"><span>4篇</span></div>
+                </li>
+                            <li class="clearfix">
+                  <a href="http://blog.csdn.net/qq_24399533/article/month/2016/03" class="odd-overhidden floatL">2016年3月</a>
+                  <div class="read list-left floatR"><span>9篇</span></div>
+                </li>
+                            <li class="clearfix">
+                  <a href="http://blog.csdn.net/qq_24399533/article/month/2016/02" class="odd-overhidden floatL">2016年2月</a>
+                  <div class="read list-left floatR"><span>8篇</span></div>
+                </li>
+                      </ul>
+          <div class="unfold-btn">
+            <span>展开</span><i class="icon iconfont icon-xiajiantou"></i>
+          </div>
+        </div>
+        <div class="user-hotArticle">
+        <h3>他的热门文章</h3>
+        <ul class="hotArticle-list csdn-tracking-statistics tracking-click" data-mod="popu_521">
+<!--            [StartHotArticles]-->
+                                                <li>
+                        <a href="http://blog.csdn.net/qq_24399533/article/details/51051258">Spring动态代理的两种方式</a>
+                        <div class="read list-left"><i class="icon iconfont icon-read"></i><span>3382</span></div>
+                    </li>
+                                    <li>
+                        <a href="http://blog.csdn.net/qq_24399533/article/details/50733912">form表单提交数据编码方式和tomcat接受数据解码方式的思考</a>
+                        <div class="read list-left"><i class="icon iconfont icon-read"></i><span>1039</span></div>
+                    </li>
+                                    <li>
+                        <a href="http://blog.csdn.net/qq_24399533/article/details/50815138">ER图与UML图</a>
+                        <div class="read list-left"><i class="icon iconfont icon-read"></i><span>376</span></div>
+                    </li>
+                                    <li>
+                        <a href="http://blog.csdn.net/qq_24399533/article/details/50733994">个人对JSP编码乱码问题的理解</a>
+                        <div class="read list-left"><i class="icon iconfont icon-read"></i><span>308</span></div>
+                    </li>
+                                    <li>
+                        <a href="http://blog.csdn.net/qq_24399533/article/details/50721360">new String(getBytes(ISO-8859-1),GBK)解决中文乱码问题分析</a>
+                        <div class="read list-left"><i class="icon iconfont icon-read"></i><span>303</span></div>
+                    </li>
+                            <!--            [EndHotArticles]-->
+        </ul>
+    </div>
+
+<!--    [startcustom]-->
+    <!--    [endcustom]-->
+  <div class="fixRight_box" style="height:256px">
+    <div class="fixRight">
+                    <!--u3163270-->
+            <script type="text/javascript" src="//cee1.iteye.com/avneunkwb.js"></script>
+              <div class="copyright csdn-tracking-statistics" data-mod="popu_475" data-dsm="post">
+        <h3 class="feed_new_tit"><span class="line"></span><span class="txt">联系我们</span></h3>
+        <ul class="feed_contact">
+          <li>
+            <a href="http://wpa.qq.com/msgrd?v=3&amp;uin=2431299880&amp;site=qq&amp;menu=yes" target="_blank">
+              <span class="ico"><i class="icon iconfont icon-QQ"></i></span>
+              <span class="txt">网站客服</span>
+            </a>
+          </li>
+          <li class="clearfix">
+            <a href="http://e.weibo.com/csdnsupport/profile" target="_blank">
+              <span class="ico"><i class="icon iconfont icon-xinlang"></i></span>
+              <span class="txt">微博客服</span>
+            </a>
+          </li>
+          <li class="clearfix">
+            <a href="mailto:webmaster@csdn.net" target="_blank">
+              <span class="ico"><i class="icon iconfont icon-mail"></i></span>
+              <span class="txt">webmaster@csdn.net</span>
+            </a>
+          </li>
+          <li class="clearfix">
+            <span class="ico"><i class="icon iconfont icon-call"></i></span>
+            <span class="txt">400-660-0108</span>
+          </li>
+        </ul>
+        <div class="feed_copyright">
+          <p><a href="http://www.miibeian.gov.cn/" target="_blank">京ICP证09002463号</a></p>
+          <p><a href="http://www.csdn.net/company/about.html" target="_blank">关于</a>|<a href="http://www.csdn.net/company/recruit.html" target="_blank">招聘</a>|<a href="http://www.csdn.net/company/marketing.html" target="_blank">广告服务</a></p>
+          <p><img src="//feed.csdn.net/images/ali.png" alt="ali" title="ali"></p>
+          <p>Copyright © 1999-2018</p>
+          <p>CSDN.NET, All Rights Reserved</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</aside></div>
+
+<div class="left_fixed">
+    <div class="left_show_button">
+        <span>
+          <i class="icon iconfont icon-youjiantou"></i>
+        </span>
+    </div>
+    <ul class="left_menu" id="share_box">
+        <li>
+            <button class="left-fixed-btn btn-like csdn-tracking-statistics tracking-click" data-mod="popu_373" target="_self" title="点赞">
+                <a href="javascript:void(0);" class="iconbox border_red" ><i class="icon iconfont icon-dianzan"></i></a>
+                <a class="txt" href="javascript:void(0);">1</a>
+            </button>
+        </li>
+        <li id="blog_artical_directory">
+            <button class="left-fixed-btn left_menu_btn csdn-tracking-statistics tracking-click" data-mod="popu_372" target="_self" title="目录">
+                <a href="javascript:void(0);" class="iconbox border_black" ><i class="icon iconfont icon-mulu"></i></a>
+            </button>
+        </li>
+        <li class="menu_con">
+            <div class="list_father">
+                <div class="arr_box">
+                    <button class="btn-noborder arr-btn scroll-down  left_scroll_down"><i class="icon iconfont icon-xiajiantou"></i></button>
+                    <button class="btn-noborder arr-btn scroll-up left_scroll_top"><i class="icon iconfont icon-shangjiantou"></i></button>
+                </div>
+                <div class="arr"></div>
+                <div id="csdnBlogDir"></div>
+            </div>
+        </li>
+        <!--        <li>-->
+        <!--            <button class="left-fixed-btn btn-like tracking-ad" data-mod="popu_373" target="_self">-->
+        <!--                <span class="iconbox border_red"><i class="icon iconfont icon-xihuan-"></i></span>-->
+        <!--                <span class="txt">喜欢</span>-->
+        <!--                <span class="untxt">取消喜欢</span>-->
+        <!--            </button>-->
+        <!--        </li>-->
+        <li>
+            <button class="left-fixed-btn csdn-tracking-statistics tracking-click" data-mod="popu_374"  id="com-quick-collect" target="_self" title="收藏">
+                <a href="javascript:void(0);" class="iconbox border_purple" ><i class="icon iconfont icon-shoucang"></i></a>
+            </button>
+        </li>
+        <li>
+            <button class="left-fixed-btn btn-pinglun csdn-tracking-statistics tracking-click" data-mod="popu_544" title="评论">
+                <a href="javascript:void(0);" class="iconbox border_purple" ><i class="icon iconfont icon-pinglun"></i></a>
+            </button>
+        </li>
+        <li class="bdsharebuttonbox">
+          <button class="outside left-fixed-btn csdn-tracking-statistics tracking-click" data-mod="popu_172" title="分享到新浪微博">
+                <span class="iconbox border_red2"><i class="icon iconfont icon-xinlang"></i></span>
+                <a href="#" class="bds_tsina" data-cmd="tsina" > </a>
+          </button>
+        </li>
+        <li class="bdsharebuttonbox">
+          <button class="outside left-fixed-btn csdn-tracking-statistics tracking-click" data-mod="popu_172" title="分享到微信">
+              <span class="iconbox border_green"><i class="icon iconfont icon-weixin"></i></span>
+              <a href="#" class="bds_weixin" data-cmd="weixin" > </a>
+          </button>
+        </li>
+        <li class="bdsharebuttonbox">
+          <button class="outside left-fixed-btn csdn-tracking-statistics tracking-click" data-mod="popu_172" title="分享到QQ空间">
+              <span class="iconbox border_blue"><i class="icon iconfont icon-QQ"></i></span>
+              <a href="#" class="bds_qzone" data-cmd="qzone" > </a>
+          </button>
+        </li>
+        <li id="share_box">
+            
+            <div class="bdsharebuttonbox csdn-tracking-statistics tracking-click" data-mod="popu_172">
+                
+                
+                
+            </div>
+        </li>
+    </ul>
+</div>
+<div class="right_fixed">
+    <div class="r_ico">
+        <i class="icon iconfont icon-jubao"></i>
+        <span class="txt" id="reportBtn">内容举报</span>
+    </div>
+    <div class="returnTop">
+        <i class="icon iconfont icon-fanhuidingbu"></i>
+        <span>返回顶部</span>
+    </div>
+</div>
+<div id="pop_win"></div>
+<div id="popup_mask"></div>
+<div class="pop_CA_cover" ></div>
+<div class="pop pop_CA" >
+    <div class="CA_header">
+        收藏助手
+        <span class="cancel_icon"  id="fapancle" ></span>
+    </div>
+    <iframe src="" id="collectIframe" frameborder="0" width="100%" height="360"  scrolling="no" ></iframe>
+</div>
+<!--举报-->
+<div id="report_dialog" style="top: 250px; left: 343.5px;"><div id="panel_report">
+    <div class="panel_head">不良信息举报</div>
+    <form method="post" id="frmReport" class="panel_body">
+        <table border="0" cellpadding="0" cellspacing="4" class="pop_table">
+            <tbody><tr><td colspan="2">您举报文章：<a href="http://blog.csdn.net/qq_24399533/article/details/50733912" target="_blank">form表单提交数据编码方式和tomcat接受数据解码方式的思考</a></td></tr>
+            <tr>
+                <th style="width:60px;">举报原因：</th>
+                <td id="panel_reporttype">
+                    <label><input type="radio" class="report_type" id="report_sex" name="report_type" value="1">色情</label>
+                    <label><input type="radio" class="report_type" id="report_Politics" name="report_type" value="2">政治</label>
+                    <label><input type="radio" class="report_type" id="report_copy" name="report_type" value="3">抄袭</label>
+                    <label><input type="radio" class="report_type" id="report_ad" name="report_type" value="4">广告</label>
+                    <label><input type="radio" class="report_type" id="report_want" name="report_type" value="5">招聘</label>
+                    <label><input type="radio" class="report_type" id="report_call" name="report_type" value="6">骂人</label>
+                    <br>
+                    <label><input type="radio" class="report_type" id="report_other" name="report_type" value="7">其他</label>
+                    <input type="text" name="report_other_content" id="report_other_content" maxlength="30" style="display: none;">
+                </td>
+            </tr>
+            <tr id="panel_originalurl" style="display: none;">
+                <th>原文地址：</th>
+                <td>
+                    <input id="originalurl" value="http://" name="originalurl" type="text" style="width: 90%;">
+                </td>
+            </tr>
+            <tr>
+                <th id="sp_reason">原因补充：</th>
+                <td>
+                    <textarea id="report_description" style="width: 300px;" rows="3" name="report_description"></textarea>
+                    <p id="sp_n" style="color:#999;margin:0px;padding:0px;">(最多只允许输入30个字)</p>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <input id="btnSubmitReport" name="submit" type="image" align="middle" class="btn_1" src="http://csdnimg.cn/release/phoenix/images/btn_submit.jpg">
+                    <span style="padding-left:20px;"></span>
+                    <img id="btnCloseReportDialog" src="http://csdnimg.cn/release/phoenix/images/btn_cancel.jpg" align="middle">
+                    <div id="error" style="color: Red">
+                    </div>
+                </td>
+            </tr>
+            </tbody></table>
+    </form>
+</div>
+    <script language="javascript" type="text/javascript">
+        var isComment=0;
+        //显示隐藏地址
+        $(function () {
+          console.log("version:phoenix");
+            if(isComment){
+                $("#report_description").attr("disabled",true);
+                $("#sp_n").hide();
+                $("#sp_reason").html("评论内容：");
+            }
+            $(".report_type").click(function () {
+                $("#panel_originalurl,#report_other_content").hide();
+                switch ($(this).val()) {
+                    case '3':
+                        $("#panel_originalurl").show();
+                        $("#originalurl").focus();
+                        break;
+                    case '7':
+                        if(isComment){
+                            $("#report_other_content").show().focus();
+                        }
+                        break;
+                }
+
+            });
+
+            $("#frmReport").submit(function () {
+                if (!currentUserName) {
+
+                    if (confirm("您的操作必须登录，是否登录？")) {
+                        location.href = "http://passport.csdn.net/account/login?from=" + encodeURIComponent(location.href);
+                        return false;
+                    }
+                    return false;
+                }
+
+                var reportType = $("input[name=report_type]:checked").val();
+                if(!reportType){
+                    alert("请选择举报原因！");
+                    return false;
+                }
+                var otherInfo = "";
+                switch (reportType) {
+                    case '3':
+                        otherInfo = $("#originalurl").val();
+                        if (otherInfo == ""||otherInfo=="http://") {
+                            alert("举报抄袭必须提供原创文章地址！");
+                            $("#originalurl").focus();
+                            return false;
+                        } else if(!checkeURL(otherInfo)) {
+                            alert("请输入正确的原创文章地址！");
+                            $("#originalurl").focus();
+                            return false;
+                        }
+                        break;
+                    case '7':
+                        otherInfo = $("#report_other_content").val();
+                        if (isComment && !otherInfo) {
+                            alert("请填写举报的具体原因！");
+                            $("#report_other_content").focus();
+                            return false;
+                        }
+                        if(!isComment){
+                            if(!$("#report_description").val()){
+                                alert("请填写举报的具体原因！");
+                                $("#report_description").focus();
+                                return false;
+                            }
+                        }
+                        break;
+                }
+                if(!isComment){
+                    if($("#report_description").val().length>30){
+                        alert("举报原因最多只允许输入30个字！");
+                        return false;
+                    }
+                }
+	            nowTime = {
+		            year: new Date().getFullYear(),
+		            month: parseInt(new Date().getMonth())+1,
+		            day: new Date().getDate(),
+		            hours: parseInt(new Date().getHours())+1,
+		            minutes: parseInt(new Date().getMinutes())+1,
+		            seconds: parseInt(new Date().getSeconds())+1
+	            };
+	            var data = {
+		            articleId: fileName,
+		            commentId: 0,
+		            reportType: reportType,
+		            originalurl: $("#originalurl").val(),
+		            report_other_content: $("#report_other_content").val(),
+		            report_description: $("#report_description").val(),
+		            currentUserName: currentUserName,
+		            updatetime: nowTime.year+'/'+nowTime.month+'/'+nowTime.day+' '+ nowTime.hours+':'+nowTime.minutes+':'+seconds,
+		            blogUser: username
+	            };
+	            if(!isComment){//如果是举报文章
+		            data.report_other_content = data.report_description;
+		            // data.report_description = "1. 神经网络这是一个常见的神经网络的图：这是一个常见的三层神经网络的基本构成，Layer L1是输入层，Layer L2是隐含层";
+	            }
+
+	            $.post(blog_address + "/common/report?id="+fileName+"&t=2", data, function (data) {
+		            if (data.result == 1){
+			            SetError("感谢您的举报，我们会尽快审核！");
+		            }else{
+			            if (data.content) alert(data.content);
+		            }
+
+	            });
+                return false;
+            });
+
+            $("#btnCloseReportDialog").click(function () {
+                CloseDiv();
+            });
+
+        });
+
+        //提示后关闭方法
+        function SetError(error) {
+            $("#btnCloseReportDialog").trigger("click");
+            alert(error);
+            CloseDiv();
+        }
+
+        //关闭方法
+        function CloseDiv() {
+
+            $.removeMask();
+            $("#report_dialog").hide();
+            return false;
+        }
+
+        //验证url
+        function checkeURL(url){
+            return /^http(s)?:\/\/([\w-]+\.)+[\w-]+/i.test(url);
+        }
+    </script>
+</div>
+<!--  fixme 后期清理掉  -->
+<div id="a52b5334d" style="width: 1px; height: 1px; display: none;">
+    <script id="adJs52b5334"></script>
+    <script>document.getElementById("adJs52b5334").src = "http://ads.csdn.net/js/opt/52b5334.js?t=" + Math.random();</script>
+</div>
+<script src="http://c.csdnimg.cn/public/common/libs/bootstrap/js/bootstrap.min.js" type="text/javascript"></script>
+<script type="text/javascript" src="http://csdnimg.cn/release/phoenix/bower-libs/MathJax/MathJax.js?config=TeX-AMS_HTML"></script>
+<!-- <script type="text/javascript" src="http://passport.csdn.net/content/loginbox/login.js"></script> -->
+<script>window._bd_share_config = { "common": { "bdSnsKey": {}, "bdText": "", "bdMini": "1", "bdMiniList": false, "bdPic": "", "bdStyle": "0", "bdSize": "16" }, "share": {} }; with (document) 0[(getElementsByTagName('head')[0] || body).appendChild(createElement('script')).src = 'http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion=' + ~(-new Date() / 36e5)];</script>
+<script type="text/javascript" >
+    if($(".article_collect li").length==1){$(".article_collect").hide();}
+    if($(".article_tags li").length==1){$(".article_tags").hide();}
+    $(".edit a").attr("href","http://mp.blog.csdn.net/postedit/"+fileName);
+    $.each($(".edu_li a"),function(){$(this).attr("href",$(this).attr("href").replace("blog7","blog9"))});
+    new CNick('#uid').showNickname();
+
+    if($("#fan").html()=="")
+    {
+	    $("#fan").html(0);
+    }
+</script>
+<script src="http://c.csdnimg.cn/public/common/append_mark/appendMark.min.js?v=5.00.43" type="text/javascript"></script>
+<script type="text/javascript">
+    appendMark($('.recommend_list').children('a').find('dt'),$('.extension_other'))
+</script>
+<div class=""id="loginWrap"></div>
+<div class="" id="dlMask"></div>
+</body>

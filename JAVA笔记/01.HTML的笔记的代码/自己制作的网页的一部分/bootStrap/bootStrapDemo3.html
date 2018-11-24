@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+ 	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+	 <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" 
+	integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" 
+	crossorigin="anonymous">
+	<script type="text/javascript" src="../jslib/jquery.js"></script>
+	<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" 
+	integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" 
+	crossorigin="anonymous"></script>
+ 
+ 
+	
+	<style type="text/css">
+		/*
+			第3个div的样式
+		*/
+		.div3_ul{ 
+		list-style-type:none;
+	 	padding:0;
+		margin:0;
+		text-align:center;
+		}
+		.div3_li {
+			 	/* 
+			 		变为块元素  可以自己调高度
+			 	*/
+			 	text-align: left;
+			 	overflow: hidden;
+				display: inline-block;
+			 	vertical-align: sub;
+			 	margin: 0px 30px 30px 0px;
+			 	height: 482px;
+			 	width: 378px;
+			 	border: 1px solid #F5F5F5;
+			 	transition: all 0.6s ,box-shadow 0.6s;
+				-moz-transition: all 0.6s, -moz-transform 0.6s; /* Firefox 4 */
+				-webkit-transition: all 0.6s, -webkit-transform 0.6s; /* Safari and Chrome */
+				-o-transition: all 0.6s, -o-transform 0.6s; /* Opera */
+		}
+		 .div3_li:HOVER 
+			{
+			 box-shadow: 10px 10px 5px rgba(34, 25, 25, 0.2); 
+			transform: translate(10px,-20px);
+			-moz-transform: translate(10px,-20px); /* Firefox 4 */
+			-webkit-transform: translate(10px,-20px);/* Safari and Chrome */
+			-o-transform: translate(10px,-20px); /* Opera */
+			}
+		 	
+			
+	 	
+			 
+		.div2 {
+			padding: 0 60px 0 80px;
+			background-color: white;
+		}
+		.div3 {
+			padding: 2% 0  10% 0;
+			background-color: white;
+		}
+		.div3_1 {
+			padding:35px;
+			overflow:hidden;
+		}
+		.p3_1 {
+			margin-top: 31px;
+			font-family: Consolas;
+			font-size: 21px;
+		}
+		.p3_2 {
+			display:inline-block;
+			height:50px;
+			width: 100%;
+			margin-top: 20px;
+			font-family: SimSun;
+			font-size: 13px;
+			color :#848484;
+			overflow:hidden;
+			line-height :24px;
+			
+		}
+		.p3_3 {
+			margin-top: 50px;
+			font-family: LiSu;
+			font-size: 21px;
+		}
+		 .div3_li:HOVER .p3_3 {
+			 	color: blue;
+			}   
+			
+		.div3_label {
+		/* position:absolute;  */
+		/*
+			为什么设置了 absolute 就会乱 label 因为 absolute 如果没有父元素或祖先元素
+			设置了 absolute 和relative 的话是根据body 来定义的。然后父标签触发hover事件进行移动的时候
+			会自动变成 absolute 然后  div3_label 就会自动根据父元素来定义。移动结束 又按照 bodY来定义所以
+			会乱。 因为设置了 left 等值。设置了这个值以后 会根据用户指定位置的在body上进行定位
+			想设置 postion：absolute 的话还想不乱的话 也可以 将父元素显示的设置为 absolute；就不会乱了
+		*/
+			margin: -41px 0px 0px 82px;
+			height:32px;
+			width:32px;
+			background:transparent url("shangma/label1.png") no-repeat scroll;
+			background-position: -0px 2px; /*0 -29*/
+			transition: all 0.6s ,box-shadow 0.6s;
+			-moz-transition:all 0.6s, -moz-transform 0.6s; /* Firefox 4 */
+			-webkit-transition:all 0.6s, -webkit-transform 0.6s; /* Safari and Chrome */
+			-o-transition:all 0.6s, -o-transform 0.6s; /* Opera */
+		}
+		.div3_li:HOVER .div3_label {
+			background-position: 0px -29px;
+			}  
+	</style>
+	
+	
+</head>
+<body>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-md-12  div2">
+				<h2 align="center">课程大纲</h2>
+				<hr align="center" style="width: 60px"/>
+				<p align="center">接触真实的项目实战，全面了解实际工作流程学习就等于工作。每期每班26人，手把手教学，保证每位同学学好学会…</p>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12 div3">
+				<ul class="div3_ul">
+					<li class="div3_li">
+						<p><img alt="" src="shangma/shangma3_1.jpg" ></p>
+						<div class="div3_1">
+			                <p class="p3_1">课程大纲</p>
+			                <p class="p3_2">第一阶段：通过每天课后作业来强化每日学习内容，阶段末尾进行学习内容融合，整合小型项目强化理解。 </p>
+			                <p class="p3_3">查看更多</p>
+			                <div class="div3_label"></div> 
+			              </div>
+					</li>
+					<li class="div3_li">
+						<p><img alt="" src="shangma/shangma3_2.jpg" ></p>
+						<div class="div3_1">
+			                <p class="p3_1">竞争优势</p>
+			                <p  class="p3_2">最精的班级设置 每期每班不超30人 手把手教学 分组交流实践 差异化辅导教学 保证每位同学学好学会
+
+											最严的质量管控 绝对不接受大专以下文凭 4个月全日制教学尚马将和学生一起在艰苦学习下共同度过
+											
+											最好的教学师资 北京一线互联网公司技术总监担任讲师 现场面授 尚马教育采用一师制 责任划分，负责到底
+											
+											最真的项目案例 项目均为一线互联网公司实战项目，CMS系统+接口服务 让你全方位了解一个互联网产品的诞生
+											
+											最低的费用成本 一线城市的师资 二线城市的教学 三线城市的费用 降低办学成本 用相对最好的环境设施回报学员
+											
+											最诚的招生方式 所有学员均为网招或学员转介绍，拒绝校招 社招 所有学员口径一致 共同的愿望 共同的目标
+											</p>
+			                <p class="p3_3">查看更多</p>
+			                <div class="div3_label"></div> 
+			              </div>
+					</li>
+					<li class="div3_li">
+						<p><img alt="" src="shangma/shangma3_3.jpg" ></p>
+						<div class="div3_1">
+			                <p class="p3_1">竞争优势</p>
+			                <p class="p3_2">最精的班级设置 每最精的班级设置 每30人 手超30人 手把最精的班级设置 每最精的班级设置 每30人 手超30人 手把</p>
+			                <p class="p3_3">查看更多</p>
+			                <div class="div3_label"></div> 
+			              </div>
+			             
+					</li>
+				</ul>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12 div4">
+				 
+				<div class="div5_label"></div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

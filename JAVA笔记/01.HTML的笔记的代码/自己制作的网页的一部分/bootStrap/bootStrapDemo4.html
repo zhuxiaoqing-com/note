@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+	 <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" 
+	integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" 
+	crossorigin="anonymous">
+	<script type="text/javascript" src="../jslib/jquery.js"></script>
+	<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" 
+	integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" 
+	crossorigin="anonymous"></script>
+	<!--<style type="text/css">
+		.bar {
+				transition: all 0.6s ,box-shadow 0.6s;
+				-moz-transition:all 0.6s, -moz-transform 0.6s; /* Firefox 4 */
+				 -webkit-transition:all 0.6s, -webkit-transform 0.6s; */ /* Safari and Chrome */
+				 -o-transition:all 0.6s, -o-transform 0.6s;  /* Opera */
+				 background-color: black;
+				 visibility: inherit;
+		}
+		.bar:HOVER {
+		visibility: hidden;
+		background-color: red; -->
+		
+
+	</style>
+	<script type="text/javascript">
+	   	  /*   $(document).ready(function() {
+			$(window).on("scroll", function() {
+				//获取元素顶部对于 document 顶部的偏移量
+				var offset = $(".bar").offset().top;
+				console.log("offset:.." + offset);
+				
+				
+				console.log("windowHeight:.." + windowHeight);
+				
+				//获取元素不包含外边距的高度
+				var outHeight = $(".bar").outerHeight();
+				console.log("outHeight:.."+ outHeight);
+				
+				//获取 window 的top 的位置 就是可视化窗口相对于 document 的 top 位置
+				var scollTop = $(window).scrollTop();
+				console.log("scollTop:.."+ scollTop);
+				
+				// 获取document 的 height
+				var documentHeight = $(document).height();
+				console.log("documentHeight:.."+ documentHeight);
+			});
+		});   */
+		 
+		
+		/*
+		1. 将要延迟显示的特效隐藏
+		2. 等 $(window).scrollTop() >  $(".ceshi1").offset().top + $("ceshi1").outerHeight();
+			就说明  ceshi1 已经在窗口上面
+		3.如果 $(window).scrollTop() < $(".ceshi1").offset().top - $(window).height();
+			就说明 ceshi1 还在窗口下面 
+			如果两个都不是说明 该 元素在可视化窗口里面		当然等于不算 还需要加一点偏移量 当然只有元素再可视化窗口下面时
+		4. windowTop < itemOffset + itemOuterHeight && windowTop > itemOffset - windowHeight 
+			为 true 说明元素在可视化窗口里面
+	*/
+		/*
+			item 是 class 类名
+		*/
+		function myTransition(item,time) {
+				/*先为其 class 设置过度动画
+				 设置过度要几秒默认 0.5s;
+					transition: all 0.6s ,box-shadow 0.6s;
+				-moz-transition:all 0.6s, -moz-transform 0.6s; /* Firefox 4 */
+				/* -webkit-transition:all 0.6s, -webkit-transform 0.6s; */ /* Safari and Chrome */
+				/* -o-transition:all 0.6s, -o-transform 0.6s;  *//* Opera */
+				
+				var $item = $(item);
+				/*为要过渡的动画设置元素*/
+			/* 	$item.css("transition","all " + time + "s");
+				$item.css("-webkit-transition","all " + time + "s");
+				$item.css("-o-transition","all " + time + "s"); */
+				$item.css({"transition": "all 2s",
+				 "-webkit-transition": "all 2s",
+				 "-moz-transition": "all 2s",
+				 "-o-transition": "all 2s",
+				 "-ms-transition": "all 2s",
+				 "opacity": "0" 
+				});
+				go($item);
+			/*为其设置滚轮事件*/
+			$(window).on("scroll", function() {
+				go($item);
+			});
+		}
+		/*
+			因为刚刷新页面的时候滚轮事件还没有发生所以 需要将方法抽出来，然后再其dom加载完成后就运行一次方法
+			然后再交由 scroll 事件来完成
+		*/
+		function go($item) {
+			$item.each(function(){
+				var windowTop = $(window).scrollTop();/*window 的 top*/
+				var itemOffset = $(this).offset().top;/*item 相对于 document 的 top 的绝对位置*/
+				var itemOuterHeight = $(this).outerHeight();/*获取元素的 height 包含 padding 和 border*/
+				var windowHeight = $(window).height();/*获取当前窗口的高度*/
+				
+				/*true 说明 item 在可视化窗口
+					将其显示 show()
+					否则将其 hide()
+				*/
+				var result1 = windowTop < itemOffset + itemOuterHeight;
+				var result2 = windowTop > itemOffset + windowHeight;
+				/*  console.log("one...." + result1);
+				console.log("two...." + result2);  */
+				
+				/*console.log("windowTop..." + windowTop); 2896 
+				console.log("itemOffset..." - itemOffset); 3220
+				console.log("itemOuterHeight..." + itemOuterHeight); 39
+				console.log("windowHeight..." + windowHeight); 974
+				*/
+				if(windowTop < itemOffset + itemOuterHeight && windowTop > itemOffset - windowHeight) {
+					//console.log(this);
+					/* setTimeout(function() {
+					$(this).css("display","block");
+					}, 100); */
+					//$(this).css("display","block");
+					$(this).css("opacity","1");
+					$(this).css("visibility","visible");
+				} else {
+					/* console.log(this);
+					setTimeout(function() {
+					$(this).css("display","none");
+					}, 100); */
+					//$(this).css("display","none");
+					$(this).css("opacity","0");
+					$(this).css("visibility","hidden");
+				}
+			});
+			
+		}
+		
+		
+		
+		
+		$(document).ready(function(){
+			myTransition(".bar","3");
+		});
+		
+	</script>
+</head>
+<body>
+	<div class="container-fluid">
+		<div class="row">
+			<div class="col-md-12" >
+				<img alt="" src="../QQ/top.png" height="400">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12" >
+				<img alt="" src="../QQ/top.png" height="400">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12" >
+				<img alt="" src="../QQ/top.png" height="400">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12" >
+				<img alt="" src="../QQ/top.png" height="400">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12" >
+				<img alt="" src="../QQ/top.png" height="400">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12" >
+				<img alt="" src="../QQ/top.png" height="400">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12" >
+				<img alt="" src="../QQ/top.png" height="400">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12" >
+				<img alt="" src="../QQ/top.png" height="400">
+			</div>
+		</div>
+		<div class="row">
+		<h1 class="bar">我是顶端</h1>
+			<div class="col-md-12" >
+				<img alt="" src="../QQ/top.png" height="400">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12 bar" >
+				<img alt="" src="../QQ/top.png" height="400">
+			</div>
+		</div>
+	</div>
+</body>
+</html>

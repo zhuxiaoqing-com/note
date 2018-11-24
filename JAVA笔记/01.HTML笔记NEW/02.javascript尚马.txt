@@ -1,0 +1,188 @@
+BOM
+
+history               用户(在浏览器窗口中)访问过得 URL
+location              用于窗口或框架的 Location 对象
+screen(屏幕)       对 screen 对象的只读引用
+status                设置窗口状态栏的文本
+document           对 Document 对象的只读引用
+
+================================
+
+history  历史
+      
+      back()：加载上一个浏览的文档
+      forward(): 加载下一个浏览过的文档
+      go(n) : n 为整数，跳转第 n 个浏览过的文档
+        n == 0  则刷新当前页面
+        n > 0 则向前跳转到第 n 个文档
+        n < 0 则向前跳转到第 n 个文档
+
+================================
+
+location 位置
+        设置或获取的值都是再当前位置
+  属性：
+      host            设置或返回主机名和当前 URL 的端口号
+      hostname    设置或返回当前 URL 的主机名
+      href            设置或返回完整的 url , 可用于设置跳转
+      hash           设置或返回从井号(#) 开始的 URL (锚)
+      search        设置或返回从问号(?) 开始的 URL (查询部分)
+
+  方法名称：
+     reload(): 重新加载当前的文档，刷新页面
+     replace(): 新的文档替换成当前文档
+
+================================
+
+document
+
+    属性：title : 返回或设置当前文档的标题
+
+    常用方法：
+        write()： 
+        getElementById():...
+
+================================
+
+ window 对象的常用方法
+    
+    prompt()       显示可提示用户输入的对话框     返回用户输入的内容  没有内容返回 null
+    alert()           显示带有一个提示信息、确定和取消按钮的警示框
+    confirm()       显示一个带有提示信息、确定和取消按钮的对话框
+    open()           打开一个新的浏览器窗口，加载给定 URL 所指定的文档
+                        newWin = window.open("弹出窗口的url", "窗口名称", "窗口特征，比如高度和宽度");
+    close()           关闭浏览浏览器窗口
+                
+ --------------------------------------------------------------------
+   
+    定时函数
+
+    setInterval (fn,  millisec ) 方法
+        可按指定的周期(以毫秒计)来调用函数或计算表达式，循环执行多次
+
+    setTimeout (fn, millisec ) 方法
+        用于在指定的毫秒数后调用函数或计算表达式，只执行一次
+
+        var timer = setInterval("fn()",  1000);
+        var timer = setInterval(fn,  1000);
+        
+    定时清除函数
+
+    clearInterval( timer ) 方法
+        可取消有 setInterval() 设置的 timeout
+
+     clearTimeout( timer ) 方法
+        可取消由 setTimeout() 方法设置的 timeout
+    
+----------------------------------------------------------------------
+
+使用层次关系访问节点
+
+    parentNode : 返回节点的父节点
+    childNode : 返回子节点集合，childNodes[i]
+    firstChild: 返回节点的第一个子节点，最普遍的用法是访问该元素的文本节点
+    lastChild : 返回节点的在最后一个子节点
+    nextSibling : 返回下一个节点
+    previousSibling ： 上一个节点
+
+        IE下会忽略节点之间生成的空白文本节点 (比如换行字符)，而其他浏览器不这么做
+
+
+    getAttribute()
+        获取某个节点的属性 值
+        节点对象.getAttribute(" 属性名 ");
+
+    setAttribute()
+        设置某个节点的属性值
+        节点对象.setAttribute("属性名", "属性值");
+
+
+创建节点和新增节点
+    createElement(tagName)   创建一个名为 tagName 的新元素节点
+    ANode.appendChild( BNode )  把 B 节点追加到 A 节点的末尾  添加子节点
+    insertBefore(ANode, BNode)   把 A 节点插入到 B 节点之前
+    Node.cloneNode(deep) deep 为 true 则复制该节点以及该节点的所有子节点，为 false 则只复制该节点和其属性
+
+    removeChild( node )  删除指定的节点   需要父节点来调用
+    replaceChild( newNode, oldNode )  用 newNode 来替换 oldNode 
+
+
+--------------------------------------------
+
+Table 对象代表一个 Html 表格
+    <table> 标签对应一个 Table 对象的创建
+    对象集合
+
+        rows[]  返回表单中所有行的一个数组   返回的是tr
+        cells[]   返回包含表格中所有单元格的一个数组   返回的是 td  tr
+
+        方法
+            insertRow(index)   用在表格的指定位置插入新行
+  
+            deleteRow(index)   用于删除表格中指定的行
+
+
+            insertCell(index)   在一行中的指定位置插入一个空的 <td> 元素
+  
+            deleteCell(index)   用于删除表格中指定的单元格
+
+-----------------------------------
+
+TableCell 对象代表一个 HTML 表格单元格
+
+属性
+    cellIndex  ： 单元格在某行的单元格集中的位置
+    innerHTML ： 设置或返回单元格的开始标签和结束标签之间的 HTML
+    align ：设置或返回单元格内部数据的水平排列方式
+
+
+
+数组 Array
+
+    属性： length     设置或返回数组中元素的 数目
+              join()      把数组的左右元素通过分隔符进行分隔连接，拼接成一个字符串
+              sort()      对数组排序
+              push()     向数组末尾添加一个或更多元素，并返回新的长度
+
+className  设置或返回class的属性
+
+
+    注意JavaScript的style的属性与CSS样式属性的写法区别
+
+        例如：背景色
+
+        CSS：background-color  :  red;
+        JS：DOM.style.backgroundColor = "red";
+
+
+事件起泡
+在一个对象上触发某类事件（比如单击onclick事件），如果此对象定义了此事件的处理程序，那么此事件就会调用这个处理程序，
+如果没有定义此事件处理程序或者事件返回true，默认返回的是true  那么这个事件会向这个对象的父级对象传播，从里到外，
+直至它被处理（父级对象所有同类事件都将被激活），或者它到达了对象层次的最顶层，即document对象（有些浏览器是window）。
+event.stopPropagation() ： 所有上层的冒泡行为都将被取消
+
+
+阻止默认行为
+
+默认行为，常见的是点击超链接时的跳转，表单的提交，鼠标右击的系统菜单等等。 
+preventDefault()：阻止默认行为
+
+    也可以直接 返回 false 来同时阻止 默认行为和事件起泡
+
+    $("form").bind("submit", function(event){
+      event.stopPropagation();
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
+

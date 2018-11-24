@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+ 	<meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- 最新版本的 Bootstrap 核心 CSS 文件 -->
+	 <link rel="stylesheet" href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" 
+	integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" 
+	crossorigin="anonymous">
+	<script type="text/javascript" src="../jslib/jquery.js"></script>
+	<script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" 
+	integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" 
+	crossorigin="anonymous"></script>
+ 
+ <style type="text/css">
+		.myfix {
+			position: fixed;
+			width:100%;
+			height:auto;
+			/*table-layout: fixed;
+			word-wrap: break-word;
+			overflow: hidden;
+			height:62px;*/
+			z-index: 99;
+			/*	
+				阴影  rgba a 是不透明指数
+			*/
+			background-color:transparent;
+			box-shadow: 0px 1px 3px rgba(34, 25, 25, 0.2);
+		}
+		.div1_black {
+			background-color:black;
+			transition: all 0.6s ,box-shadow 0.6s;
+			-moz-transition:all 0.6s, -moz-transform 0.6s; /* Firefox 4 */
+			-webkit-transition:all 0.6s, -webkit-transform 0.6s; /* Safari and Chrome */
+			-o-transition:all 0.6s, -o-transform 0.6s; /* Opera */
+		}
+		.div1_transparent {
+			background-color: transparent;
+			transition: all 0.6s ,box-shadow 0.6s;
+			-moz-transition:all 0.6s, -moz-transform 0.6s; /* Firefox 4 */
+			-webkit-transition:all 0.6s, -webkit-transform 0.6s; /* Safari and Chrome */
+			-o-transition:all 0.6s, -o-transform 0.6s; /* Opera */
+		}
+		/* .div1_black {
+			
+		} */
+	.div1_ul{ 
+		list-style-type:none;
+	 	padding:0;
+		margin:0;
+		
+		}
+	.header_li {
+			 	/* 
+			 		变为块元素  可以自己调高度
+			 	*/
+				display:inline-block;
+			 	vertical-align: sub;
+			 	margin: 0 60px 0px 0;
+			 	/*padding-bottom: 22px;
+			 	  height: 40px; */
+		}
+		.header_liChuShiHua {
+			border-bottom: 3px solid transparent;
+		}
+		.hover1 {
+			border-bottom: 3px solid yellow; 
+		}
+		a:HOVER {
+			text-decoration: none;
+		}
+		/* .header_li {
+			float: left;
+			list-style: none;
+			
+		} */
+	</style>
+	
+	
+	<script type="text/javascript">
+		$(document).ready(function(){
+			 var $text = $(".header_li");
+			var maxHeight = 0;
+			//遍历获取 li max height
+			$text.each(function() {
+			   var height = parseInt($(this).css("height")); //得到 22px 使用 parseInt 会自动将其 px去掉变成 22
+			   if(height > maxHeight) {
+				   maxHeight = height;
+			   }
+			}); 
+			//再次遍历比较 li 的 height 与 maxHeight 的差距 将差距变为 padding top 和 padding bottom 对半
+			$text.each(function() {
+				var height = parseInt($(this).css("height"));
+				$(this).css("padding-top", (maxHeight - height)/2);
+				$(this).css("padding-bottom", (maxHeight - height)/2);
+			}); 
+			
+			
+			
+			/*初始化.header_li 将其边框设置为 3px
+				因为 前面需要计算 li 的height 有了 border 的边框以后 会变得不准确。因为 border-bottom 也会被算上height。
+			*/
+			$(".header_li").addClass("header_liChuShiHua");
+			/*
+				超链接事件
+			*/
+			$(".myfix").find("a").hover(
+			function(){
+				 $(this).parent().addClass("hover1");
+			}, 
+			function(){
+				 $(this).parent().removeClass("hover1");
+			});
+				/*
+					 淡入淡出
+				*/
+			 $(window).on("scroll", function() {
+				 var sTop = $(window).scrollTop();
+	              var sTop = parseInt(sTop);
+	               if(sTop > 0) {
+				$(".myfix").removeClass("jianbian2");
+				$(".myfix").addClass("jianbian1");
+				} else {
+					 console.log("dd");
+					$(".myfix").removeClass("jianbian1");
+					$(".myfix").addClass("jianbian2");
+				} 
+			 });
+						
+		}); 
+	
+	</script>
+</head>
+<body>
+	<div class="container-fluid ">
+		<div class="row myfix">
+			<div class="col-md-12 header_div" >
+				<ul class="div1_ul">
+					<li class="header_li" >
+						<a class="afont">
+							<img src="shangma/header3.png" height="40px">
+						</a>
+					</li>
+					<li class="header_li">
+						<a class="afont" style="color: #fff">首页</a>
+					</li>
+					<li class="header_li">
+						<a class="afont" style="color: #fff">关于我们</a>
+					</li>
+					<li class="header_li">
+						<a class="afont" style="color: #fff">教学生活</a>
+					</li>
+					<li class="header_li">
+						<a class="afont" style="color: #fff">新闻资讯</a>
+					</li>
+					<li class="header_li">
+						<a class="afont" style="color: #fff">师资介绍</a>
+					</li>
+					<li class="header_li">
+						<a class="afont" style="color: #fff">联系我们</a>
+					</li>
+				</ul>
+			</div>	
+		</div>
+		<div class="row" style="position:fixed;" >
+			<div  class="col-md-13">
+				<div  id="carousel-example-generic" class="carousel slide"
+					data-ride="carousel">
+					<div>
+					</div>
+					<!-- Indicators -->
+					<ol class="carousel-indicators">
+						<li data-target="#carousel-example-generic" data-slide-to="0"
+							class="active"></li>
+						<li data-target="#carousel-example-generic" data-slide-to="1"></li>
+						<!-- <li data-target="#carousel-example-generic" data-slide-to="2"></li> -->
+					</ol>
+
+					<!-- Wrapper for slides -->
+					<div class="carousel-inner" role="listbox">
+						<div class="item active">
+							<img src="shangma/header1.jpg" alt="...">
+							<div class="carousel-caption">
+							
+							</div>
+						</div>
+						<div class="item">
+							<img src="shangma/header2.jpg" alt="...">
+							<div class="carousel-caption">...</div>
+						</div>
+						...
+					</div>
+
+					<!-- Controls -->
+					<a class="left carousel-control" href="#carousel-example-generic"
+						role="button" data-slide="prev"> <span
+						class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+						<span class="sr-only">Previous</span>
+					</a> <a class="right carousel-control" href="#carousel-example-generic"
+						role="button" data-slide="next"> <span
+						class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+						<span class="sr-only">Next</span>
+					</a>
+				</div>
+			</div>
+		</div>
+		<div  class="row" style=" height: 700px; width:100%">
+			<div class="col-md-12">
+			</div>
+		</div>
+		<div  class="row">
+			<div class="col-md-12">
+				<img alt="" src="../QQ/top.png">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12" >
+				<img alt="" src="../QQ/top.png" height="400">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12" >
+				<img alt="" src="../QQ/top.png" height="400">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12" >
+				<img alt="" src="../QQ/top.png" height="400">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12" >
+				<img alt="" src="../QQ/top.png" height="400">
+			</div>
+		</div>
+	</div>
+</body>
+</html>

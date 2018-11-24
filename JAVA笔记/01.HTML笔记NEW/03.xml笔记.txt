@@ -1,0 +1,516 @@
+1.xml简介
+	*eXtensible Markup Language:可扩展标记型语言
+		**标记型语言：html也是标记型语言
+			-也是使用标签来操作
+		
+		**可扩展：
+			-html里面的标签是固定的，每个标签都有特定的含义
+			-xml标签可以自己定义，可以写中文的标签<狗></狗>
+
+	**xml用途
+		**html是用于显示数据，xml也可以显示数据（不是主要功能）
+		**xml主要功能，为了存储数据
+
+	*xml是w3c组织发布的技术
+
+	*xml有两个版本 1.0  1.1
+		-使用都是1.0版本，（1.1版本不能向下兼容）
+
+2.xml的应用
+	*不同系统之间传输数据
+		**qq之间数据的传输
+		*用来表示生活中有关系的数据
+
+		*经常用在文件配置
+			*比如现在链接数据库，肯定知道数据库的用户名和密码，数据名称
+			*如果修改数据库的信息，不需要修改源代码，只要修改配置文件就可以了
+
+3.xml的语法
+	（1）xml的文档声明
+		*创建一个文件 后缀名是.xml
+		*如果写xml,第一步必须要有一个文档声明（写了文档声明之后，表示写xml文件的内容）
+		**<?xml version="1.0" encoding="gbk"?>
+		***文档声明必须写在 第一行第一列
+
+		*属性
+			-version:xml的版本1.0（使用）、1.1
+			-encoding:xml编码 gbk utf-8 iso8859-1(一种不能显示中文的编码，不能解码中文)
+			-standalone：是否需要依赖其他文件yes/no
+
+		*xml的中文乱码问题
+			**因为你在保存xml文件的时候用的可能是gbk编码保存的文件,但是你在xml文档声明的
+			时候，声明的是utf-8，所以浏览器会用utf-8的编码来打开xml文件，由于编码表和解码码表
+			不一致就出现乱码了
+
+			**保存时候的编码和设置打开的时候的编码一致，就不会出现乱码
+
+4.xml的元素定义
+	**标签定义
+
+	**标签定义有开始必须要有结束：<person></person>
+	**标签没有内容，可以在标签内结束;<aa/>
+	**标签可以嵌套，必须要合理嵌套
+		**合理嵌套<a><b></b></a>
+		**不合理嵌套：<a><b></a></b>;这种方式是不正确的
+	**一个xml中，只能有一个根标签，其他标签都是这个标签下面的子标签
+
+	**在xml中会把空格和换行都当做内容来解析，
+		***下面这两段代码的含义是不一样的
+		*<aa>1111</aa>
+		*<aa>
+			1111
+		</aa>
+
+	**xml中的标签的名称命名规则
+		（1）xml代码区分大小写
+			<p><P>：这两个标签是不一样的
+		（2）xml的标签不能以数字和下划线（_）开头
+			**<2s><_aa>:这样是不正确的
+		（3）xml的标签不能以xml、XML、xMl等开头
+			<xmla><XMLa><xMla>:这些都是不正确的
+		（4）xml的标签不能包含空格和冒号
+			<a b><!-- <b:c> -->:这些都是不正确的
+		
+	**xml标签可以是中文
+	
+5.xml中的属性的定义
+	*html也是标记型文档，可以有属性
+	*xml也是标记型文档，可以有属性
+	
+	*<person id1="aaa" id2="sss"></person>
+
+	**属性定义的要求
+		（1）一个标签上可以有多个属性
+			<person id1="aaa" id2="sss"></person>
+		（2）属性名称不能相同
+			<person id1="aaa" id1="sss"></person>错误的这种是，不能有两个id1
+		（3）属性名称和属性值之间使用=，属性值使用引号包起来（可以刷双引号，也可以是单引号）
+		（4）xml属性的名称规范和元素的名称规范一致
+
+6.xmld中的注释
+	*写法*<!-- xml的注释 -->
+	**注意的地方
+		**注释不能嵌套
+			<!-- <!-- --> -->错误的
+			<!-- <!--<sex>sss</sex> --> -->错误的
+		**注释也不能放到第一行，第一行第一列必须放文档声明
+
+7.xml中的特殊字符
+	*如果想要在xml中显示啊a<b，不能正常显示，因为<被当做标签
+	*如果想要显示，需要对特殊字符<进行转义
+	**<&lt;		& &amp;		' &apos;
+	**>&gt;		" &quot;
+
+8.CDATA区
+	*可以解决多个字符都需要转义的操作if(a<b && a<c && d<f){}
+	*吧这些内容放到CDATA去里面，就不需要转义了
+	**写法
+		<![CDATA[ 内容 ]]>
+		-代码
+		<![CDATA[if(a<b && a<c && d<f){}]]>
+	**吧特殊字符，当做文本内容，而不是标签
+
+9.PI指令（处理指令）
+	*可以在xml中设置样式
+	*写法：<?xml-stylesheet type="text/css" href="css的路径"?>
+	*设置样式，只能对英文标签名称起作用，对于中文标签名称不起作用；
+	*不是主要功能，xml一般都是用于存储数据和传输数据的
+
+10.xml的约束
+	*为什么需要约束？
+	**比如现在定义一个person的xml文件，只想要这个文件里面保存人的信息，比如naem age等，但是如果在xml文件中
+	写了一个标签<狗>，发现可以正常显示，因为符合语法规范。但是狗肯定不是人的信息，xml的标签是自定义的需要技术
+	来规定xml中只能出现的元素，这个时候需要约束。
+
+	**xml的约束的技术：dtd的约束 和 schema约束
+
+11.dtd的快速入门
+	*创建一个文件 后缀名。dtd
+
+	步骤：
+		（1）看xml中有多少元素，有几个元素，在dtd文件中写几个<!ELEMENT>
+		（2）判断元素是简单元素还是复杂元素
+			-复杂元素：有子元素的元素
+				<!ELEMENT 元素名称（子元素）>
+			-简单元素：没有子元素
+				<!ELEMENT 元素名称 (#PCDATA)>
+		(3)需要在xml文件中引入dtd文件
+			<!DOCTYPE 根元素名称 STSTEM "dtd文件的路径">
+
+	**打开xml文件使用浏览器打开的，浏览器只负责效验xml的语法，不负责效验约束
+
+	**如果想要效验xml的约束，需要使用工具（myeclipse等开发工具）
+
+12.dtd的三种引入方式
+	（1）引入外部的dtd文件
+		<!DOCTYPE 根元素名称 SYSTEM "dtd路径">
+	（2）使用内部的dtd文件
+		-<!DOCTYPE 根元素名称 [
+			<!ELEMENT person (name,age)>
+			<!ELEMENT name (#PCDATA)>
+			<!ELEMENT age (#PCDATA)>
+		]>
+	(3)使用外部的dtd文件（网络上的dtd文件）
+		<!DOCTYPE 根元素 PUBLIC "dtd名称" "DTD文档的URL">
+		-后面学到框架 struts2使用配置文件使用外部的dtd文件
+
+13.使用dtd定义元素
+	*语法：<!ELEMENT 元素名 约束>
+
+	*简单元素：没有子元素的元素
+		<!ELEMENT name (#PCDATA)>
+		***(#PCDATA):约束name是字符串类型
+		***EMPTY:元素为空（没有内容）
+		***ANY：任意
+	
+	*复杂元素：
+		<!ELEMENT person (name,age,sex,school)>
+			-子元素只能出现一次
+		*<!ELEMENT 元素名称（子元素）>
+
+		*表示子元素出现的次数
+			+一次或
+			多次
+			？零次或一次
+			*零次或多次
+
+		*子元素直接使用逗号进行隔开,
+			**表示元素出现的顺序，必须按照先后顺序出现
+		*子元素直接用|隔开
+			*表示元素只能出现其中任意一个
+
+14.使用dtd定义属性
+	*语法：<!ATTLIST 元素名称
+			属性名称 属性类型 属性的约束
+		>
+
+	*属性类型
+		-CDATA:字符串
+			-<!ATTLIST birthday
+				ID1 CDATA #REQUIRED
+			>
+		
+		-枚举：表示只能在一定的范围内出现值，但是只能每次出现其中的一个
+			**红绿灯效果
+			**(aa|bb|cc)属性的值只能是aa，bb，cc的一种
+			-<!ATTLIST age
+				ID2 (aa|bb|cc) #REQUIRED
+			>
+
+		-ID：值只能是字母或者下划线开头，值不能相同
+			-<!ATTLIST name
+				ID3 ID #REQUIRED
+			>
+			
+属性的约束
+	-#REQUIRED:属性必须存在
+	-#IMPLIED:属性可有可无
+	-#FIXED:：表示一个固定值  #FIXED "AAA"
+		-属性的值必须是设置的这个固定值
+		-<!ATTLIST sex
+			ID4 CDATA #FIXED "ABC"
+		>
+	-直接值
+		*不写属性，只用直接值
+		*写了属性，使用设置那个值
+		-<!ATTLIST school	
+			ID5 CDATA "WWW"
+		>
+16.实体的定义
+	*语法：<!ENTITY 实体名称 "实体的值">
+	***<!ENTITY TEST "HAHAHAHA">
+	***使用实体 &实体名称; 比如&TEST;
+
+	**注意
+		*定义实体需要写在内部dtd里面，如果有写在外部的dtd里面，有些比较新的浏览器下内容得不到
+
+17.xml的解析的简介（写到了java代码）
+	*xml是标记型文档
+	*js使用dom解析标记型文档
+		-根据html的层级结构，在内存中分配一个树形结构，吧html的标签，属性和文本都封装成对象
+		-document对象、element、属性对象、文本对象、Node节点对象
+
+	*xml的解析方式（技术）：dom和sax
+		**dom方式解析
+			*根据xml的层级结构在内存中分配一个树形结构，吧xml的标签，属性和文本都封装成对象
+			*缺点：如果文件过大，造成内存溢出
+			*优点：很方便实现增删改操作
+
+		sax方式解析
+			*采用事件驱动，边读边解析
+				-从上到下，一行一行的解析，解析到某一个对象，返回对象名称
+			*缺点：不能实现增删改操作
+			*优点：如果文件过大，不会造成内存溢出，方便实现查询操作
+
+		*想要解析xml，首先需要解析器
+		**不同公司和组织提供了针对dom和sax方式的解析器，通过api方式提供
+		***sun公司提供了针对dom和sax解析器  jaxp
+		***dom4j组织，针对dom和sax解析器  dom4j(**实际开发**)
+		***jdom组织，针对dom和sax解析器   jdom
+
+18.jaxp是javase的一部分
+	**jaxp解析器在jdk的javax.xml.parsers包里面
+		**四个类：分别是针对dom和sax解析使用的类
+		**dom:
+			DocumentBuilder:解析器类
+				-这个类是一个抽象类，不能new，
+				此类的实例可以从DocumentBuilderFactory.newDocumentBuilder()方法获取
+
+				-可以解析xml parse("xml路径");返回是Document整个文档
+				-Node是document的父类
+				
+	**查询所有元素的名称
+		使用方法 getChildNodes();Node里面的方法
+	***//回写xml在javax.xml.transform（改变）包里面
+		TransformerFactory transformerFactory = TransformerFactory.newInstance();
+		Transformer transformer = transformerFactory.newTransformer();
+		transformer.transform(new DOMSource(docu), new StreamResult("xml的路径"));
+
+19.schema
+	dtd语法：<!ELEMENT 元素名称 约束>
+	**schema符合xml的语法，xml语句
+	**一个xml中可以有多个schema,多个schema使用名称空间区分（类似于java包名）
+	**dtd里面有PCDATA类型，但是在schema里面可以支持更多的类型
+	***schema语法更加复杂，schema目前不能替代dtd
+
+20.schema的快速入门
+	*创建一个schema文件  后缀名是 .xsd
+		**根节点<scheam>
+	
+	**在schema标签里面
+		**属性 xmlns="http://www.3c.org/2001/XMLSchema"
+			-表示当前xml文件是一个约束文件
+		**targetNamespace="http://www.itcast.cn/20171204这里面可以随便写"
+			-使用schema约束文件，直接通过这个地址引入约束文件 一般使用一个URL地址
+		**elementFormfault="qualified"
+	步骤	
+		（1）看xml中有多少个元素
+			<element>
+		（2）看简单元素和复杂元素
+			*如果复杂元素
+				<complexType>(复杂)
+					(顺序)<sequence>
+						子元素
+					      <sequence>
+				</complexType>
+
+		（3）简单元素，写在复杂元素里面
+			<element name="person">
+			<complexType>
+			<sequence>
+				<element name="name" type="data"></element>
+				<element name="age" type="int"></element>
+			</sequence>
+			</complexType>
+
+		（4）在被约束文件里面引入约束文件
+			<person xmlns:sb="http://www.3c.org/2001/XMLSchema-instance">-表示被约束的文档
+			xmlns="http://www.itcast.cn/20171204这里面可以随便写"
+			sb:schemaLocation="http://www.itcast.cn/20171204这里面可以随便写  1.xsd"    路径地址
+
+		*<sequence>:表示元素出现的顺序
+		<all>:元素只能出现一次
+		<choice>:元素只能出现其中一个
+		属性：maxOccurs="unbounded":表示元素的出现的次数
+		<any></any>:表示任意元素
+
+		*可以约束属性
+			*写在复杂元素里面
+			***写在</complexType>之前
+			--<attribute name="id1" type="int" use="erquired">
+			-name:属性名称
+			-type:属性类型 int  string
+			-use:属性必须出现 required
+
+		*引入复杂的schema约束（写在xml文件里面）
+			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"         创建引用规范,  
+			xmlns:csdnl="http://www.example.org/csdnScheam"               引用两个自定义规范  
+			xmlns:csdn="http://www.example.org/csdn"  
+			xsi:schemaLocation="http://www.example.org/csdnScheam csdnScheam.xsd   
+			http://www.example.org/csdn csdn.xsd"  
+
+21.sax解析的原理
+	*解析xml有两种技术 dom和sax
+
+	*根据xml的层级结构在内存中分配一个树形结构
+	*吧xml中标签，属性，文本封装成一个对象
+
+	*sax方式：事件驱动，边读边解析
+	*在javax.xml.parsers包里面
+		**SAXParser
+			此类的实例可以从SAXParserFactory.newSAXParser()方法获得
+			-parse(File f,DefaultHandler事件处理程序的默认基类  dh)
+			*两个参数
+			**第一个参数：xml路径
+			**事件处理器
+			**当吧事件处理器传递进来，相当于在方法里面绑定了一个事件，自动执行事件
+
+		**SAXParserFactory
+			实例 newInstance()方法得到
+
+	sax执行过程
+		*当解析到开始标签时候，自动执行DefaultHandler里面的startElement方法，参数qName:返回标签名称
+		*当解析到文本时候，自动执行DefaultHandler里面的characters方法，通过String的构造方法返回内容
+		*当解析到结束标签时候，自动执行DefaultHandler里面的endElement方法，参数qName,返回标签名称
+
+22.使用jaxp的sax方式解析xml
+	*sax方式不能实现增删操作，只能做查询操作
+	**打印出整个文档
+	**执行parse方法，第一个参数xml路径，第二个参数是事件处理器
+		**创建一个类，继承事件处理器的类
+		**重写里面的三个方法
+
+	*获取到所有的name元素的值
+		**定义一个成员变量 fiag=false
+		**判断开始方法是否为name元素，如果是name元素，吧flag值设置成true
+		**如果flag值是true,在characters方法里面打印内容
+		**当执行到结束方法时候，吧flag值设置成false
+
+	*获取第一次name元素的值
+		**定义一个成员变量 idx=1
+		**在结束方法时候，idx++;
+		**想要打印出第一个name元素的值，
+			-在characters方法里面判断，
+			--判断flag=true 并且idx==1,在打印内容
+
+23.使用dom4j解析xml
+	*dom4j,是一个组织，针对xml解析，提供解析器 dom4j
+
+	*dom4j不是javase的一部分，想要使用第一步需要怎么做：
+		***导入dom4j提供的jar包
+		--创建一个文件夹  lib
+		--复制jar包到lib下面，
+		--右键点击jar包，build path--add to buildpath
+		--看见jar包，变成奶瓶样子，表示导入成功
+
+	*得到document
+		SAXReader reader = new SAXReader();
+		Document document = reader.read(url);
+	*document是接口 ，父类接口是Node
+		*如果在document里面找不到想要的方法，到Node里面去找
+
+	*document里面的方法 getRootElement();获取根节点 返回Element
+
+	*Element也是一个接口，父接口是Node
+		-Element和Node里面方法
+		**getParent();获取父节点
+		**addElement:添加标签
+
+24.使用dom4j查询xml
+	*查询所有name元素里面的值
+		1.创建解析器ASXRider
+		2.得到document
+		3.得到根节点 getRootElement();
+		4.得到所有的p1标签
+			*element(qname)
+			*elements(qname)
+			*elements()
+		5.得到name
+		6.得到name里面的值getText();
+
+	*查询第一个name元素的值
+		*1.创建解析器
+		*2.得到document
+		*3.得到根节点
+		*4.得到第一个pi元素
+			**element("p1")方法 返回Element
+		*5.得到p1下面的name元素
+			**element("name")方法 返回Element
+		*6.得到name里面的值
+			**getText();
+
+	使用dom4j实现添加操作
+		*在第一个p1标签末尾添加一个元素<sex>nan<sex>
+		1.创建解析器
+		2.获取document
+		3.获取根节点
+		4.获取p1标签
+		5.添加sex标签
+			**addElement("sex");
+		6.给sex标签设置值
+			**sex.setText("nan");
+		7.回写xml
+			*格式化OutputFormat,使用createPrettyPrint方法，表示一个漂亮的格式
+			*使用类XMLWriter直接new这个类，传递两个参数
+				**第一个参数是xml文件路径 new FileOutputstream("路径")；
+				**第二个参数是格式化类format;
+
+	在特定位置添加元素
+		*在第一个p1下面的age标签之前添加<school>上余镇<school>
+		1.创建解析器
+		2.获取document
+		3.获取根元素
+		4.获取p1标签Element
+		5.通过p1标签获取其子标签的list集合element();
+		6.获取age标签所在的list集合的下标;
+		7.创建school标签 通过DocumentHelper里面的createElement("school");
+			还可以通过document.addElement("school");
+		8.给school设置值（文本）getText();
+		9.通过list的add(int index,E element);将school添加到age的前面;
+		10.回写xml
+
+	**可以对得到document的操作和回写xml的操作，封装成方法
+	**也可以把传递的文件路径，封装成一个常量
+	**好处：可以提高开发速度，可以提交代码可维护性
+		-比如想要修改文件路径（名称），这个时候只需要修改常量的值就可以了，其他代码不需要修改
+	
+	使用dom4j实现删除节点下面的操作
+		*删除第一个P1下面的<school>上余镇<school>元素
+		1.创建解析器
+		2.得到document对象
+		3.得到根节点
+		4.得到P1元素
+		5.得到school元素
+		5.通过p1元素的remove();来删除<school>Element
+			**想要删除school要使用其父元素才能删除school;
+			**也可以使用使用school的getParent()来获取父元素
+		6.回写XML; 
+
+	使用dom4j来获取属性的操作
+		*获取第一个p1里面的属性id1的值
+		1.创建解析器
+		2.得到document对象
+		3.得到根节点
+		4.得到P1元素
+		5.得到p1的id1的属性值
+			**p1.attributeVaule("id1")
+
+25.使用dom4j支持xpath的操作
+	*可以直接获取到某个元素
+
+	*第一种方式
+		/AAA/DDD/BBB：表示一层一层的，AAA下面DDD下面BBB
+	*第二种方式
+		//B/D:所有B下面的的D，只要是B下面的D全部得到
+		//B：表示只要名称是BBB，都得到
+	*第三种方式
+		/*得到本路径下的所有元素
+		/AAA/CCC/DDD/*：选择所有路径依附于/AAA/CCC/DDD的元素
+		//*得到所有元素包括子元素
+	*第四种形式
+		***B[1]:表示第一个B元素
+		***BBB[last()]:表示最后一个BBB元素
+	*第五种形式
+		**//b[@id]: 表示只要b元素上面有id属性的，都得到
+	*第六种形式
+		**//BB[@id='b']表示得到元素名称是BB，在BB上面有id属性，并且id属性值为b的元素
+
+	语法：	1.如果路径以斜线 / 开始, 那么该路径就表示到一个元素的绝对路径
+		2.如果路径以双斜线 // 开头, 则表示选择文档中所有满足双斜线//之后规则的元素(无论层级关系) 
+		3.星号 * 表示选择所有由星号之前的路径所定位的元素
+		4.[]块号里的表达式可以进一步的指定元素, 其中数字表示元素在选择集里的位置, 而last()函数则表示选择集中的最后一个元素.
+		
+26.使用dom4j支持xpath具体的操作
+	**默认情况下，dom4j不支持xpath
+	**如果想要在dom4j里面使用xpath
+		*第一步需要，引用支持xpath的jar包，使用jaxen-1.1-beta-6.jar
+		*需要把jar包导入到项目中
+
+	**在dom4j里面提供了两个方法，用来支持xpath
+		**selectNodes("xpath表达式") 返回一个list<Node>集合
+			-获取多个节点	
+		**selectSingleNode("xpath表达式") 返回一个Node;
+			-获取一个节点
+        //@id  没有中括号就是返回所有有ID的属性的属性的值  返回的是属性值！！！
+
+	

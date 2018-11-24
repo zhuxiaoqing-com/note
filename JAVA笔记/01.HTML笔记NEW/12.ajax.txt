@@ -1,0 +1,465 @@
+1.ajax是什么
+    * asynchronous javascript and xml :异步的js 和 xml
+    * 它能使用js访问服务器，而且是异步访问！
+    * 服务器给客户端的响应一般是整个页面，一个html完整的页面！但在ajax中因为是局部刷新，那么服务器就不用再响应整个页面！而只是数据！
+     > text:纯文本
+     > xml:大家都熟悉！！！
+     > json:它是js提供的数据交互格式，它咋ajax中最受欢迎！ 
+2.异步交互和同步交互
+    * 同步： 
+        > 发一个请求，就要等待服务器的响应结束，然后才能发第二个请求！中间这段时间就是一个字“卡；
+        > 刷新整个页面
+    * 异步：
+        > 发一个请求后无需等待服务器的响应，然后就可以发第二个请求！
+        > 可以使用JS接受服务器的响应，然后使用js来局部刷新！
+
+3.ajax应用场景
+    * 百度的搜索框
+    * 用户注册时（校验用户名是否被注册过）
+
+4.ajax的优缺点
+    ajax 无法进行重定向
+    ajax是异步，发送方发出数据后，不等接收方发回响应，接着发送下个数据包的通讯方式 。
+    优点：
+        * 异步交互：增强了用户的体验！
+        * 性能：因为服务器无需再响应整个页面，只需要响应部分内容，所以服务器的压力减轻了！
+    
+    缺点：
+        * ajax不能应用在所有场景
+        * ajax无端的增多了对服务器的访问次数，给服务器带来了压力
+      
+   注意点：方法的第一个参数 header 大小写不敏感，即可以写成content-type，也可以写成Content-Type，甚至写成content-Type;
+            Content-Type的默认值与具体发送的数据类型有关，请参考本文【可以发送什么类型的数据】一节；
+            setRequestHeader必须在open()方法之后，send()方法之前调用，否则会抛错；
+            setRequestHeader可以调用多次，最终的值不会采用覆盖override的方式，而是采用追加append的方式。
+
+
+===================================================
+
+            /*
+		 * 如果requestType能拿到值，并且值为XMLHttpRequest,表示客户端的请求为异步请求，那自然是ajax请求了，
+		 * 反之如果为null,则是普通的请求 
+		 */
+		String requestType = request.getHeader("X-Requested-With"); 
+
+=================================================
+
+ajax发送异步请求（四步操作）
+
+    1.第一步（得到XMLHttpRequest）
+        * ajax其实只需要学习一个对象：XMLHttpRequest,如果掌握了它，就掌握了ajax!!!
+        * 得到XMLHttpRequest
+            > 大多数浏览器都支持：var xmlHttp = new XMLHttpRequest();
+            > IE6.0:var xmlHttp = new ActiveXObject("Msxm12.XMLHTTP");
+            > IE5.5以及更早版本的IE：var xmlHTTP = new ActiveXObject("Microsoft.XMLHTTP");
+
+        * 编写创建XMLHttpRequest对象的函数
+        function createXMLHttpRequest() {
+            try{
+                return new XMLHttpRequest();    
+            }catch(e) {
+                try {
+                    return new ActiveXObject("Msxm12.XMLHTTP");
+                } catch(e) {
+                    try {
+                        return new ActiveXObject("Microsoft.XMLHTTP");
+                    } catch(e) {
+                        alert("哥们，你用的什么浏览器啊？");
+                        throw e;
+                    }
+                }
+            }
+            
+        }
+
+    2.第二步（打开与服务器的连接）
+        * xmlHttp.open();用来打开与服务器的连接，它需要三个参数：
+            > 请求方式：可以是GET或POST
+            > 请求的URL：指定服务器端资源，例如：/day23_1/AServlet
+            > 请求是否为异步：如果为true表示发送异步请求，否则同步请求！
+        * xmlHttp.open("GET", "/day23_1/AServlet", true);  get大小写都可以
+
+    3.第三步（发送请求）
+        * xmlHttp.send(null):如果不给可能会造成部分浏览器无法发送！
+            > 参数：就是请求体内容！如果是GET请求，必须给出null.不然FireFox可能会不能发送！
+
+    4.第四步
+        * 在xmlHttp对象的一个事件上注册监听器：onreadystatechange
+        * xmlHttp对象一共有5个状态：
+            > 0状态：刚创建，还没有调用open()方法。
+            > 1状态：请求开始：调用了open()方法，但还没有调用send()方法
+            > 2状态：调用完了send方法了;
+            > 3状态：服务器已经开始响应，但不0代表响应结束了！
+            > 4状态：服务器响应结束！（通常我们只关心这个状态！！！）
+        * 得到xmlHttp对象的状态：
+            > var state = xmlHttp.readState;//可能是 0 1 2 3 4
+            > var status = xmlHttp.status;//例如200、404、302、304、500
+        * 得到服务器响应的内容
+            > var content = xmlHttp.responseText;// 得到服务器的响应的文本格式的内容
+            > var content = xmlHttp.responseXML;//得到服务器的响应的xml响应的内容，它是Document对象了
+
+        xmlHttp.onreadystatechange = function() { // xmlHttp的5种状态都会调用本方法
+            if(xmlHttp.readyState == 4 && mxlHttp.Status == 200) { // 双重判断：判断是否为4状态码，还要判断是否为200
+                // 获取服务器的响应内容
+                var text = xmlHttp.responseText;
+            }
+        }
+        open send是方法
+        readyState  status  responseText  responseXML是属性！
+
+========================================
+第二例：发送POST请求（如果发送请求时需要带有参数，一般都用post请求）
+
+* open: xmlHttp.open("post"...);
+* 添加一步 XMLHttpRequest.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+* send:xmlHttp.send("username=zhangsan&password=123");
+
+
+===========================================
+第三例：注册表单值校验用户是否注册！
+
+1.编写页面：
+    * ajax4.jsp
+        > 给出注册表单页面
+        > 给出用户名文本框添加onblur事件的监听
+        > 获取文本框的内容，通过ajax4步发送给服务器,得到响应结果
+            * 如果为1：在文本框后显示“用户名以被注册”
+            * 如果为0：什么都不做！
+
+2.编写Serlvet
+    * ValidateUsernameServlet
+        > 获取客户端传递的用户名参数
+        > 判断是否为zhu
+        > 是：返回1
+        > 否：返回0
+
+=================================================
+响应内容为xml数据
+
+ * 服务器端：
+    > 设置响应头：ContentType,其值为：text/xml;charset=utf-8
+ * 客户端：
+    > var doc = xmlHttp.responseXML;// 得到的是Document对象！是指整个xml  一开始以为不是，后面一想发现.getElementsByTagName();可以获取任何位置的标签，无论是不是
+                                                                               document对象，只要给予ID  NAME  或TAGNAME 无论你是哪个标签的子标签都可以轻松获取，并不需要一层一层解析
+
+===========================================
+
+第四例：响应内容为xml数据
+
+     首先我想用字节流读取xml文档，然后将其字节数组发送到浏览器，但是发现发送的是字节hashcode
+ *  又想把字节打印过去发现不实际。 response.getOutputStream().write(b);
+ *  网页上什么都没有
+ *  最后我好将其变成字符串一行一行的打过去，终于可以了
+
+ 结论 ：
+    想要给浏览器响应xml，必须得在服务器中将其变成字符串的xml格式一行一行输出过去，到了浏览器那边再进行拼接！浏览器得到的Document是整个XML对象
+
+                text和textContent是XML操作文档的方法  Attr 对象
+			if (window.addEventListener) {
+				var name = stus.getElementsByTagName("name")[0].textContent; //其他浏览器  这是用来获取XML的文本的 XML的文本的获取方式不同的服务器不同
+			} else {
+				name = stus.getElementsByTagName("name")[0].text;// IE 6 7 8
+			}
+
+IE和其他浏览器获得文本的方式不同  IE需要.text   其他浏览器则需要.textContent    我们只需要使用上述的循环就好了
+    具本人测试在IE11下.text没用，textContent和innerHTML有效
+    1、value / innerHTML / innerText / textContent
+
+    value 是带有value属性的标签拥有的值，一般是单闭合标签的属性(可赋值，也可获取)
+    innerHTML 是双闭合标签两个标签之间的内容（识别标签）(可赋值，也可获取)
+    innerText 是双闭合标签两个标签之间的内容（不识别标签）(可赋值，也可获取)(老版本的火狐不支持)
+    textContent 与innerText属性类似，老版本的火狐支持该属性(可赋值，也可获取)(IE678不支持)
+
+alert(xmlHttp.readyState); 学会用 xmlHttp.readyState 来调试
+
+
+可识别标签（html）
+    nodeValue 只可以在节点是文本节点的时候用  <a>xxxx</a>  节点xxxx 是文本节点      <a>xxxx</a> 并不是文本节点(可赋值，也可获取) 
+    innerHTML 是将其标签的里面的东西 全部按文本输出，连同子标签(可赋值，也可获取)
+    value 特定的标签的属性，一般指表单元素里面的value  value 并不是指文本  比如 <a>xxxx</a>  value并不指 xxxx(可赋值，也可获取)
+    innerText 打印和innerHTML差不多会将标签过滤掉 而innerHTML会显示标签
+
+
+不可识别标签（自定义标签（xml））
+    value 和可识别标签一致(可赋值，也可获取)
+    innerText 效果和可识别标签的innetHTML一致(可赋值，也可获取)
+    textContent与innerText属性类似，老版本的火狐支持该属性(可赋值，也可获取)  会获取其标签 <a> 将其以文本的形式显示出来。设置的话也会将标签 以文本的形式设置进去
+    text 老版IE使用 678
+    XmlNode.Value:获取或设置节点的值。只能设置文本节点
+    XmlNode.InnerText:获取或设置节点及其所有子节点的串联值。
+    
+
+    InnerText会把节点及其子元素的文本内容（尖括号所包含的内容）拼接起来作为返回值；
+    而nodeValue则不然，无论是父节点还是子节点，返回值都为 null ，而当操作的节点类型为属性时，nodeValue的返回值与InnerText相同。
+
+
+
+ axXML dm4j里面的东西  可以直接将XML变成字符串。和innerHTML一样
+ selectElements(//ddd[aa='中国']); 查询其ddd元素里面含有aaa元素 aaa元素的text为中国的 ddd元素集合
+
+===================================================
+===================================================
+
+XStream
+
+1.什么作用
+    * 可以把JavaBean转换为（序列化）xml
+
+2.XStream的jar包
+    * 核心JAR包：xstream-1.4.7.jar
+    * 必须依赖包：xpp3_min-1.1.4c(XML Pull Parser, 一款速度很快的XML解析器)
+
+3.使用步骤
+    * XStream xstream = new XStream();
+    * String xmlStr = xstream.toXML(javabean);
+
+4.使用细节
+    * 别名：把类型对应的元素名修改了
+        > xstream.alias("china", List.class):让List类型生成的元素名为china
+        > xstream.alias("province", Province.class):让Province类型生成的元素名为province
+    * 使用为属性：默认类的成员，生成的是元素的子元素！我们希望让类的成员生成为元素的属性
+        > xstream.useAttributeFor(Province.clas, "name");把Province类的名为name成员，生成<province>元素的name属性
+    * 去除Collection类型的成员：我们只需要Collection的内容，而不希望Collection本身也生成一个元素
+        > xstream.addImplicitCollection(Province.class, "cities"):让Province类的名为cities(它是List类型的，它的内容还会生成元素)的成员名不生成元素
+    * 去除类的指定成名，让其不生成xml元素
+        > xstream.omitField(City.  class, "description");在生成的xml中不会出现City类的名为description的对应的元素！
+    
+    
+   Java到xml，用toXML()方法。 
+   Xml到Java，用fromXML()方法。
+
+      1、类别名，用alias(String name, Class type)。 
+      2、类成员别名，用aliasField(String alias, Class definedIn, String fieldName) 
+      3、类成员作为属性别名，用 aliasAttribute(Class definedIn, String attributeName, String alias)，单独命名没有意义，还要通过 
+          useAttributeFor(Class definedIn, String fieldName) 应用到某个类上。 
+          别名的配置是非常重要的，但是其中有些细节问题很重要，在例子中会专门做详细说明。
+         另外还有不太常用的方法： 
+         addImplicitCollection(Class ownerType, String fieldName)，去掉集合类型生成xml的父节点。 需要集合所属类的class，和要去掉的集合的变量名称
+         registerConverter(Converter converter) ，注册一个转换器。
+
+
+==============================================================
+==============================================================
+
+ Object   eval("表达式");执行表达式语句
+ Object   eval("("+javascript类型+")");转为javascript对象   
+返回值通过计算 string 得到的值（如果有的话）。eval函数将把最后一个表达式或者语句所包含的值或引用作为返回值。
+person={firstname:"John",lastname:"Doe",age:50,eyecolor:"blue"}; JS 创建对象的方式
+alert(eval('{foo:"bar"}')); // 输出 bar eval执行这段语句，foo:"bar" 将值"bar"赋给了foo，然后eval又将其值拿了过来
+JSON
+
+1.JSON是什么
+    * 它是JS提供的一种数据交互格式！
+
+2.JSON的语法
+    * { } :是对象！
+        > 属性名必须使用双引号括起来！单引不行！！！
+        > 属性值：
+            * null
+            * 数值  不用引号
+            * 字符串，要使用双引号
+            * 数组：使用[]括起来
+            * boolean值：true和false
+
+3.应用json
+    * var person = {"name":"zhangsan", "age":18, "sex":"male"};
+
+4.json与xml比较
+    * 可读性：XML胜出
+    * 解析难度：JSON本身就是JS对象（主场作战），所以简单很多
+    * 流行度：XML已经流行好多年，但在AJAX领域，JSON更受欢迎。
+
+
+=========================================================
+
+json -lib
+
+1.是什么？
+    * 它可以把javabean转换成json串
+
+2.核心类
+    * JSONObjecr --> Map
+        > toString();
+        > JSONObject map = JSONObject.fromObject(person); 把Map和对象转换成JSONObject对象  {"description":"fsdaf","name":"dd"} 返回的是对象
+    * JSONArray --> List
+        > toString();
+        > JSONArray jsonArray = JSONArray.fromObject(person);把List和对象转换成了JSONArray对象 [{"description":"fsdaf","name":"dd"}] 返回的永远是数组
+
+
+
+        谷歌的Gson.jar:
+
+        //list转换为json
+        Gson gson = new Gson();  
+        List<Person> persons = new ArrayList<Person>();  
+        String str = gson.toJson(persons);  
+        
+        //json转换为list
+        Gson gson = new Gson();  
+        List<Person> persons = gson.fromJson(str, new TypeToken<List<Person>>(){}.getType());  
+      
+        阿里的fastJson.jar：
+
+        //list转换为json
+        List<CustPhone> list = new ArrayList<CustPhone>();
+        String str=JSON.toJSON(list).toString();
+        
+        //json转换为list
+          List<Person> list = new ArrayList<Person>();  
+                list = JSONObject.parseArray(jasonArray, Person.class);  
+
+
+==================
+MessageFormat
+
+    包含了点位符的字符串就是模板！
+     点位符：{0}，{1}，{2}
+     可变参数，需要指定模板中的点位符的值！有几个点位符就要提供几个参数
+
+1、{0}和{1,number,short}和{2,number,#.#};都属于FormatElement，0,1,2是ArgumentIndex。
+2、{1,number,short}里面的number属于FormatType，short则属于FormatStyle。
+3、{1,number,#.#}里面的#.#就属于子格式模式。
+    指定FormatType和FormatStyle是为了生成日期格式的值、不同精度的数字、百分比类型等等。
+   
+    1.ArgumentIndex必须是非负整数，它的个数不只限于0到9这10个，它可以用0到9的数字组成，因此可以有好多个
+    2.格式化字符串时，两个单引号才表示一个单引号，单个单引号会被省略
+        如 'a' 输出a   ''a''输出 'a'
+    3.单引号会使某个字符或串保持原形。
+        如："oh, '{0}' is a pig"   输出"oh, '{0}' is a pig"   里面{0}被单引号修饰意思就不是点位符了
+    4.无论是有引号字符串还是无引号字符串，左花括号都是不支持的，但支持右花括号显示
+        "oh, { is a pig" 会出现异常 java.lang.IllegalArgumentException: Unmatched braces in the pattern
+    5.关于MessageFormat.format方法：
+       每调用一次MessageFormat.format方法，都会新创建MessageFormat的一个实例，相当于MessageFormat只使用了一次。MessageFormat类的format方法如下：
+      
+        public static String format(String pattern, Object ... arguments)   
+        {  
+            MessageFormat temp = new MessageFormat(pattern);  
+            return temp.format(arguments);  
+        }  
+    6.如果点位符没有相应的数组的下标来替代会将点位符原样输出出来
+
+   可变参数替换的点位符是按照点位符的位置的，而不是按照点位符在要格式化的字符串的数据
+
+    String pattern = "我是{0}，你就是一个{2}，来{4}，呵呵{3}";
+        Object[] params = {"祝","小","庆","你","呢"};
+       String ss = MessageFormat.format(pattern, params);
+       System.out.println(ss);// 输出：我是祝，你就是一个庆，来呢，呵呵你
+        {i} i代表的是params的下标。下标哪个就代替哪个
+
+
+
+
+
+图书管理系统：
+    购物车结构：
+        保存在session中
+            使用javabean保存信息，将其保存在session中
+        保存在cookie中
+            将数量和书本id信息还是user信息保存在cookie中
+        保存在数据库中
+            将其javabean映射到数据库中，根据user
+
+
+
+ 删除分类
+        要考虑到删除分类后，属于该分类的图书怎么办
+        有三种
+            * 删除分类后，将其分类下的图书也全部删除
+            * 想要删除分类，必须保证该分类下面没有图书，如果有图书就抛出异常
+            * 删除分类，其分类下的图书变为没有分类
+
+
+删除分类 处理分类的  如果你点击超链接，选择再新窗口打开就回无效。
+                可以使用JavaScript的function来操作，使用方法来判断是否给 a tag 的 href 赋值。 href 的初始值为 Javascript:void(0)
+
+    EL表达式再经过服务器处理以后只是一个未知文本   相当于一个没有使用html标签修饰的html文本。并不是一个字符串
+    		 	   		所以需要将其使用 '' 或 "" 来将其转换成字符串
+
+    在参数列表后未捕获的同步错误:丢失) 错误
+    		 	   		是因为你传递EL表达式的时候 EL表达式经过服务器处理后 不是int类型的值。而你又没有
+    		 	   		使用'' ""将其转换成字符串    就相当于你在java里面写字符串 ， 而字符串又没有使用""包含起来
+    		 	   			编译器会直接报错一样的道理。 
+
+
+上传图书的servlet 需要两个 
+    一个用来普通操作
+    一个用来上传 上传时不能使用BaseSerlet, 因为 BaseServlet 中需要使用 getParameter() 方法，而上传 getParameter() 方法不能再使用了
+
+
+关于img 标签的 src 的请求的图片为 中文的情况下，无法访问。因为URL浏览器地址栏里面无法输入中文，URL里面的中文的编码是按浏览器的，
+            可能是UTF-8，也可能是GBK。所以要处理URL浏览器地址栏里面的编码的话比较难。
+
+           但是 img 标签的 src 里面的 URL 是 get 请求的，由于页面是由 UTF-8 编码的， 所以 src 里面的编码也是 utf-8  但是 get 请求是 iso-8859-1 的。
+           而 img src 是 get 请求，会隐式使用 get 请求访问服务器的 图片路径，因为图片有中文的，会自动将中文转换成 iso-8859-1.然后再请求。服务器
+           会自动将 uri 使用 iso-8859-1 解码。但是你是使用 utf-8 编码的。所以你要手动获取 uri 进行手动解码。然后使用解码后的 uri 进行转发。
+           所以要 使用 filter 过滤掉，取出 uri 然后 将其 uri 用URLDecoding 解码。然后使用解码后的 uri 进行转发。 因为请求 img 图片和 servlet 都一样的，
+           访问 img 和 HTML 是相同的。
+
+
+删除图书 
+    
+    book 表与 orderitem 有关联关系
+    删除图书不是真的数据库表中删除记录，而是给 book 表添加一个 del 字段, 它是 boole 类型的, 表示是否已经被删除
+    没有被删除的图书，该列的值为 false，被删除了的图书则为 true
+    
+    处理问题
+        * 修改 BookDao: 所有与查询相关的方法，都需要添加 where 条件, 即 del = false
+        * 修改 Book类, 添加 del 属性！
+
+        删除图书：其实就是把表的 del 列修改为 true! 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

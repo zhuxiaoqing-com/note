@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<c3p0-config>
+    <default-config>
+	    <property name="jdbcUrl">jdbc:mysql://localhost:3306/mydb1</property>
+	    <property name="driverClass">com.mysql.jdbc.Driver</property>
+	    <property name="user">root</property>
+	    <property name="password">123</property>
+	    <property name="acquireIncrement">3</property>
+    </default-config>
+    
+    <named-config name="oracle-config">
+        <property name="jdbcUrl">jdbc:mysql://localhost:3306/mydb1</property>
+        <property name="driverClass">com.mysql.jdbc.Driver</property>
+        <property name="user">root</property>
+        <property name="password">123</property>
+        <property name="acquireIncrement">3</property>
+    </named-config>
+</c3p0-config>
+
+<!-- 创建对象时
+    ComboPooledDataSource dataSource = new ComboPooledDataSource("oracle-config");
+    来指定加载哪个配置信息 
+	加载default-config则不需要在创建对象时，输入信息。
+	-->

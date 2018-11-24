@@ -1,0 +1,633 @@
+
+/和\的区别   /是在linux下表示路径 ,\的话是在windows下表示路径，对于windows来说，/和\都可以表示路径，/表示两个\\，
+             但是对于linux来说/才是路径,所以最好用/.
+             因为Windows 目录分隔默然是\反斜杠，而反斜杠需要转移，/不用
+             windows里面输出的目录都是反斜杠
+             Windows 的路径是不区分大小写的！
+    对于浏览器而言几个 // 都是一个 / 
+    
+
+静态页面在Servlet里面设置编码没用：
+    web服务器接收到静态请求后（如对html页面的请求），web服务器仅仅是从目录结构中搜索到它，并将它以流的形式返回，而它的编码类型在保存文件时已经确定了，
+    而上面的meta标签就是告诉浏览器以何种字符编码去解码，所以保存文件时的编码选项必须得与html页面中的content- Type中的配置的字符编码一致。 
+
+ page标签中的contentType用来设置tomcat往浏览器发送HTML内容所使用的编码。这个编码会在HTTP响应头中指定以通知浏览器。
+
+    因为是静态页面web服务器仅仅是从目录结构中搜索到它，并将它以流的形式返回，而jsp页面的话是以out.write的形式将数据打印到浏览器的，是可控的可以在打印的时候将其响应头
+        content-type也打印进页面，    所以静态的html页面要想不乱码必须要将其设置<meta http-equiv="content-Type" content="text/html;charset=字符编码"> 
+        这个设置我们可以写进jsp里面，因为Jsp里面的东西都会被打印进html页面
+
+
+
+IO流和File一样，当文件目录不存在时！会抛出异常:系统找不到指定的目录！！
+    所以要使用IO流的时候必须使用File先创建其虚拟目录，以确保目录存在！
+
+    测试IO是否能重复Close
+     * 和close以后在运行
+     * 结果就算关闭了IO流以后再调用其方法read()方法和其他方法  也不会报错
+     * 重复关闭IO流不会报错
+
+   
+
+  自动拆装箱
+     * 
+     * Long和long要分清楚！！
+     * Long是对象！
+     * long是基础数据类型！
+     * Long和其他类型使用equals的时候会先判断是不是属于Long类型的，不属于直接返回false
+     * 八大包装基本类型的类都会有如下判断
+     * public boolean equals(Object obj) {
+        if (obj instanceof Integer) {
+            return value == ((Integer)obj).intValue();
+        }
+        return false;
+    }
+
+1.对于方法的覆盖，new的谁就调谁，这就是多态。
+2、对于成员变量的覆盖，this在哪个类就指向哪个类的成员变量，没有多态。
+
+    
+
+Tomcat的自动刷新，会导致C3P0的线程池里面的连接没法释放，和生命周期异常
+
+
+html 文本框和验证码怎么对齐：
+    给输入框和验证码样式加
+    vertical-align:middle;
+
+iframe ：
+        如果你使用iframe 框架的话 在框架里显示的网页叫子页 
+    由父页面事件引起iframe中的子网页进行切换
+    如果整个页面都是在一个iframe中打开的话，建议使用 <base target="要跳转的框架name"/>
+
+    target= "_black"    在新窗口中打开。
+    target= "_self"     默认。在相同的框架中打开。
+    target= "_parent"   在父框架集中打开。
+    target= "_top"      在整个窗口中打开。
+    framename	        在指定的框架中打开。
+
+
+    先打开的后关闭，后打开的先关闭
+    另一种情况：看依赖关系，如果流a依赖流b，应该先关闭流a，再关闭流b
+    例如处理流a依赖节点流b，应该先关闭处理流a，再关闭节点流b
+    当然完全可以只关闭处理流，不用关闭节点流。处理流关闭的时候，会调用其处理的节点流的关闭方法
+    如果将节点流关闭以后再关闭处理流，会抛出IO异常
+
+
+DataInputStream 和DataOutputStream
+    eadUTF()和读取一个UTF-8编码的文件不是一个概念。 
+    你翻翻源码就会发行，readUTF()是从流里面读一个指定长度的UTF-8编码的字符串，长度保存在流的开头2个字节。 
+    readUTF()通常和DataOutputStream的 writeUTF(String str)方法配套使用。
+    
+    API的介绍
+        首先读取两个字节，并使用它们构造一个无符号 16 位整数，构造方式与 readUnsignedShort 方法的方式完全相同。
+        该整数值被称为 UTF 长度，它指定要读取的额外字节数。然后成组地将这些字节转换为字符。每组的长度根据该组第一个字节的值计算。
+        紧跟在某个组后面的字节（如果有）是下一组的第一个字节。 
+
+
+final
+    对于一个final变量，不管它是类变量、实例变量还是局部变量，定义了该变量时使用了final修饰符修饰，并在定义该final类变量时指定了初始值，
+    而且该初始值可以在编译时就被确定下来， 那么这个final变量本质上已经不再是变量，而是想当于一个直接的变量。
+    final修饰符的一个重要用途就是定义“宏变量“，当定义final变量时就为该变量指定了初始值，而且该初始值可以在编译的时候就确定下来，
+    那么这个final变量本质上就是一个”宏变量“，编译器会把程序中所用到该变量的地方直接替换成该变量的值。
+    如果被赋的表达式只是基本的算术运算表达式或字符串连接运算，没有访问普通变量，调用方法，Java编译器同样会将这种final变量当成”宏变量“处理。
+
+    宏变量指的是在编译期间就能确认的final修饰的变量。 如果在编译期间不能确认的final的变量就不是宏变量
+
+
+十进制转换二进制转换规则
+
+        我们知道将一个十进制数值转换为二进制数值，需要通过下面的计算方法：
+    1. 整数部分：连续用该整数除以2，取余数，然后商再除以2，直到商等于0为止。然后把得到的各个余数按相反的顺序排列。简称"除2取余法"。
+    2. 小数部分：十进制小数转换为二进制小数，采用"乘2取整，顺序排列"法。用2乘以十进制小数，将得到的整数部分取出，再用2乘余下的小数部分，然后再将积的整数部分取出，如此进行，直到积中的小数部分为0或者达到所要求的精度为止。然后把取出的整数部分按顺序排列起来，即先取出的整数部分作为二进制小数的高位，后取出的整数部分作为低位有效位。简称"乘2取整法"。
+    3. 含有小数的十进制数转换成二进制，整数、小数部分分别进行转换，然后相加。
+
+
+BigDecimal
+    BigDecimal aDouble =new BigDecimal(1.22);
+        System.out.println("construct with a double value: " + aDouble);
+        BigDecimal aString = new BigDecimal("1.22");
+         System.out.println("construct with a String value: " + aString);
+        你认为输出结果会是什么呢？如果你没有认为第一个会输出1.22，那么恭喜你答对了，输出结果如下：
+         construct with a doublevalue:1.2199999999999999733546474089962430298328399658203125
+         construct with a String value: 1.22
+    
+    JDK的描述：1、参数类型为double的构造方法的结果有一定的不可预知性。有人可能认为在Java中写入newBigDecimal(0.1)所创建的
+                 BigDecimal正好等于 0.1（非标度值 1，其标度为 1），但是它实际上等于0.1000000000000000055511151231257827021181583404541015625。
+                 这是因为0.1无法准确地表示为 double（或者说对于该情况，不能表示为任何有限长度的二进制小数）。这样，传入到构造方法的值不会正好
+                 等于 0.1（虽然表面上等于该值）。
+            2、另一方面，String 构造方法是完全可预知的：写入 newBigDecimal("0.1") 将创建一个 BigDecimal，它正好等于预期的 0.1。
+                 因此，比较而言，通常建议优先使用String构造方法。
+            3、当double必须用作BigDecimal的源时，请注意，此构造方法提供了一个准确转换；它不提供与以下操作相同的结果：
+                 先使用Double.toString(double)方法，然后使用BigDecimal(String)构造方法，将double转换为String。要获取该结果，
+                 请使用static valueOf(double)方法。
+
+    BigDecimal都是不可变的（immutable）的，在进行每一步运算时，都会产生一个新的对象，所以在做加减乘除运算时千万要保存操作后的值。
+
+MessageFormat
+
+    包含了点位符的字符串就是模板！
+     点位符：{0}，{1}，{2}
+     可变参数，需要指定模板中的点位符的值！有几个点位符就要提供几个参数
+
+    1、{0}和{1,number,short}和{2,number,#.#};都属于FormatElement，0,1,2是ArgumentIndex。
+    2、{1,number,short}里面的number属于FormatType，short则属于FormatStyle。
+    3、{1,number,#.#}里面的#.#就属于子格式模式。
+        指定FormatType和FormatStyle是为了生成日期格式的值、不同精度的数字、百分比类型等等。
+   
+    1.ArgumentIndex必须是非负整数，它的个数不只限于0到9这10个，它可以用0到9的数字组成，因此可以有好多个
+    2.格式化字符串时，两个单引号才表示一个单引号，单个单引号会被省略
+        如 'a' 输出a   ''a''输出 'a'
+    3.单引号会使某个字符或串保持原形。
+        如："oh, '{0}' is a pig"   输出"oh, '{0}' is a pig"   里面{0}被单引号修饰意思就不是点位符了
+    4.无论是有引号字符串还是无引号字符串，左花括号都是不支持的，但支持右花括号显示
+        "oh, { is a pig" 会出现异常 java.lang.IllegalArgumentException: Unmatched braces in the pattern
+    5.关于MessageFormat.format方法：
+       每调用一次MessageFormat.format方法，都会新创建MessageFormat的一个实例，相当于MessageFormat只使用了一次。MessageFormat类的format方法如下：
+      
+        public static String format(String pattern, Object ... arguments)   
+        {  
+            MessageFormat temp = new MessageFormat(pattern);  
+            return temp.format(arguments);  
+        }  
+    6.如果点位符没有相应的数组的下标来替代会将点位符原样输出出来
+
+   可变参数替换的点位符是按照点位符的位置的，而不是按照点位符在要格式化的字符串的数据
+
+    String pattern = "我是{0}，你就是一个{2}，来{4} 是{3}";
+        Object[] params = {"祝","小","庆","你","呢"};
+       String ss = MessageFormat.format(pattern, params);
+       System.out.println(ss);// 输出：我是祝，你就是一个庆，来呢，是你
+        {i} i代表的是params的下标。下标哪个就代替哪个
+
+
+Java中仅有的重载运算符
+    在Java中，唯一被重载的运算符就是字符串的拼接相关的。+,+=。除此之外，Java设计者不允许重载其他的运算符。
+
+    在拼接字符串的时候，编译器会自动帮我们优化。隐式的使用StringBuilder来连接字符串
+        但是光凭编译器优化的字符串连接是不好的。因为如果是循环添加字符串的话
+            String result = "";
+           for (int i = 0 ; i < values.length; i ++) {
+               result += values[i];
+           }
+         编译器会隐式的优化。StringBuilder对象创建发生在循环之间，也就是意味着有多少次循环会创建多少个StringBuilder对象
+
+
+对于父类和子类，创建子类对象 在父类里面使用的this指的是子类的对象引用，可是如果this是在父类里面引用父类的属性，那么打印的结果也是
+    父类的
+
+    自己的理解：
+        因为this指的是整个子类对象地址，而子类的对象地址里面拥有子类的实例和父类的实例，this是在父类的实例里面的，会采用就近原则
+            因为属性在父类方法里面，所以指的就是父类的属性。  
+
+    还有一种理解：这种的是多态思想，是和多态一样的，父类的变量指向子类的引用，如果使用父类变量.属性的话，出现的是父类的属性
+        而父类的this也是这个原理，因为是在父类中出现的，虽然this指的是子类的引用，但是调用的还是父类本身的属性。
+
+
+
+堆和方法区
+    类的方法的信息和成员变量的信息加载在了方法区  Class<T>对象 形成了一个
+    成员变量是要对象被创建的时候才在堆里面初始化的
+
+    对象初始化是在堆内存中初始成员变量，方法只有调用的时候才会从方法区在栈空间加载
+
+    方法调用不是方法加载。方法调用可能会进行方法解析（如果此方法尚未解析过），
+    当方法调用时方法区一定存储着该方法的相关信息。实例化成员变量也不是加载成员
+
+    加载的含义仅仅是将一个类从二进制文件变成方法区的数据结构，加载完成后，静态成员会被赋值为0。
+    所有的方法和成员加载后才会有意义（或者说才会存在于虚拟机）。然后，可能会在一个叫<cinit>的方法中执行静态代码和静态赋值，
+    这个方法由编译器收集该类中所有的静态代码组成，这个方法的执行叫类的初始化。 
+    要注意把类的加载和类的初始化分开，类的加载成功后才能进行类的初始化过程，而且这个过程虚拟机规范也没有明确要求在加载后立即执行。
+    只是当虚拟机执行到一些指令，包括invokestatic getstatic，new，putstatic，等4条指令时（有兴趣可以去看一下），
+    或者因为java reflect包的反射调用时，如果当前类没有初始化，才必须立刻初始化，也就是执行cinit方法。
+    比如static a=3.加载完成后，a所在的内存存储的是0（但此时a不能被常规java代码访问，因为一旦访问a，
+    而类尚未初始化，就会导致类初始化，a被赋值3，你将得到3，给你造成的错觉是加载时就执行了a的赋值），
+    其实是初始化完成后，a的值才是3。加载和初始化虽然经常连续执行（即加载后立即初始化），
+    但它们并非一定要连续执行，不同的虚拟机，在不同的情况下会采取不同的策略进行这两步。
+
+
+    虚拟机同样规定了作为主类的类在加载后必须立即初始化（简单理解就是一定会通过invokestatic调用main方法，所以一定会初始化）。
+    初始化后，静态变量就有了给定的赋值。退一万步说，就算这个类不是主类，你上面的代码导致初始化的行为也很多，
+    包括 new，invokestatic，getstatic。即使你简单的打印类名.静态变量名，也会因为getstatic指令的缘故，导致该类初始化。
+    这意味着，如果有静态变量静态赋值操作（主要包括声明时就赋值和在静态块中赋值，
+    注意，静态块不是静态方法，其零值就会被覆盖（你赋值为0当我没说）所以我之前说过，
+    你不能通过常规java代码的方式访问静态变量加载后的零值（除非你没对它赋值过），
+    你任何想要访问它的方式都会导致它的初始化从而让你错以为加载过程执行了赋值。，
+    但是这仍然是独立的，具有先后顺序的两个过程（加载与初始化）
+
+
+    类的构造方法会收集所有的非静态赋值和非静态代码块（与cinit很相似），所以在构造方法中，
+    a被赋值了5 你说的这个例子和类加载扯不上一丁点关系。如果a是静态的，就可以按照我上面的分析。楼主自己分析试试吧。
+    重点是把类加载（生成方法区数据结构） 类初始化（执行<cinit>） 类实例化（执行构造方法）3个过程区分清楚
+
+
+Type 是 Java 编程语言中所有类型的公共高级接口。它们包括原始类型、参数化类型、数组类型、类型变量和基本类型。
+ 参数化类型   指的就是泛型   parameterizedType
+ querystring  指的是URL?后面的参数
+
+    获取父类的参数化类型就是 泛型类型   还有一种叫 查询字符串 就是 ? 后面的 queryString
+        <> 读成:typeof   <User> User 叫做 实际类型参数
+
+        Type getGenericSuperclass();
+        ParameterizedType 将Type转换成ParameterizedType   相当于一个 Collection 里面有着父类所有的参数化类型
+                比如 Dao<User> 控制台打印的就是这个， 就是一个带参数化类型的 Class
+        使用ParameterizedType的方法 Type[] getActualTypeArguments(); 
+        这样就获取到了父类的参数化类型的所有的参数化类型数组
+        然后取其下标 将其强转成Class， 这样就得到了其参数化类型的Class对象
+
+ public Type[] getGenericInterfaces()    
+        如果此对象表示一个不实现任何接口的类或接口，则此方法返回一个长度为 0 的数组。 
+        如果此对象表示一个基本类型或 void，则此方法返回一个长度为 0 的数组。 
+        获取带有泛型 (参数化类型) 的接口  这些接口由此对象所表示的类或接口直接实现。 
+
+ public Type getGenericSuperclass()
+        如果此 Class 表示 Object 类、接口、基本类型或 void，则返回 null。
+        如果此对象表示一个数组类，则返回表示 Object 类的 Class 对象。
+     获取带有泛型 (参数化类型) 的类  实体（类、接口、基本类型或 void）的直接超类的 Type( 带有参数化类型 )。
+     
+
+ 读取注解(反射)
+    1.要求
+        * 注解的保留策略必须是RUNTIME
+    2.反射注解需要从作用目标上返回
+        * 类上的注解，需要使用Class来获取
+        * 方法上的注解，需要Method来获取
+        * 构造器上的注解，需要使用Constructor来获取
+        * 成员上的注解，需要使用Field来获取
+
+        Class
+        Method、Constructor、Field、AccessibleObject是这三个方法的共同父类
+    
+        它们都有一个方法：
+        * Annotation getAnnotation(Class),返回目标上指定类型的注解！ 如果注释不存在于该类上，那么返回null
+        * Annotation getAnnotations(),返回目标上所有注解！
+
+
+JAVA创建对象的过程
+    加载类
+    1.通过ClassLoader来加载硬盘上的.class对象
+    2.加载到了方法区生成了Class<T>对象 (万物皆对象，所以类也是一个对象)
+    3.执行静态代码块和静态初始化语句
+    类的实例化
+    4.执行new, 创建一个空白对象
+    5.调用构造器
+    6.子类调用父类构造器
+    7.构造器执行过程(
+        * 执行构造代码块和初始化语句
+        * 构造器内容
+        )
+
+    JVM内存分为5大区
+    堆、栈、方法区、本地方法区(用来执行本地方法native)、寄存器
+
+
+DMA(Direct Memory Access，直接内存存取) 是所有现代电脑的重要特色，它允许不同速度的硬件装置来沟通，而不需要依赖于 CPU 的大量中断负载。
+    否则，CPU 需要从来源把每一片段的资料复制到暂存器，然后把它们再次写回到新的地方。在这个时间中，CPU 对于其他的工作来说就无法使用。
+
+
+尾递归
+
+       如果一个函数中所有递归形式的调用都出现在函数的末尾，我们称这个递归函数是尾递归的。当递归调用是整个函数体中最后执行的语句且它的返回值不属于表达式的一部分时，
+       这个递归调用就是尾递归。尾递归函数的特点是在回归过程中不用做任何操作，这个特性很重要，因为大多数现代的编译器会利用这种特点自动生成优化的代码。
+
+ 
+
+尾递归的原理：
+
+     当编译器检测到一个函数调用是尾递归的时候，它就覆盖当前的活动记录而不是在栈中去创建一个新的。编译器可以做到这点，因为递归调用是当前活跃期内最后一条待执
+     行的语句，于是当这个调用返回时栈帧中并没有其他事情可做，因此也就没有保存栈帧的必要了。通过覆盖当前的栈帧而不是在其之上重新添加一个，这样所使用的栈空间
+     就大大缩减了，这使得实际的运行效率会变得更高。
+
+
+java 好像并没有进行优化 还是会创建 多余的栈  但是 返回的时候 是直接结束所有的 堆栈 
+ 
+    普通递归
+     public int add(int n, int result) {
+        if(n == 0) {
+            return result;
+        }
+        return add(n-1,n + result);
+    }
+    尾递归
+    public int add2(int n) {
+        if(n == 1) {
+            return n;
+        }
+        return n + add2(n-1);
+    }
+
+    进过测试 尾递归 比  普通递归 快很多很多
+
+
+        <Context docBase="D:\tomcat\wtpwebapps\wifisystem" path="/wifisystem" reloadable="true" source="org.eclipse.jst.jee.server:wifisystem"/><Context docBase="D:\tomcat\wtpwebapps\page" path="/page" reloadable="true" source="org.eclipse.jst.jee.server:page"/>
+		在 Tomcat 下面的 server.xml 
+		有些软件会自动生成其 使 tomcat 到其固定的位置下面寻找其资源
+		将其注释掉 让其自动寻找即可
+
+		path:指定访问该Web应用的URL入口。 
+
+    docBase:指定Web应用的文件路径，可以给定绝对路径，也可以给定相对于<Host>的appBase属性的相对路径，如果Web应用采用开放目录结构，则指定Web应用的根目录，如果Web应用是个war文件，则指定war文件的路径。(指定项目所在地址) 
+
+    reloadable:如果这个属性设为true，tomcat服务器在运行状态下会监视在WEB-INF/classes和WEB-INF/lib目录下class文件的改动，如果监测到有class文件被更新的，服务器会自动重新加载Web应用。
+
+
+用缓存把结果保存下来，那么当程序多次调用一个函数的时候，就可以在常数时间内得到函数的返回值。
+典型的以空间换时间的做法
+    class Fib {
+        final int MAX_N = 8192;
+        private int[] _cache = new int[MAX_N];
+
+        public int fib(int n) {
+            if (_cache[n] != 0)
+                return _cache[n];
+
+            if (n < 2) {
+                _cache[n] = 1;
+                return 1;
+            }   
+            else {
+                _cache[n] = fib(n - 1) + fib(n - 2); 
+                return _cache[n];
+            }   
+        }   
+    }
+
+
+
+对于 val() 一般返回 空。但 select 没有 option 的时候返回 null 
+
+ 对于禁止点击事件，如果不禁止的话，就会导致你不断的点击，不断地往数据库查询， connection 最终会使连接池的 connection 耗尽，导致连接池 泄露 
+       一旦连接池泄露只能重启服务器
+       对于循环查询也要注意这个问题，因为你用的查询 数据库的工具，很可能是在你查询语句前后自动帮你获取和结束线程的。
+       如果你循环的过多的话就会获取的太多，而还没结束，就会报错
+
+ 会与 .html() 为空一直返回 "" ，只有你的这个元素不存在的时候才会返回 null
+
+
+
+注解 
+ @SuppressWarnings("all") 将所有警告 抑制
+
+
+
+查看 word 源码 将其另存为 xml 文件就可以看见
+
+
+
+sql 占位符的本质应该就是 将参数使用 '' 修饰起来，让其变成 字符串，不能拼接，不管怎么样都是一个整体 是 '' 不是 ""
+     大多数情况下，我们去参数的值都应该去使用 #{} 
+
+
+
+
+resource: 引入类路径下的磁盘文件
+    url: 引入网络路径下和磁盘路径下的文件
+        file:///var/mappers/AuthorMapper.xml  file:/// 不知道什么意思
+        File协议主要用于访问本地计算机中的文件，就如同在Windows资源管理器中打开文件一样
+             要使用File协议，基本的格式如下：file:///文件路径，比如要打开F盘flash文件夹中的1.swf文件，
+             那么可以在资源管理器或IE地址栏中键入：file:///f:/flash/1.swf并回车。
+             file表示协议类型
+            ://后面是机器的网络地址（IP地址）
+            /后面是文件夹（目录）和文件名
+             file://机器的IP地址/目录/文件
+                对于本地机器，机器的IP地址变成127.0.0.1或LocalHost或干脆什么也不写。
+                对于本地机器，根目录下的目录是Windows下的盘符，如“C:”、“D:”等。
+                file://127.0.0.1/C:/     本地C盘
+                file://localhost/D:/     本地D盘
+                file:///E:/              本地E盘        
+
+
+
+权限控制主要有四种方式
+
+    在程序中，通过Subject以编程方式进行权限控制。(应该是框架)
+    通过配置Filter，实现URL级别粗粒度的权限控制 。
+    通过配置代理，基于注解实现细粒度的权限控制。
+    在页面中使用shiro自定义标签实现页面显示的权限控制。(应该是框架)
+
+
+session 是不是新的
+    isnew 方法的解释是：如果客户端还不知道该会话，或者客户端选择不加入该会话，则返回 true。例如，如果服务器仅使用基于
+    cookie 的会话，而客户端已经禁止了 cookie 的使用，则每个请求上的会话都将是新会话。
+    应该是还没有发送 cookie 就是新的
+   invalidate()是指清空session对象里的东西，并不指清除这个session对象本身。
+
+
+String 的 spilt 切割  
+    使用 .  |  * + \  都需要转义。
+
+判断是否为 异步 
+    /*
+		 * 如果requestType能拿到值，并且值为XMLHttpRequest,表示客户端的请求为异步请求，那自然是ajax请求了，
+		 * 反之如果为null,则是普通的请求 
+		 */
+		String requestType = request.getHeader("X-Requested-With"); 
+		if(requestType == null || requestType.trim().isEmpty()) {
+
+
+  打断点的技巧。你可以从 一定会使用到你的某个值的那里开始打断点。
+    比如 getXXX(); 你想看的源码一定会为某个值 赋值的时候，你就在 getXXX()方法里面打断点。
+    然后通过 debug 模式往栈底翻。查看哪些方法调用了你的 getXXX() 这样就能一探究竟
+
+
+
+
+
+程序所有想法都是来自现实生活的，都不是抽象的，所以请不要天马行空，而是想下现实生活中是怎么解决的。用正常人解决生活中的思路去解决。
+    而不要无中生有，除非你能比无数的前人加起来的结晶更厉害，就是你一个人能推倒整个金字塔，从底层开始完善。
+
+
+
+
+当你用IO流里的对象流写入的时候，ObjectOutputStream会在文件中的开头和结尾进行一个标识AC/DC，ObjectInputStream会严格的根据开头和结尾来进行
+读取，当读取不到的时候就会进行报错！！
+ObjectOutputStream无法将上一次的对象的结尾的DC消除，所以千万不要用FileOutPutStream（“文件地址”，true）来添加；
+当想要向文件中再次添加对象的时候，必须先进行读取文件中的对象并添加在集合中完毕后并关闭资源，然后遍历集合进行添加对象完毕并关闭资源！-----》先读取后添加！
+当进行close的时候结尾（DC）也会随之而添加上！
+
+       * 当想写入多个对象时，有两种方法！
+       * 方法一：（1）创建一个集合将对象添加进该集合，然后将集合的对象写入文件中；
+       *           （2）等到用的时候直接读取集合对象，从集合中获取对象
+       * 方法二：（1）创建一个集合将对象添加进该集合，然后遍历集合对象
+       *            （2）用同一个对象写入流来写入对象
+       * 对象写入注意：（1）当写入对象的时候，对象写入流会在开头和结尾添加AC/DC
+       *              （2）必须用同一个对象写入流写入，因为在对象写入流close的时候会添加DC
+       *                 ，再次写入另外一些对象的时候DC也不会消失，所以当读取的时候就会出现错误！
+       *              （3）以上是我自己的见解，如果出错的话请留言各位！！
+       */
+
+ 
+    关闭  ByteArrayOutputStream 是无效的 调用 clear 是无效的(是空实现即{  })
+
+    对于 ObjectInputSteam.readObject(); 如果读取 ObjectSteam 达到了结尾的话就会抛出 EOFException 异常
+        表示 已经到流的结尾了，没有 Object 了。
+    可以感觉到EOFException的用意，因为我们可以往流中放入null值，所以我们没法找到一个不可能的值来表示到达流的末尾，所以只能通过抛异常的方式来告诉用户到达末尾了
+
+
+
+
+
+1B=8bit
+1KB=1024B
+1MB=1024KB
+1GB=1024M
+1TB=1024GB
+
+
+
+
+TOMCAT 会有个默认的处理静态资源处理。只要，前面的Servlet匹配 不成功就会自动默认为静态资源。 
+Tomcat 会先看是不是 Servlet 不是 在看是不是 jsp 不是在看是不是静态文件
+
+
+File 的 getPath(); 获取你创建对象时使用的相对路径。如果创建对象时使用的就是绝对路径，那么就是绝对路径
+     和 getAbsolutePath();  获取 file 的绝对路径
+
+
+
+
+
+
+ 根据 HTTP 规范，GET 用于信息获取，而且应该是幂等的。也就是说，当使用相同的URL重复GET请求会返回预期的相同结果时，
+    GET方法才是适用的。当对一个请求有副作用的时候（例如，提交数据注册新用户时），应该使用POST请求而不是GET。
+    所以浏览器会对GET请求做缓存处理。 
+
+    所以你使用 get 请求的时候注意加上随机字符，比如当前时间的毫秒等。
+
+
+   ** 注意：验证码的话会被缓存，所以记得加 new Date() 或 Math.random();
+
+
+
+为什么 foreach 在循环中删除元素会抛异常，因为其 list 总数变了，但是循环的次数没有变，所以就会循环到 list 达不到的地方
+
+    但是你删除元素以后马上跳出就没事了。
+
+
+redis 是单线程的，如果你有某个 get set 操作比较久，后面的都得等
+
+
+
+JSR是Java Specification Requests——java 规范要求
+
+
+
+Enum 类本质
+ public final class cn.zhu.springboot01cache.controller.MyEnum 
+    extends java.lang.Enum<cn.zhu.springboot01cache.controller.MyEnum> {
+  public static final cn.zhu.springboot01cache.controller.MyEnum AA;
+  public static final cn.zhu.springboot01cache.controller.MyEnum BB;
+  public static final cn.zhu.springboot01cache.controller.MyEnum CC;
+  public static cn.zhu.springboot01cache.controller.MyEnum[] values();
+  public static cn.zhu.springboot01cache.controller.MyEnum valueOf(java.lang.String);
+  public void fun1();
+  static {};
+}
+其实每一个枚举都是一个 final 修饰的静态的本类的对象;
+其内部在编译后会自动生成 values();返回所有枚举对象 
+                         valusOf(String target); 通过和枚举属性一样的 名称来获取枚举对象;
+                         valusOf("AA"); 会返回 AA 枚举，没有这个枚举就报错
+
+
+ JAVAC 编译 JAVAP 反编译
+
+
+http 请求中的 q=0.8
+
+例如  Accept: audio/*; q=0.2, audio/basic  的大意是,  浏览器比较喜欢audio/basic的媒体类型, 不过如果没有这个类型的话 其他的audio类型也可以
+
+在这里出现了一个q=0.2 , 这是一个代表关联程度的值,默认值是一,按照从大到小排列
+
+例如  Accept: text/plain; q=0.5, text/html, text/x-dvi; q=0.8, text/x-c
+
+可接受的类型优先级如下
+
+1) text/html text/x-c
+
+2)text/x-dvi
+
+3)text/plain
+
+q是一个0-1之间的数值, q的默认值是1, q=0代表不可接受(non acceptable)
+
+
+  http 请求头的参数
+    accept 代表浏览器可以接受的媒体类型
+    accept-CharSet 代表浏览器可以接受的字符集
+    accept-Eecoding 代表浏览器支持的编码类型 compress(压缩), gzip  等
+    accept-Language 代表浏览器支持的语言和区域
+
+
+
+@RequestBody
+    @RequestBody 注解则是将 HTTP 请求正文插入方法中，使用适合的 HttpMessageConverter 将请求体写入某个对象。
+
+      @requestBody 注解常用来处理content-type不是默认的application/x-www-form-urlcoded编码的内容，
+      比如说：application/json或者是application/xml等。一般情况下来说常用其来处理application/json类型。并且 
+      @requestbody传送的参数需要是json对象即可；
+
+    附：form默认的提交方式content-type是x-www-form-urlencoded，会将传递的参数转换成key-value方式。
+    x-www-form-urlencoded 不行  这个类型  @RequestBody 不能解析
+   
+
+    1. @Requestbody 用的时候遇到400和415错误，因为请求格式不对。
+   
+    2.两者同时使用。
+
+    @Requestbody和@Requestparam同时使用
+
+    post 一个json数据到
+    http://www.google.com?code=1024
+
+    RequestParams 就是 code=1024
+
+    RequestBody 就是你的json数据(题外话：注意content-type)如第一部分。
+
+
+
+
+  // 返回 0   本质就是 temp = x++; //0
+                       return temp;
+  public int test() {
+       int x = 0;
+       return x++;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

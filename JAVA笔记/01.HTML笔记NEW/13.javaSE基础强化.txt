@@ -1,0 +1,459 @@
+1.通配符使用的场景
+  方法的形参
+2.通配符的优点
+  使方法更加通用！
+3.通配符分类
+  无界通配：?
+  子类限定：extends Object  必须是Object的子类  
+        存的时候没法存 因为你不知道他到底传了什么参数化类型过去，
+            只要是Object的子类都可以传，你不能确定你存的这个值是用户传入的任意类型的子类。
+        取的时候只能用Object来接收，因为你知道里面的值都是Object的子类
+        public void print(List(? extends Object) list) {
+            list.add("hello");// 会报错
+        }
+  父类限定：super Integer   必须是Integer的父类
+    可以存Integer和其子类
+    不能取 不能确定里面的共同父类，当然Object可以
+      public void print(List(? super Integer) list) {
+            Integer a = list.get(1);// 会报错  如果类型是Object的时候，你能拿Integer接收吗
+            Object a = list.get(1);
+        }
+4.通配符缺点 
+    使变量使用上不再方便
+    无界：参数和返回值为泛型的方法，不能再使用
+    子类：参数为泛型的方法不能再使用
+    父类：返回值为泛型的方法不能再使用
+
+====================================
+
+元数据 matedata
+    
+    元数据可以用来创建文档，跟踪代码的依赖性，执行编译时格式检查，代替已有的配置文件。
+
+    元数据没有明确的分类大致可分为三类
+        1.编写文档：通过代码里标识的元数据生成文档
+        2.代码分析：通过代码里标识的元数据对代码进行分析
+        3.编译检查：通过代码里标识的元数据让编译器能实现基本的编译检查
+    在java中元数据以标签的形式存在于Java代码中，元数据标签的存在并不影响程序代码的编译和执行，它只是被
+    用来生成其它的文件或针对在运行时知道被运行代码的描述信息。
+    综上所述：
+　　　　第一，元数据以标签的形式存在于Java代码中。
+　　　　第二，元数据描述的信息是类型安全的，即元数据内部的字段都是有明确类型的。
+　　　　第三，元数据需要编译器之外的工具额外的处理用来生成其它的程序部件。
+　　　　第四，元数据可以只存在于Java源代码级别，也可以存在于编译之后的Class文件内部。
+
+注解的分类：
+
+　　根据注解参数的个数，我们可以将注解分为三类：
+
+　　　　1.标记注解:一个没有成员定义的Annotation类型被称为标记注解。
+            这种Annotation类型仅使用自身的存在与否来为我们提供信息。比如后面的系统注解 @Override;
+
+　　　　2.单值注解
+
+　　　　3.完整注解　　
+
+　　根据注解使用方法和用途，我们可以将Annotation分为三类：
+
+　　　　1.JDK内置系统注解
+
+　　　　2.元注解
+
+　　　　3.自定义注解
+
+==================================
+
+Annotation JDK 1.5版本的新特性
+
+    注释是给人看的，注解是给程序看的！
+    1.什么是注解
+        语法： @注解名称
+        注解的作用：代替xml配置文件！
+        servlet3.0中，就可以不再使用web.xml文件，而是所有配置文件都使用注解！
+        注解是由框架读取的！
+
+    2.注解的使用
+        * 定义在注解类：框架的工作
+        * 使用注解：我们的工作
+        * 读取注解(反射)：框架的工作
+
+    3.定义注解类
+        所有 annotation 类型都要扩展的公共接口。注意，手动扩展该公共接口的接口不定义 annotation 类型。
+        还要注意此接口本身不定义 annotation 类型。
+        @interface A{} // 天下所有的注解都是 Annotation 的子类！
+
+    4.使用注解
+        注解的作用目标：
+            * 类
+            * 方法
+            * 构造器
+            * 成员变量(参数)
+            * 局部变量
+            * 包(需要特殊实现才可以)
+
+            不能再方法实现上使用 
+                @ANN
+                System.out.println();
+              会报错
+
+    5.注解的属性
+      * 定义属性：
+        > 格式：
+        @interface MyAnno1 {
+            int age();
+            String name();
+            Class value();
+            urlPatterns={"/PCServlet"}
+        }
+      * 使用注解时给属性赋值
+        > @MyAnno1(age=100, name="zhangSan")
+        使用注解时，必须将没有默认值的属性，全部赋值
+            不然会报错
+      * 注解属性的默认值：在定义注解时，可以给注解指定默认值！
+        > int age() default 100;
+        > 在使用注解时，可以不给带有默认值的属性赋值！
+      * 名为value的属性的特权
+        > 当使用注解时，如果只给名为value的属性赋值时，可以省略"value=", 例如MyAnno1(value="hello"),可以书写成 @MyAnno1("hello")
+      * 注解属性的类型
+        > 8种基本类型
+        > String
+        > Enum
+        > Class
+        > 注解类型
+        > 以上类型的一维数组类型  Integer[] 不行！包装类型的都不行！
+
+        当数组类型的属性赋值时，若数组元素的个数为1时，可以省略大括号
+   
+   6.注解的作用目标限定以及保存策略限定
+     6.1 限定一个注解能出现的地方 如只能出现在类上，方法上
+        @Target 
+            用于设定注解的使用范围
+          Target通过 ElementType 来指定注解可使用的枚举范围
+
+          取值
+          METHOD            可用于方法上
+          TYPE              可用于类或接口上 或注解
+          ANNOTATION_TYPE   可用于注解类型上(被 @interface修饰的类)
+          CONSTRUCTOR       可用于构造方法上
+          FIELD             可用于域上 就是成员变量 枚举的常量
+          LOCAL_VARIABLE    可用于局部变量上
+          PACKAGE           用于记录java文件的package信息
+          PARAMENTER        可用于参数上 就是方法的形参
+
+        ElementType. PACKAGE。它并不是使用在一般的类中，而是用在固定的文件package-info.java中。
+        这里需要强调命名一定是“package-info”。由于package-info.java并不是一个合法的类，
+        使用eclipse创建类的方式会提示不合法，所以需要以创建文件的方式来创建package-info.java。
+
+    6.2 保留策略
+      @Retention
+        * 源代码文件(SOURCE)：注解只能在源代码中存在，当编译是就被忽略了
+        * 字节码文件(CLASS)：注解在源代码中存在，然后编译时会把注解信息放到class文件中，但JVM再加载类时会忽略注解！
+        * JVM中(RUNTIME): 注解在源代码、字节码中存在，并且在JVM加载类时，会把注解加载到JVM内存中(它是唯一可反射注解！)
+      @Retention(RetentionPolicy.RUNTIME)
+       如果没有指定Retention的话 默认是 @Retention(RetentionPolicy.CLASS)
+  
+  7.读取注解(反射)
+    1.要求
+        * 注解的保留策略必须是RUNTIME
+    2.反射注解需要从作用目标上返回
+        * 类上的注解，需要使用Class来获取
+        * 方法上的注解，需要Method来获取
+        * 构造器上的注解，需要使用Constructor来获取
+        * 成员上的注解，需要使用Field来获取
+
+        Class
+        Method 、 Constructor 、 Field 、 AccessibleObject 是这三个方法的共同父类
+        Class 获取类上的注解
+        Method 获取方法上的注解
+        Constructor 获取构造函数上的注解
+        Field 获取字段上的注解
+
+
+        它们都有一个方法：
+        * Annotation getAnnotation(Class),返回目标上指定类型的注解！ 如果注释不存在于该类上，那么返回null
+        * Annotation getAnnotations(),返回目标上所有注解！
+
+
+参数化类型   指的就是泛型   parameterizedType
+querystring  指的是URL?后面的参数
+
+    获取父类的参数化类型就是 泛型类型
+        Type getGenericSuperclass();
+        ParameterizedType 将Type转换成ParameterizedType   相当于一个 Collection 里面有着父类所有的参数化类型
+        使用ParameterizedType的方法 Type[] getActualTypeArguments(); 
+        这样就获取到了父类的参数化类型的所有的参数化类型数组
+        然后取其下标 将其强转成Class， 这样就得到了其参数化类型的Class对象
+
+
+
+
+
+@Target({ElementType.METHOD,ElementType.TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
+ 我们先看第一行： @Target 是这个注解的作用域，ElementType.METHOD是这个注解的作用域的列表，
+METHOD是方法声明，除此之外，还有：
+CONSTRUCTOR（构造方法声明）,
+FIELD（字段声明）,
+LOCAL VARIABLE（局部变量声明）,
+METHOD（方法声明）,PACKAGE（包声明）,
+PARAMETER（参数声明）,
+TYPE（类接口）
+
+
+
+第二行： @Retention 是它的生命周期，前面不是说注解按照运行机制有一个分类嘛，RUNTIME就是在运行时存在，可以通过反射读取。除此之外，还有:
+SOURCE（只在源码显示，编译时丢弃）,CLASS（编译时记录到class中，运行时忽略）,RUNTIME（运行时存在，可以通过反射读取）
+
+第三行： @Inherited 是一个标识性的元注解，它允许子注解继承它。
+
+第四行： @Documented，生成javadoc时会包含注解。
+
+@Documented 将此注解包含在 javadoc 中 ，它代表着此注解会被javadoc工具提取成文档。
+    在doc文档中的内容会因为此注解的信息内容不同而不同。相当与 @see,@param 等。
+
+==============================================
+
+Servlet3.0新特性
+
+==============================================
+
+
+异步处理 Servlet3.0新特性
+    1.什么是异步处理
+        在你的Servlet的doXXX方法中, 调用request.startAsync()方法, 得到一个AsyncContext对象, 你然后就可以让你的doXXX方法结束了,
+        这时这个HTTP请求的处理线程就已经完成任务了, 可以继续为后续的请求提供服务器. 再此之前你需要把AsyncContext传递给其他的工
+        作线程(多采用线程池或或异步回调方法), 在那个线程的处理完成后, 把数据通过AsyncContext里的Response对象发送给浏览器, 
+        然后调用AsyncContext中的complete方法完成本次HTTP的流程. 
+        相当于就是复杂的操作给了asynccontext来操作了。浏览器的响应交给了asynccontext
+
+        浏览器后面等待的就是asynccontext的响应了，当asynccontext超时或调用complete();就响应结束
+            此处应该有个默认的listener再监听asynccontext;对调用了complete()方法和超时做出相应的响应。
+            
+    2.实现实时推送，就是输出一点打印一点
+        和asynccontext没有什么关系
+        out.flush()调用确实已经将之前输出的字符通过chunk方式发送到了客户端（浏览器），而不仅仅是存入缓存，
+        这点大家可以通过抓包验证。之所以从浏览器中看不到flush的字符，gz_pyq2已经指出了原因，是因为没有设置contentType，
+        浏览器在不知道contentType的情况下，即使收到了flush过来的字符也不会显示出来，而是要等到完整的response才一起显示。
+        如果设置了contentType为text/html，浏览器则会提前显示收到的字符。
+        IE如果不能正常实时推送，这说明响应体大小不足512B，(大写的B为Byte字节,小写的b为bit比特，1B=8b)
+
+        实现异步的步骤
+        @WebServlet(asyncSupported=true)
+        AsyncContext ac = request.startAsyc(request, response);
+        ac.start(Runnable run);
+            ac.start(new Runnable() {
+                @override
+                public void run() {
+                    ...
+                    ac.complete();
+                }
+            });
+
+    本来Tomcat会在 service() 结束后 判断 response 流是否被开启过。开启过就再 service() 结束后自动将其流关闭。
+    异步开启以后就将关流的操作交给了异步。 
+
+
+=========================================================
+上传支持  Servlet3.0新特性
+
+  1.Servlet2.5的时候的 上传
+    * 上传对表单的要求:
+        > method="post"
+        > enctype="multipart/form-data",它的默认值是:application/x-www-form-urlencoded 上传的时候只需要写enctype="multipart/from-data"就好了
+        > <input type="file" name="必须给"/>
+
+    * 上传Servlet的使用:
+        > request.getParameter()不能再使用，使用获取的一直是null
+        > request.getInputStream()使用它来获取整个表单数据！
+
+    * 使用jar包commons-fileupload
+        > 创建工厂
+        > 解析器
+        > 使用解析器来解析request对象，得到List<FileItem>
+
+============
+
+    Servlet3.0对上传提供了支持：
+      * 表单不变
+      * 在Servlet中不需要再使用commons-fileupload,而是使用Servlet3.0提供的上传组件接口！
+
+    上传的步骤：
+    * 使用request.getPart("上传文件的input的name名称"),得到Part实例
+        Servlet3.0可以使用request.getParameter()，可以获取非type="file"的标签的value;
+    * Part:
+        > String getContentType(); 获取上传文件的MIME类型
+        > String getName(); 获取表单项名称,不是上传文件的名称
+        > String getHeader(String header)：获取指定头的值
+        > String getSize(); 获取上传文件的大小
+        > InputStream getInputStream(): 获取上传文件的内容的流
+        > void write(String fileName): 把上传文件保存到指定的路径下
+    * 默认Servlet是不支持使用上传组件的;需要给Serlet添加一个注解： @MultipartConfig
+
+    它没有提供获取上传文件名称的方法：
+      * 这需要我们自己从Content-DisPosition头中截取！
+        
+
+
+===================================================================
+动态代理
+
+ 1.只学一个方法
+    方法的作用：在运行时，动态创建一组指定的接口的实现类对象！(在运行时，创建实现了指定接口的对象)
+
+    interface A {}
+    interface B {}
+
+    Object proxyObject = Proxy.newProxyInstance(ClassLoader classLoader, Class[] interface, InvocationHandler h);
+    1.方法作用：动态创建实现了interfaces数组中所有指定接口的实现类对象！
+    参数：
+    1. ClassLoader:类加载器！
+        * 它是用来加载类的，吧.class文件加载到方法区，形成Class对象。 
+    2.Class[] interfaces:指定要实现的接口们
+    3.InvocationHandler:代理对象的所有方法(都会调用InvocationHandler的invoke方法)
+---------------------------
+
+    2.动态代理的作用
+        最终是学习AOP(面向切面编程)，它与装饰者模式有点相似，比装饰者模式更加灵活！
+
+---------------------------
+
+InvocationHandler
+
+public Object invoke(Object proxy, Method method, Object[] args);
+
+这个invoke()方法在调用代理对象所实现接口中的方法是调用
+
+* Object proxy: 当前对象，即代理对象！ Proxy.newProxyInstance生成的对象
+* Method method: 当前被调用的方法(目标方法)
+* Object[] args: 实参，就是调用方法传入的参数
+
+目标对象：被增强的对象
+代理对象：需要目标对象，然后在目标对象上添加了增强后的对象！
+目标方法：增强的内容 
+
+    public class LiggerHandler implements InvocationHandler {
+        private Object target;
+        public LoggerHandler(Object target) {
+            this.target = target;
+        }
+        public Object invoke(Object proxy, Method method, Object[] args){
+            System.out.println("增强前缀...");
+            Object result = mehtod.invoke(target, args);
+            System.out.println("增强后缀...");
+        }
+    }
+
+==========================================
+
+类加载器
+
+    1.什么是类加载器
+        * 把.class文件加载到JVM的方法区中，变成了一个Class对象！存储在了方法区中
+
+    2.得到加载器
+        * Class#getClassLoader();
+            注意：引导加载器是无法获取的。永远返回null。因为它内部是由C语言编写的。
+                其他加载器都是由引导加载器加载的。引导加载器是和JVM一起的。
+
+    3.类加载器的分类
+        它们都是片警。都只管理一片
+        * 引导：bootstrap classloader  加载rt.jar中的类; jre/lib/rt.jar包里面的类 里面都是java的api里面的类java的类库
+        * 扩展：sun.misc.Launcher$ExtClassLoader:jre/lib/ext目录下的类
+        * 系统：sun.misc.Launcher$AppClassLoader: 系统类加载器，加载CLASSPATH下的类，即我们写的类，以及第三方提供的类就是lib下的类
+
+        通常情况下，java中所有的类都是通过这三个类加载器加载的。
+        类加载器之间存在上下级关系，系统上级关系是扩展，扩展上级关系是引导。
+
+        类加载的顺序：
+          自己的理解：
+            首先一般由系统加载器加载，系统加载器会先调用getParent()来获取父类的加载器。由父类的加载器再去获取父类的加载器，直到获取了
+            引导加载器，然后引导加载器先去找rt.jar下面有没有其相同的类名的类(含包名的类名)。没有找到返回null.  然后再由扩展类加载器
+            ExtClassLoader来查找有没有其相同的类名的类，没有再返回null.最后再由系统AppClassLoader来加载，还没有。就抛ClassNotFoundException异常
+            
+          视频：
+            * 代码中出现了这么一行：new A();
+                > 系统发现了自己加载的类，其中包含了new A(); 这就说明需要系统去加载A类
+                > 系统会给自己的领导打电话:让扩展去自己的地盘去加载A类
+                > 扩展会给自己的领导打电话:让引导去自己的地盘去加载A类
+                > 引导自己去rt.jar中寻找A类
+                    * 如果找到了，加载之，返回A对应的Class对象给扩展，扩展也会把它这个Class返回给系统，结束了！
+                    * 如果没找到：
+                        > 引导给扩展返回一个null，扩展会在自己的地盘，去寻找A类
+                           * 如果找到了，加载之，那么返回A对应的Class对象给系统，结束了！
+                           * 如果没找到：
+                             > 扩展返回一个null给系统，系统去自己的地盘(应用程序下)加载A类
+                                * 如果找到了，加载之，结束了！
+                                * 如果没找到：就抛ClassNotFoundException异常
+
+
+    4.jvm眼中的相同的类
+        
+        在JVM中，不可能存在一个类被加载两次的事情！一个类被加载两次的事情！一个类如果已经被加载了，当再次试图加载这个类时，类加载器会
+        先去查找这个类是否已经被加载过了，如果已经被加载过了，就不会再去加载了。
+
+    5.类的解析过程
+
+        class MyApp {// 被系统加载
+            main() {
+                A a = new A();// 也由系统加载！
+                String s = new String();// 也由系统加载！只是会委托引导加载
+            }
+        }
+
+        class String {// 引导
+            private Intrger i;// 直接引导加载
+        }
+
+        使用什么加载器取决于所在的类是由什么类加载器加载的
+
+-------------------------------
+
+    6.自定义类加载器
+        们也可以通过继承ClassLoader类来完成自定义类加载器，自类加载器的目的一般是为了加载网络上的类，因为这会让class在网络中传输，
+        为了安全，那么class一定是需要加密的，所以需要自定义的类加载器来加载（自定义的类加载器需要做解密工作）。
+
+
+    7.ClassLoader的getParent();
+        返回委托的父类加载器。一些实现可能使用 null 来表示引导类加载器。如果类加载器的父类加载器就是引导类加载器，则此方法将在这样的实现中返回 null。 
+
+    8.Tomcat的类加载器
+        Tomcat提供了两种类加载器！
+        * 服务器类加载器：${CATALINA_HOME}\lib,服务器类加载器，他负责加载这个下面的类！
+        * 应用类加载器：${CONTEXT_HOME}\WEB-INF\lib、${CONTEXT_HOME}\WEB-INF\classes,应用类加载器，它负责加载这两个路径下的类！
+
+        特性：
+        服务器类加载器：先自己动手，然后再去委托
+        应用类加载器：先自己动手，然后再去委托
+
+
+        Tomcat会为每个项目提供一个类加载器，Tomcat提供的类加载器负责加载自己项目下的类，即WEB-INF\lib和WEB-INF\classes下的类。
+        但Tomcat提供的类加载器不会使用传统的代理模式，而是自己先去加载，如果加载不到，再使用代理模式。
+        Tomcat提供的类加载器有这样一个好处，就是可以使自己项目下的类优先被加载！
+
+        优先级：由高到低：
+            应用下的classes:应用类加载器
+            应用下的lib:应用类加载器
+            服务器下的lib:服务器类加载器
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

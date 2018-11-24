@@ -1,0 +1,98 @@
+1.收发邮件
+    发邮件大家都会吧！发邮件是从客户端把邮件发送到邮件服务器，收邮件是把邮件服务器的邮件下载到客户端。
+    我们在163.126.QQ.sohu.sina等网站注册的Email账户，其实就是在邮件服务器中注册。这些网站都有自己的邮件服务器。
+
+2.邮件协议概述
+    与HTTP协议相同，收发邮件也是需要有传输协议的。
+        * SMTP：(Simple Mail Transfer Protocol）,简单邮件传输协议)发邮件协议;
+        * POP3：（Post Office Protocol Version 3, 邮局协议第3版）收邮件协议;
+        * IMAP：（Internet Message Access Protocol,因特网消息访问协议）收发邮件协议。
+
+3.理解邮件收发过程
+    其实你可以把邮件服务器理解为邮局！如果你需要给朋友寄一份信，那么你需要把信放到邮筒中，这样你的信会“自动”到达邮局，
+    邮局会把信邮到另一个省市的邮局中。然后这封信会被送到收信人的邮箱中，最终收信人需要自己经常查看邮箱是否有新的邮件。
+        其实每个邮件服务器都由SMTP服务器和POP3服务器构成，其中SMTP服务器负责发邮件的请求，而POP3负责收邮件的请求。
+
+当然，又有时我们也会使用163的账号，向126的账号发送邮件。这时邮件是发送到126的邮件服务器上，而对于163的邮件服务器是不会
+    存储这封邮件的。    
+            163邮件服务器SMTP和126邮件服务器SMTP对接，然后邮件存储到126服务器的数据库中，由POP3交给收件人
+            当然如果服务器SMTP和126邮件服务器SMTP对接，发现126里面并没有这个收件人，那么就会退回到163的服务器的
+            数据库中，等用户上线以后使用POP3将邮件退回到用户邮箱内。
+
+4.邮件服务器名称
+    smtp服务器的端口号为25，服务器名称为smtp.xxx.xxx
+    pop3服务器的端口号为110，服务器名称为pop3.xxx.xxx
+    例如：
+        163：smtp.163.com和pop3.163.com
+        126:smtp.126.com和pop3.126.com
+        qq:smtp.126.com和pop3.qq.com
+        sohu:smtp.sohu.com和pop3.sohu.com
+        sina:smtp.sina.com和pop3.xina.com
+
+
+import sun.misc.BASE64Encoder
+import sun.misc.BASE64Decoder
+;在不是Web项目中导入报错的情况
+           打开Windows - preference - java - Errors/Waining  Deprecated and restricted API - Forbidden reference Ignore;
+
+ 
+JavaMail
+    1.导包！
+        * mail.jar
+        * actvition.jar
+     
+----------------------------
+
+核心类
+    1.session
+        * 如果你得到了它的，表示已经与服务器连接上了，与Connection的作用相似！
+            props需要两个键值，一个是指定服务器主机名，另一个是指定是否需要认证！我们当然需要认证
+        得到Session,需要使用Session.getInstance(Properties, Authenticator/*证明*/);
+        Properties props = new Properties();
+        props.setProperty("mail.host", "smtp.163.com");// 设置主机名和密码
+        props.setProperty("mail.smtp.auth", "true");//设置需要认证
+        Authenticator是一个接口表示认证器，即校验客户端的身份。我们需要自己来实现这个接口，实现这个接口需要使用账号和密码。
+        Authenticator auth = new Authenticator() {
+                public PasswordAuthenticator getPasswordAuthentication(){
+                        return new PasswordAuthentication("itcast_cxf", "itcast");// 用户名和密码
+                    }
+            }
+            通过上面的准备就可以获取Session对象了“
+            Session session = Session.getInstance(prop, auth);
+    2.MimeMessage
+        * 它表示一个邮件对象，你可以调用它的setFrom(),设置发件人、设置收件人、设置主题、设置正文！
+            MimeMessage msg = new MimeMessage(session);
+            msg.setFrom(new InternetAddress("itcast_cxf@163.com"));//设置发件人
+            msg.setRecipients/*收件人*/(Recipient.TO, "itcast_cxf@126.com");//设置收件人 可以设置多个
+            msg.setRecipients(Recipient.CC, "itcast_cxf@sohu.com");//设置抄送  抄送指的是将其邮件抄给她一份，拿到邮件的人都知道
+            msg.setRecipients(Recipient.BCC, "itcast_cxf@sina.com");//设置暗送 暗送指的是将其邮件抄给她一份，在邮件中不标明！除了发件人和暗送着其他人不知道！
+                    
+             msg.setSubject/*主题*/("这是一份测试邮件垃圾邮件");
+             msg.setContent("这就是一封垃圾邮件", "text/html;charset=utf-8");
+
+    3.TransPort/*运输*/
+        * 它只有一个功能，发邮件！
+       Tranport.send(msg);
+        
+
+----------------------------------------------------
+   
+当发送包含附件的邮件时，邮件体就为多部件形式！
+    1.创建一个多部件的部件内容! MimeMultipart
+        MimeMultipart就是一个集合，用来装载多个主体部件！
+    2.我们需要创建两个主体部件，一个文本内容的，另一个是附件的。
+        主体部件叫MimeBodyPart MimeMultipart.addBodyPart(MultiBodyPart);
+    3.把MimeMultpart设置给MimeMessage的内容  msg.setContent(MimeMultipart);
+     MimeBodyPart body2 = new MimeBodyPart();
+        body2.attachFile("C:/白冰.jpg");
+        body2.setFileName(MimeUtility.encodeText("小黄图.jpg")); // 设置文件名称 MimeUtility.encodeText是设置编码，使其不乱码
+
+
+
+
+
+
+
+
+
+

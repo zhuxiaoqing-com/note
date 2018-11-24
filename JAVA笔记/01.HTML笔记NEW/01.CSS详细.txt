@@ -1,0 +1,252 @@
+CSS 样式
+    是一个用来控制HTML样式的语言，无法对HTML的属性进行修改
+
+------------------------------------
+
+  font:
+
+    font-style 设置字体样式 斜体、倾斜或正常字体
+        normal 默认值。浏览器显示一个标准的字体样式。 
+        italic 浏览器会显示一个斜体的字体样式。 
+        oblique 浏览器会显示一个倾斜的字体样式。 
+        inherit 规定应该从父元素继承字体样式。 
+    
+    font-family 设置字体系列  隶书、宋体等等
+
+    font-size 设置字体大小
+    
+-------------------------------------
+
+  background 
+    background-color  背景颜色
+
+    background-image  
+        url('URL') 背景图
+
+    background-repeat (重复)
+        no-repeat 背景图像将仅显示一次 会将其拉伸
+        repeat 默认 背景图片会重复显示
+
+    background-attachment (附件) 
+        fixed  当页面的其余部分滚动时，背景图像不会移动。
+        scroll 默认 背景图像会随着页面其余部分的滚动而移动。
+
+    background-position (位置)
+          顶部
+            top left 
+            top center 
+            top right 
+          居中
+            center left 
+            center center 
+            center right 
+          底部
+            bottom left 
+            bottom center 
+            bottom right 
+
+     background-size: 规定背景图片的尺寸。
+        cover	
+            把背景图像扩展至足够大，以使背景图像完全覆盖背景区域。
+            背景图像的某些部分也许无法显示在背景定位区域中。
+
+        contain	把图像图像扩展至最大尺寸，以使其宽度和高度完全适应内容区域  // 可能会无法充填整个屏幕，因为图片尺寸本身问题
+        length   第一个值设置宽度，第二个值设置高度。 如 background-size:10px 150px;
+
+---------------------------------------
+
+  方框属性
+      margin (边缘) 
+        top     上边界 (与父类的div)
+        left
+        right
+        bottom
+
+      border 边界
+        border-width 规定边框的宽度。
+        border-style 规定边框的样式。 
+            dashed 虚线
+            solid  实线
+        border-color 规定边框的颜色。 
+
+      padding (充填)  应该是里面的文本基于 border 的距离
+        top     
+        left
+        right
+        bottom
+
+----------------------------------    
+
+ text-decoration 属性规定添加到文本的修饰。
+        none 默认。定义标准的文本。 
+        underline 定义文本下的一条线。 
+        overline 定义文本上的一条线。 
+        line-through 定义穿过文本下的一条线。 
+        blink 定义闪烁的文本。 
+
+--------------------------------------
+
+ display
+    
+        none      次元素将不会显示
+
+        block      此元素将显示为块级元素，此元素前后会带有换行符。  
+                        多个block元素回去各自新起一行。默认情况下，block元素宽度自动填满其父元素宽度。
+                        可以设置width，height属性
+                        可以设置width，height属性
+
+        inline      默认。此元素会被显示为内联元素，元素前后没有换行符。 
+                        inline元素设置width和height属性无效。
+
+        inline-block   
+                简单来说就是将对象呈现为inline对象，但是对象的内容作为block对象呈现。之后的内联对象会被排列在同一行内。
+                比如我们可以给一个link（a元素）inline-block属性值，使其既具有block的宽度高度特性又具有inline的同行特性。
+-----------------------------------------
+
+
+cursor: pointer   使鼠标再标签上会变成一个手
+
+
+transition 渐变 
+transform 配合使用
+box-shadow: 0px 1px 3px rgba(34, 25, 25, 0.2);
+animation ： 动画
+@keyframes mymove2  
+
+
+
+overflow  可以很好地控制 div 等， 使 div 等容器不会被其里面的元素撑大;
+    属性规定当内容溢出元素框时发生的事情。
+    visible	默认值。内容不会被修剪，会呈现在元素框之外。
+    hidden	内容会被修剪，并且其余内容是不可见的。
+    scroll	内容会被修剪，但是浏览器会显示滚动条以便查看其余的内容。
+    auto	如果内容被修剪，则浏览器会显示滚动条以便查看其余的内容。
+    inherit	规定应该从父元素继承 overflow 属性的值。
+
+line-height 和 height 的区别 
+    line-heigth 设置的是行高
+    height 设置的是块的高度
+    line-height 不直接影响元素高度，而是影响文本每行的高度，如果元素内因换行而产生多行文本，那么 line-height 对元素高度的影响也要乘上行数
+
+    line-height 可以控制行数，配合 overflow hidden
+    可以将设置了超出行数的 比如<p> 标签 隐藏起来
+
+vertical-align   设置元素的垂直对齐方式。使其容器内不一样大的东西可以 以某种方式对齐。
+    sub	垂直对齐文本的下标。
+    super	垂直对齐文本的上标
+    top	把元素的顶端与行中最高元素的顶端对齐
+    text-top	把元素的顶端与父元素字体的顶端对齐
+    middle	把此元素放置在父元素的中部。
+    bottom	把元素的顶端与行中最低的元素的顶端对齐。
+    text-bottom	把元素的底端与父元素字体的底端对齐。
+
+
+list-style-type:none; 可以使 ul li  可以没有前面的 圆点什么的 
+
+
+
+
+
+div 等移动的时候会自动将将其变成 absolute 移动结束后就 将其恢复
+position absolute : 是根据 设置了 absolute 和 relative 的父元素 没有的话就按照 body  来定位的  
+        因为设置了 absolute 元素 已经脱离文档流了 只能和 相同已经脱离文档流的元素来进行定位； 
+        如果父元素是 static 的话就不知道了
+position relative : 是根据 父元素 来定位的
+
+
+
+让 html 和 body 铺满整个屏幕
+    
+    html,body{  
+    height: 100%; 
+}
+html,body{
+        height:100%;
+        background: url("resource1/img/index2.jpg");
+        background-repeat: no-repeat;
+        background-size:100% 100%; 
+        background-attachment: fixed;
+        overflow:hidden;
+    }
+
+
+font-family: STHupo; 实体华丽文字
+font-family: STCaiyun; 空心华丽文字
+
+
+
+
+bootstrap 你可以手动控制 其 bootstrap 的栅格系统
+
+.col-md-1 { width:12.68%;}
+.col-md-2 { width:87.32%;}
+
+
+写模态对话框时，使用Bootstrap 自带的modal样式，滚动条是在遮罩层中，而且模态框的高度是自动的，造成了滚动一直无穷无尽的感觉，界面不是很友好。
+
+方法：在modal-body中设置高度并加上滚动条
+
+解决：<div class="modal-body"  style="height:500px; overflow:auto;">
+
+
+让框架铺满 随着框架的改变都铺满
+
+function changeFrameHeight(){
+	    var ifm= document.getElementById("iframepage"); 
+	    ifm.height=document.documentElement.clientHeight;
+	}
+	window.onresize=function(){  
+	     changeFrameHeight();  
+	}
+
+让框架铺满
+$(function(){
+		var h2 = $(document).height();
+		var ifm= document.getElementById("iframepage");
+		ifm.height=h2;
+	
+	});
+
+
+ css !important;
+    CSS中提升优先级属性!important
+    在某一个 样式后面使用了  !important 的话就会优先执行
+    也就是说 如果你在某个样式上面加了 !important 的话就不怕被 js 或 其他 css 覆盖
+
+IE6及以下浏览器 不支持
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

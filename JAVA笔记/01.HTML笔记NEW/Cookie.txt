@@ -1,0 +1,178 @@
+Cookie.doMain();
+
+域名跟实际的不一致，浏览器怎么会接受。
+    就是说 你的 域名是 www.baidu.com
+        你要设置  Cookie.setDomain(".taobao.com");
+           这样是不会生效的，因为你的域名和实际的不一致。
+           只有 Cookie.setDomain(".baidu.com"); 才会生效
+    为什么 setDomain 里面的域名前面要加 "." ，因为
+        但实际的使用过程中，某个域下的cookie如果希望能够被他的子域具有可见性（即可以读取），必须要注意的一点是，
+        应该保证这个cookie在被Set的时候，应该以"."开头。
+
+    有些浏览器会自作聪明的帮你加 ".".
+
+
+
+
+    删除 Cookie 
+        cookie.setValue(null);  
+        cookie.setMaxAge(0);
+        
+        主要还是将其 Value 设置为 null.
+        存活时间设置为，浏览器关闭就消失 就是 0
+     
+     删除 cookie 都那么难，首先你要知道 path 和 domian ，才能 new 新的 cookie 覆盖，当然你可以 循环获得的 cookie 来进行删除
+
+           * 删除cookie 
+         * @param request 
+         * @param response 
+         * @param name 
+         */  
+        @RequestMapping("/delCookie")  
+        public void delCookie(HttpServletRequest request,HttpServletResponse response,String name){  
+            Cookie[] cookies = request.getCookies();  
+            if (null==cookies) {  
+                System.out.println("没有cookie==============");  
+            } else {  
+                for(Cookie cookie : cookies){  
+                    if(cookie.getName().equals(name)){  
+                        cookie.setValue(null);  
+                        cookie.setMaxAge(0);// 立即销毁cookie  
+                        cookie.setPath("/");  
+                        System.out.println("被删除的cookie名字为:"+cookie.getName());  
+                        response.addCookie(cookie);  
+                        break;  
+                    }  
+                }  
+            }  
+        }  
+
+
+Cookie是可以覆盖的，如果重复写入同名的Cookie，那么将会覆盖之前的Cookie。
+ 前提是 path 和 domain 都一样
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
