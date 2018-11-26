@@ -233,12 +233,24 @@ final 修饰的变量修改
 	EXPLAIN  select a1,a2 from user where a1 = 1 order by a3,a1 desc
 
 
+ MIN_VALUE = 0x80000000;
+ 为什么 等于 1000 0000 0000 0000
 
 
+ 100 = -8 
+ 因为 1 100 就是= -8 所以 其实是帮你把符号位隐藏了
 
 
+Math.toIntExact(v * percent / 100L);
 
+ public static int toIntExact(long value) {
+        if ((int)value != value) {
+            throw new ArithmeticException("integer overflow");
+        }
+        return (int)value;
+    }
 
+如果溢出了就抛出异常
 
 
 
