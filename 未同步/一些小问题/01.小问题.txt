@@ -256,6 +256,12 @@ Math.toIntExact(v * percent / 100L);
 
 
 
+log(a)x=n   那 x 叫做以 a 为底 n 的对数
+
+
+ a^x=N（a>0，且a≠1），那么数x叫做以a为底N的对数
+
+
 
 
 
