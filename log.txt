@@ -6,9 +6,9 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop ca7e2e6] auto-commit
- 2 files changed, 107 insertions(+), 2 deletions(-)
- create mode 100644 src/test/java/com/example/datastruture/skipList/arraystyle/SkipList.java
+On branch develop
+Your branch is up-to-date with 'origin/develop'.
+nothing to commit, working directory clean
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
@@ -19,12 +19,3 @@ D:\01.ideaWeb>cd note
 D:\01.ideaWeb\note>call note.bat 
 
 D:\01.ideaWeb\note>git add -A 
-
-D:\01.ideaWeb\note>git commit -m "auto-commit" 
-[note 1b81e9c] auto-commit
- 2 files changed, 13 insertions(+), 3 deletions(-)
- create mode 100644 "JAVA\347\254\224\350\256\260/\346\217\220\344\272\244git\350\247\204\350\214\203.txt"
-
-D:\01.ideaWeb\note>git push origin note:note 
-
-D:\01.ideaWeb\note>cd ../ 
