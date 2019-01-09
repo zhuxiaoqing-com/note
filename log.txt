@@ -6,10 +6,8 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop d9937d0] auto-commit
- 3 files changed, 113 insertions(+), 2 deletions(-)
- create mode 100644 src/test/java/com/example/datastruture/dynamic_programming/practice/Triangle.java
- create mode 100644 src/test/java/com/example/datastruture/four_stage_welfare/linked.java
+[develop a783280] auto-commit
+ 1 file changed, 8 insertions(+)
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
