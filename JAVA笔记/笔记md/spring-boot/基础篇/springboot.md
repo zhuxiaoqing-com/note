@@ -67,11 +67,11 @@ http://www.gulixueyuan.com/ 谷粒学院
 
 整合maven进来；
 
-![idea设置](I:/mygoods/01.JAVA%E6%80%BB/JAVA%E7%AC%94%E8%AE%B0/Spring%20Boot%20%E7%AC%94%E8%AE%B0/images/%E6%90%9C%E7%8B%97%E6%88%AA%E5%9B%BE20180129151045.png)
+![idea设置](/images/%E6%90%9C%E7%8B%97%E6%88%AA%E5%9B%BE20180129151045.png)
 
 
 
-![images/](I:/mygoods/01.JAVA%E6%80%BB/JAVA%E7%AC%94%E8%AE%B0/Spring%20Boot%20%E7%AC%94%E8%AE%B0/images/%E6%90%9C%E7%8B%97%E6%88%AA%E5%9B%BE20180129151112.png)
+![images/](/images/%E6%90%9C%E7%8B%97%E6%88%AA%E5%9B%BE20180129151112.png)
 
 ## 4、Spring Boot HelloWorld
 
