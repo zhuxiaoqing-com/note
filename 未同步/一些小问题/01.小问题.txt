@@ -271,6 +271,50 @@ P是十六进制下的科学计数法表示方式
 	因为 十六进制 E 已经被使用了 E=14 
 
 
+关于lambda表达式
+（1）和（2）之间的区别是
+ list.forEach(a -> {
+            System.out.println(object);
+        });
+
+	一个lambda表达式里面用了外部的数据(object)。
+	一个lambda表达式没有使用外部的数据
+	结果是：
+	（1）每次 list.forEach() 都使用了同一个对象
+	（2）每次 list.forEach() 都产生了不同的对象
+
+（1）
+   @Test
+    public void fun12() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6, 65, 65, 67);
+        while (true) {
+            while1(list);
+        }
+    }
+
+    private void while1(List list){
+     Object object =  new Object();
+        list.forEach(a -> {
+            System.out.println(object);
+        });
+    }
+
+
+（2）
+  @Test
+    public void fun12() {
+        List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6, 65, 65, 67);
+        while (true) {
+            while1(list);
+        }
+    }
+
+    private void while1(List list){
+        list.forEach(a -> {
+            System.out.println(a);
+        });
+    }
+
 
 
 
