@@ -6,15 +6,13 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop 6a9583a] auto-commit
- 8 files changed, 27 insertions(+), 117 deletions(-)
- rename src/test/java/com/example/{demo2 => aqs}/AQS.java (97%)
- rename src/test/java/com/example/{demo2 => aqs}/TestSemaphore.java (93%)
- create mode 100644 src/test/java/com/example/design_mode/factory/ConcreteCreator.java
- create mode 100644 src/test/java/com/example/design_mode/factory/Creator.java
- create mode 100644 src/test/java/com/example/design_mode/factory/Product.java
- delete mode 100644 src/test/java/com/example/javase/interObj/EmpTest.java
- delete mode 100644 src/test/java/com/example/javase/interObj/subClass.java
+[develop 873e770] auto-commit
+ 5 files changed, 114 insertions(+)
+ create mode 100644 src/test/java/com/example/design_mode/builder/builder/abs/CarBuilder.java
+ create mode 100644 src/test/java/com/example/design_mode/builder/builder/impl/BMWBuilder.java
+ create mode 100644 src/test/java/com/example/design_mode/builder/model/abs/CarModel.java
+ create mode 100644 src/test/java/com/example/design_mode/builder/model/impl/BMWModel.java
+ create mode 100644 src/test/java/com/example/design_mode/builder/model/impl/BenzModel.java
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
