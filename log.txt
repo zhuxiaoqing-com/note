@@ -6,15 +6,9 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop 08fbebc] auto-commit
- 8 files changed, 196 insertions(+), 9 deletions(-)
- create mode 100644 src/test/java/com/example/design_mode/builder/Director.java
- create mode 100644 src/test/java/com/example/design_mode/mediator/AbstractMediator.java
- create mode 100644 src/test/java/com/example/design_mode/mediator/Mediator.java
- create mode 100644 src/test/java/com/example/design_mode/mediator/module/AbstractColleague.java
- create mode 100644 src/test/java/com/example/design_mode/mediator/module/Purchase.java
- create mode 100644 src/test/java/com/example/design_mode/mediator/module/Stock.java
- create mode 100644 src/test/java/com/example/design_mode/mediator/module/Stock1.java
+On branch develop
+Your branch is up-to-date with 'origin/develop'.
+nothing to commit, working directory clean
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
