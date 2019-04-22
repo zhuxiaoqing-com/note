@@ -6,9 +6,8 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop 207ce98] auto-commit
- 2 files changed, 49 insertions(+), 1 deletion(-)
- create mode 100644 src/test/java/com/example/design_mode/strategy/EnumStrategy.java
+[develop f7c45a0] auto-commit
+ 1 file changed, 8 insertions(+)
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
