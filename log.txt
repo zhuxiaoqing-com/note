@@ -6,9 +6,12 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop 1801d7b] auto-commit
- 4 files changed, 73 insertions(+), 5 deletions(-)
- create mode 100644 "src/test/java/com/example/design_mode/\345\244\207\345\277\230\345\275\225\346\250\241\345\274\217/BeanUtils.java"
+[develop 5bc8875] auto-commit
+ 4 files changed, 45 insertions(+)
+ create mode 100644 "src/test/java/com/example/design_mode/\350\256\277\351\227\256\350\200\205\346\250\241\345\274\217/Client.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\350\256\277\351\227\256\350\200\205\346\250\241\345\274\217/impl/KungFuRole.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\350\256\277\351\227\256\350\200\205\346\250\241\345\274\217/inf/AbsActor.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\350\256\277\351\227\256\350\200\205\346\250\241\345\274\217/inf/Role1.java"
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
