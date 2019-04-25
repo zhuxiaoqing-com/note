@@ -6,12 +6,22 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop 5bc8875] auto-commit
- 4 files changed, 45 insertions(+)
- create mode 100644 "src/test/java/com/example/design_mode/\350\256\277\351\227\256\350\200\205\346\250\241\345\274\217/Client.java"
- create mode 100644 "src/test/java/com/example/design_mode/\350\256\277\351\227\256\350\200\205\346\250\241\345\274\217/impl/KungFuRole.java"
- create mode 100644 "src/test/java/com/example/design_mode/\350\256\277\351\227\256\350\200\205\346\250\241\345\274\217/inf/AbsActor.java"
- create mode 100644 "src/test/java/com/example/design_mode/\350\256\277\351\227\256\350\200\205\346\250\241\345\274\217/inf/Role1.java"
+[develop f2ae982] auto-commit
+ 15 files changed, 329 insertions(+), 6 deletions(-)
+ create mode 100644 "src/test/java/com/example/design_mode/\347\212\266\346\200\201\346\250\241\345\274\217/AbsState.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\347\212\266\346\200\201\346\250\241\345\274\217/Client.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\347\212\266\346\200\201\346\250\241\345\274\217/CloseStatus.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\347\212\266\346\200\201\346\250\241\345\274\217/Context.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\347\212\266\346\200\201\346\250\241\345\274\217/OpenStatus.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\347\212\266\346\200\201\346\250\241\345\274\217/RunStatus.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\347\212\266\346\200\201\346\250\241\345\274\217/StopStatus.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\350\247\243\351\207\212\345\231\250\346\250\241\345\274\217/AddExpression.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\350\247\243\351\207\212\345\231\250\346\250\241\345\274\217/Calculator.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\350\247\243\351\207\212\345\231\250\346\250\241\345\274\217/Client.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\350\247\243\351\207\212\345\231\250\346\250\241\345\274\217/Expression.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\350\247\243\351\207\212\345\231\250\346\250\241\345\274\217/SubExpression.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\350\247\243\351\207\212\345\231\250\346\250\241\345\274\217/SymbolExpression.java"
+ create mode 100644 "src/test/java/com/example/design_mode/\350\247\243\351\207\212\345\231\250\346\250\241\345\274\217/VarExpression.java"
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
