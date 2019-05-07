@@ -6,21 +6,9 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop e82965a] auto-commit
- 13 files changed, 247 insertions(+)
- create mode 100644 src/test/java/com/example/design_mode/create_status_mode_PK/builder_and_factory_pk/abstract_builder/Blueprint.java
- create mode 100644 src/test/java/com/example/design_mode/create_status_mode_PK/builder_and_factory_pk/abstract_builder/Car.java
- create mode 100644 src/test/java/com/example/design_mode/create_status_mode_PK/builder_and_factory_pk/abstract_builder/CarBuilder.java
- create mode 100644 src/test/java/com/example/design_mode/create_status_mode_PK/builder_and_factory_pk/abstract_builder/ICar.java
- create mode 100644 src/test/java/com/example/design_mode/create_status_mode_PK/builder_and_factory_pk/builder/AdultSuperManBuilder.java
- create mode 100644 src/test/java/com/example/design_mode/create_status_mode_PK/builder_and_factory_pk/builder/Builder.java
- create mode 100644 src/test/java/com/example/design_mode/create_status_mode_PK/builder_and_factory_pk/builder/ChildSuperManBuilder.java
- create mode 100644 src/test/java/com/example/design_mode/create_status_mode_PK/builder_and_factory_pk/builder/Director.java
- create mode 100644 src/test/java/com/example/design_mode/create_status_mode_PK/builder_and_factory_pk/builder/SuperMan.java
- create mode 100644 src/test/java/com/example/design_mode/create_status_mode_PK/builder_and_factory_pk/factory/AdultSuperMan.java
- create mode 100644 src/test/java/com/example/design_mode/create_status_mode_PK/builder_and_factory_pk/factory/ChildSuperMan.java
- create mode 100644 src/test/java/com/example/design_mode/create_status_mode_PK/builder_and_factory_pk/factory/ISuperMan.java
- create mode 100644 src/test/java/com/example/design_mode/create_status_mode_PK/builder_and_factory_pk/factory/SuperManFactory.java
+On branch develop
+Your branch is up-to-date with 'origin/develop'.
+nothing to commit, working directory clean
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
