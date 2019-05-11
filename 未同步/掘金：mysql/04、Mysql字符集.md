@@ -15,7 +15,7 @@
 ### 比较规则简介
 
 ```
-在我们确定了字符集以后，怎么比较两个字符的大小呢？最容易想到的就是直接比较这两个字符对应的二进制编码的大小，比方说字符 'a' 的编码为 0x01 ，字符 'b' 的编码为 0x02, 所以 'a' 小于 'b'，这种简单的比较规则也可以被称为二进制比较规则，英文名为 binary collaction.
+在我们确定了字符集以后，怎么比较两个字符的大小呢？最容易想到的就是直接比较这两个字符对应的二进制编码的大小，比方说字符 'a' 的编码为 0x01 ，字符 'b' 的编码为 0x02, 所以 'a' 小于 'b'，这种简单的比较规则也可以被称为二进制比较规则，英文名为 binary collation.
 ```
 
 ```
@@ -104,10 +104,61 @@ mysql> SHOW CHARSET;
 | `utf8mb4`  |  `4`   |
 
 ```
-latin1 又叫 ISO-88591
+latin1 又叫 ISO-8859-1
 ```
 
+比较规则的查看
 
+查看 Mysql 中支持的比较规则的命令如下：
+
+```
+SHOW (CHRASET|CHARACTOR SET) [LIKE 匹配的模式]
+SHOW COLLATION [LIKE 匹配的模式]
+
+我们前面说过一种字符串可能对应着若干种比较规则，mysql 支持的字符集就已经非常多了，所以支持的比较规则更多，我们先只查看一下utf8字符集下的比较规则：
+```
+
+```
+mysql> SHOW COLLATION LIKE 'utf8\_%';
++--------------------------+---------+-----+---------+----------+---------+
+| Collation                | Charset | Id  | Default | Compiled | Sortlen |
++--------------------------+---------+-----+---------+----------+---------+
+| utf8_general_ci          | utf8    |  33 | Yes     | Yes      |       1 |
+| utf8_bin                 | utf8    |  83 |         | Yes      |       1 |
+| utf8_unicode_ci          | utf8    | 192 |         | Yes      |       8 |
+| utf8_icelandic_ci        | utf8    | 193 |         | Yes      |       8 |
+| utf8_latvian_ci          | utf8    | 194 |         | Yes      |       8 |
+| utf8_romanian_ci         | utf8    | 195 |         | Yes      |       8 |
+| utf8_slovenian_ci        | utf8    | 196 |         | Yes      |       8 |
+| utf8_polish_ci           | utf8    | 197 |         | Yes      |       8 |
+| utf8_estonian_ci         | utf8    | 198 |         | Yes      |       8 |
+| utf8_spanish_ci          | utf8    | 199 |         | Yes      |       8 |
+| utf8_swedish_ci          | utf8    | 200 |         | Yes      |       8 |
+| utf8_turkish_ci          | utf8    | 201 |         | Yes      |       8 |
+| utf8_czech_ci            | utf8    | 202 |         | Yes      |       8 |
+| utf8_danish_ci           | utf8    | 203 |         | Yes      |       8 |
+| utf8_lithuanian_ci       | utf8    | 204 |         | Yes      |       8 |
+| utf8_slovak_ci           | utf8    | 205 |         | Yes      |       8 |
+| utf8_spanish2_ci         | utf8    | 206 |         | Yes      |       8 |
+| utf8_roman_ci            | utf8    | 207 |         | Yes      |       8 |
+| utf8_persian_ci          | utf8    | 208 |         | Yes      |       8 |
+| utf8_esperanto_ci        | utf8    | 209 |         | Yes      |       8 |
+| utf8_hungarian_ci        | utf8    | 210 |         | Yes      |       8 |
+| utf8_sinhala_ci          | utf8    | 211 |         | Yes      |       8 |
+| utf8_german2_ci          | utf8    | 212 |         | Yes      |       8 |
+| utf8_croatian_ci         | utf8    | 213 |         | Yes      |       8 |
+| utf8_unicode_520_ci      | utf8    | 214 |         | Yes      |       8 |
+| utf8_vietnamese_ci       | utf8    | 215 |         | Yes      |       8 |
+| utf8_general_mysql500_ci | utf8    | 223 |         | Yes      |       1 |
++--------------------------+---------+-----+---------+----------+---------+
+27 rows in set (0.00 sec)
+```
+
+这些比较规则的命名还挺有规律的，具体规律如下：
+
+```
+
+```
 
 
 
