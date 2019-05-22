@@ -6,11 +6,9 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop 889c4a0] auto-commit
- 5 files changed, 124 insertions(+), 15 deletions(-)
- create mode 100644 lib/ExcelHelper.jar
- rename src/test/java/com/example/demo1/{mainClass.java => HttpUitlTest.java} (63%)
- create mode 100644 src/test/resources/log4j.properties
+[develop 5c365ca] auto-commit
+ 3 files changed, 35 insertions(+), 6 deletions(-)
+ create mode 100644 src/main/resources/log4j.properties
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
