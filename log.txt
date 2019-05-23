@@ -6,10 +6,9 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop a11ef3b] auto-commit
- 3 files changed, 18 insertions(+), 5 deletions(-)
- delete mode 100644 lib/ExcelHelper.jar
- create mode 100644 src/logback.xml
+On branch develop
+Your branch is up-to-date with 'origin/develop'.
+nothing to commit, working directory clean
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 

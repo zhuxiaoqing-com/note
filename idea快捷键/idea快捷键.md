@@ -30,10 +30,15 @@ IDEA 快速返回上次查看代码的位置	ctrl+alt+方向键
 ```
 
 ```
-ctrl+t 拉取 检查是否有冲突
+ctrl+t 拉取 检查是否有冲突  poll
+ ctrl+k commit
+ctrl+shift+k  push
 
 stash changes 隐藏改变， 就是将改变缓存起来
+
 ```
+
+
 
 ```
 怎么查看方法在哪里被调用  		 alt+f7
