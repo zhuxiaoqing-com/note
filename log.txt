@@ -6,19 +6,9 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop bb248a9] auto-commit
- 14 files changed, 777 insertions(+), 5 deletions(-)
- create mode 100644 src/test/java/com/example/custom_annotation/AbstractLog.java
- create mode 100644 src/test/java/com/example/custom_annotation/BaseInfoLog.java
- create mode 100644 src/test/java/com/example/custom_annotation/Column.java
- create mode 100644 src/test/java/com/example/custom_annotation/ColumnDesc.java
- create mode 100644 src/test/java/com/example/custom_annotation/FieldType.java
- create mode 100644 src/test/java/com/example/custom_annotation/Index.java
- create mode 100644 src/test/java/com/example/custom_annotation/IndexDesc.java
- create mode 100644 src/test/java/com/example/custom_annotation/SqlTest.java
- create mode 100644 src/test/java/com/example/custom_annotation/Table.java
- create mode 100644 src/test/java/com/example/custom_annotation/TableDesc.java
- create mode 100644 src/test/java/com/example/custom_annotation/UniqueConstraint.java
+On branch develop
+Your branch is up-to-date with 'origin/develop'.
+nothing to commit, working directory clean
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
