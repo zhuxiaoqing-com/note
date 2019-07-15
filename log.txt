@@ -6,9 +6,14 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-On branch develop
-Your branch is up-to-date with 'origin/develop'.
-nothing to commit, working directory clean
+[develop 5eb5c44] auto-commit
+ 6 files changed, 74 insertions(+), 108 deletions(-)
+ create mode 100644 src/main/java/com/example/demo1/util/excel/BehaviorExcelUtil.java
+ rename src/main/java/com/example/demo1/util/excel/{ExcelUtil1.java => ExcelUtil.java} (52%)
+ delete mode 100644 src/main/java/com/example/demo1/util/excel/ExcelUtil2.java
+ delete mode 100644 src/main/java/com/example/demo1/util/excel/excelobj/BehaviorObj.java
+ delete mode 100644 src/main/java/com/example/demo1/util/excel/excelobj/ExcelObj.java
+ delete mode 100644 src/main/java/com/example/demo1/util/excel/excelobj/SheetObj.java
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
