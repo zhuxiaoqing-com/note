@@ -6,8 +6,8 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop ba96b0c] auto-commit
- 1 file changed, 10 insertions(+), 5 deletions(-)
+[develop 9f69308] auto-commit
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
