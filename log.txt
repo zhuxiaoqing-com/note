@@ -6,8 +6,10 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop 50487a8] auto-commit
- 1 file changed, 28 insertions(+), 7 deletions(-)
+[develop 5dd15ed] auto-commit
+ 5 files changed, 217 insertions(+), 7 deletions(-)
+ create mode 100644 src/main/java/com/example/demo1/util/ProtostuffSerializer.java
+ create mode 100644 src/main/java/com/example/demo1/util/SerializerProvider.java
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
