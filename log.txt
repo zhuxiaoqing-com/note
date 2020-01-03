@@ -6,15 +6,9 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop 14fddb3] auto-commit
- 10 files changed, 66 insertions(+), 91 deletions(-)
- delete mode 100644 src/test/java/com/example/demo4/Temp.java
- rename src/test/java/com/example/demo4/{ => testObj1}/AA.java (70%)
- rename src/test/java/com/example/demo4/{ => testObj1}/BB.java (70%)
- rename src/test/java/com/example/demo4/{ => testObj1}/CC.java (77%)
- create mode 100644 src/test/java/com/example/demo4/testObj1/Child.java
- rename src/test/java/com/example/demo4/{ => testObj1}/Father.java (74%)
- create mode 100644 src/test/java/com/example/demo4/testObj1/Temp.java
+On branch develop
+Your branch is up-to-date with 'origin/develop'.
+nothing to commit, working directory clean
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
