@@ -6,13 +6,8 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop ab9b112] auto-commit
- 9 files changed, 3454 insertions(+), 7949 deletions(-)
- create mode 100644 com/example/common/package-frame.html
- create mode 100644 com/example/common/package-summary.html
- create mode 100644 com/example/common/package-tree.html
- rename src/test/java/com/example/common/{ => findComment}/Doclet.java (80%)
- create mode 100644 src/test/java/com/example/common/findComment/Doclet2.java
+[develop 0027f9e] auto-commit
+ 2 files changed, 7349 insertions(+), 2455 deletions(-)
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
