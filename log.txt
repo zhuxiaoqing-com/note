@@ -6,9 +6,11 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-On branch develop
-Your branch is up-to-date with 'origin/develop'.
-nothing to commit, working directory clean
+[develop d44e9ce] auto-commit
+ 3 files changed, 66 insertions(+), 3 deletions(-)
+ create mode 100644 src/test/java/com/example/CSAPP/TINYServer/TinyServer.java
+ rename src/test/java/com/example/{ => CSAPP}/malloc/BaseUtil.java (98%)
+ rename src/test/java/com/example/{ => CSAPP}/malloc/Malloc.java (98%)
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
