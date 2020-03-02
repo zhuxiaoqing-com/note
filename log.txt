@@ -8,10 +8,6 @@ D:\01.ideaWeb\AQS>git add -A
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
 On branch develop
 Your branch is up-to-date with 'origin/develop'.
-
-It took 12.43 seconds to enumerate untracked files. 'status -uno'
-may speed it up, but you have to be careful not to forget to add
-new files yourself (see 'git help status').
 nothing to commit, working directory clean
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
