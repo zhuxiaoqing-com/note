@@ -484,6 +484,10 @@ Store Memory Barrier(a.k.a. ST, SMB, smp_wmb)是一条告诉处理器在执行�
 Load Memory Barrier (a.k.a. LD, RMB, smp_rmb)是一条告诉处理器在执行任何的加载前，先应用所有已经在失效队列中的失效操作的指令。
 ```
 
+```
+
+```
+
 
 
 
