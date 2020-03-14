@@ -6,10 +6,8 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop 6c1d001] auto-commit
- 2 files changed, 1 insertion(+)
- create mode 100644 lib/MessageGenerator.jar
- create mode 100644 out.log
+[develop c9fe42d] auto-commit
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
