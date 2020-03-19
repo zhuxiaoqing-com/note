@@ -6,10 +6,8 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop 1033d30] auto-commit
- 4 files changed, 452 insertions(+), 3 deletions(-)
- create mode 100644 src/test/java/com/example/design_mode/TowerAOI/BitUtil.java
- create mode 100644 src/test/java/com/example/design_mode/TowerAOI/Vector2f.java
+[develop 5e7e9d7] auto-commit
+ 1 file changed, 34 insertions(+)
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
