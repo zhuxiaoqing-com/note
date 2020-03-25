@@ -6,8 +6,13 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop 1532081] auto-commit
- 2 files changed, 55 insertions(+)
+[develop c1c000e] auto-commit
+ 7 files changed, 217 insertions(+), 1 deletion(-)
+ create mode 100644 "src/test/java/com/example/\351\207\215\346\236\204/\347\254\254\344\270\200\344\270\252\346\241\210\344\276\213/Manager.java"
+ create mode 100644 "src/test/java/com/example/\351\207\215\346\236\204/\347\254\254\344\270\200\344\270\252\346\241\210\344\276\213/entity/Customer.java"
+ create mode 100644 "src/test/java/com/example/\351\207\215\346\236\204/\347\254\254\344\270\200\344\270\252\346\241\210\344\276\213/entity/Movie.java"
+ create mode 100644 "src/test/java/com/example/\351\207\215\346\236\204/\347\254\254\344\270\200\344\270\252\346\241\210\344\276\213/entity/Rental.java"
+ create mode 100644 "src/test/java/com/example/\351\207\215\346\236\204/\347\254\254\344\270\200\344\270\252\346\241\210\344\276\213/\347\256\200\344\273\213.java"
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
