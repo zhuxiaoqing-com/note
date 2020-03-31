@@ -6,8 +6,14 @@ D:\01.ideaWeb\AQS>call aqs.bat
 D:\01.ideaWeb\AQS>git add -A 
 
 D:\01.ideaWeb\AQS>git commit -m "auto-commit" 
-[develop 0e5f11c] auto-commit
- 1 file changed, 27 insertions(+), 5 deletions(-)
+[develop 52bc36c] auto-commit
+ 8 files changed, 235 insertions(+), 33 deletions(-)
+ create mode 100644 src/test/java/com/example/demo4/Test09.java
+ create mode 100644 src/test/java/com/example/demo4/TestThreads.java
+ create mode 100644 "src/test/java/com/example/\351\207\215\346\236\204/\347\254\254\344\270\200\344\270\252\346\241\210\344\276\213/entity/price/ChildrensPrice.java"
+ create mode 100644 "src/test/java/com/example/\351\207\215\346\236\204/\347\254\254\344\270\200\344\270\252\346\241\210\344\276\213/entity/price/NewReleasePrice.java"
+ create mode 100644 "src/test/java/com/example/\351\207\215\346\236\204/\347\254\254\344\270\200\344\270\252\346\241\210\344\276\213/entity/price/Price.java"
+ create mode 100644 "src/test/java/com/example/\351\207\215\346\236\204/\347\254\254\344\270\200\344\270\252\346\241\210\344\276\213/entity/price/RegularPrice.java"
 
 D:\01.ideaWeb\AQS>git push origin develop:develop 
 
