@@ -1,4 +1,4 @@
-
+cd /d %~dp0
 cd ../AQS 
 call aqs.bat
 cd ../
