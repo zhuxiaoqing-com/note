@@ -1,0 +1,1 @@
+mshta vbscript:msgbox("提示内容1",1,"提示窗口1")(window.close)
