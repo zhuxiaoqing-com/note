@@ -1,7 +1,7 @@
 cd /d %~dp0
 cd ../AQS 
 call aqs.bat
-cd ../
-cd note
+cd ../note
 call note.bat
-cd ../
+cd ../pdfbook
+call pdfbook.bat
