@@ -298,7 +298,7 @@ key 常用的
     Dbsize 查看当前数据库的 key 的数量
     keys * 查看当前数据库的所有 key   * 代表多个 ? 代表一个占位符 和 Mysql 一样
     flushdb  删除当前库
-    flushadd 删除所有库
+    flushall 删除所有库
     redis 索引都是从零开始
 
    
