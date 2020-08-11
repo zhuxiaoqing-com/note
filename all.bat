@@ -6,3 +6,4 @@ call note.bat
 cd ../
 call tools.bat
 cd ../
+pause
